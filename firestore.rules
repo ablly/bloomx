@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Users Collection ───────────────────────────────────────
+    // Users can read their own profile. Only server/admin can write credits.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && !request.resource.data.keys().hasAny(['credits_balance', 'role']);
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny(['credits_balance', 'role', 'uid']);
+    }
+
+    // ─── API Keys (subcollection of users) ──────────────────────
+    match /users/{userId}/api_keys/{keyId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['is_active', 'last_used']);
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ─── Transactions (read-only for owner, write by server only) ─
+    match /users/{userId}/transactions/{txId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // Only Cloud Functions / Admin SDK
+    }
+
+    // ─── Seller Applications ────────────────────────────────────
+    match /seller_applications/{appId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if false; // Admin only
+    }
+
+    // ─── Deny everything else ───────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

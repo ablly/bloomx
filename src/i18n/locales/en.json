@@ -1,0 +1,259 @@
+{
+  "nav": {
+    "menu": "Menu",
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs"
+  },
+  "hero": {
+    "title": "Turn idle AI capacity into",
+    "titleHighlight": "liquid infrastructure.",
+    "subtitle": "BloomX aggregates verified global API supply into a unified, high-availability routing engine.",
+    "ctaPrimary": "Start with BloomX API",
+    "ctaSecondary": "Apply as a Verified Supplier",
+    "feature1": "Intelligent Routing",
+    "feature2": "Credit Settlement",
+    "feature3": "Verified Supply"
+  },
+  "features": {
+    "title": "Why Choose BloomX",
+    "subtitle": "A unified platform for AI infrastructure trading",
+    "routing": {
+      "title": "Intelligent Routing",
+      "description": "Automatically route to the lowest latency and most cost-effective provider"
+    },
+    "credits": {
+      "title": "Unified Credits",
+      "description": "One balance for all AI models, no need to manage multiple accounts"
+    },
+    "verified": {
+      "title": "Verified Supply",
+      "description": "All suppliers are KYC verified with guaranteed capacity and uptime"
+    },
+    "compatible": {
+      "title": "OpenAI Compatible",
+      "description": "Drop-in replacement for OpenAI API, works with existing SDKs"
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Three simple steps to get started",
+    "step1": {
+      "title": "Sign Up & Get API Key",
+      "description": "Create your account and generate your BloomX API key in seconds"
+    },
+    "step2": {
+      "title": "Add Credits",
+      "description": "Top up your account with credits using Stripe payment"
+    },
+    "step3": {
+      "title": "Start Building",
+      "description": "Use our OpenAI-compatible API to access multiple AI models"
+    }
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Pay only for what you use, no hidden fees",
+    "perMillion": "per 1M tokens",
+    "input": "Input",
+    "output": "Output",
+    "getStarted": "Get Started",
+    "mostPopular": "Most Popular",
+    "perTopUp": "/ top-up",
+    "starter": {
+      "name": "Starter",
+      "desc": "For individuals and prototyping",
+      "price": "$10",
+      "credits": "1,000 Platform Credits",
+      "feature1": "Standard Global Routing",
+      "feature2": "Email Support",
+      "feature3": "API Documentation"
+    },
+    "scale": {
+      "name": "Scale",
+      "desc": "For production applications",
+      "price": "$100",
+      "credits": "12,000 Platform Credits",
+      "bonus": "20% Bonus",
+      "feature1": "Priority Lowest-Latency Routing",
+      "feature2": "Custom Rate Limits",
+      "feature3": "24/7 Priority Support",
+      "feature4": "Advanced Analytics"
+    }
+  },
+  "models": {
+    "title": "Frontier models.",
+    "subtitle": "Call any major AI model using standard OpenAI-compatible endpoints.",
+    "tableHeaders": {
+      "model": "Model",
+      "provider": "Provider",
+      "input": "Input",
+      "output": "Output",
+      "status": "Status"
+    },
+    "statusOptimal": "Optimal",
+    "statusHighTraffic": "High Traffic"
+  },
+  "testimonials": {
+    "title": "Trusted by builders.",
+    "quote1": "BloomX cut our API costs by 40% while improving our P99 latency. The routing engine is genuinely impressive.",
+    "quote2": "We switched from managing 5 different API providers to a single BloomX endpoint. Best infrastructure decision we made.",
+    "quote3": "The verified supply marketplace means we never worry about key quality or rate limits. It just works."
+  },
+  "cta": {
+    "title": "Ready to build with liquid infrastructure?",
+    "subtitle": "Join hundreds of developers who trust BloomX to power their AI applications with verified, high-availability routing.",
+    "primaryButton": "Start Building for Free",
+    "secondaryButton": "View Pricing"
+  },
+  "seller": {
+    "title": "Join the",
+    "titleHighlight": "Network",
+    "subtitle": "Apply to become a verified BloomX supplier and turn your idle API capacity into structured yield.",
+    "form": {
+      "entityName": "Entity Name",
+      "entityNamePlaceholder": "Company or Individual Name",
+      "email": "Work Email",
+      "emailPlaceholder": "hello@company.com",
+      "provider": "Primary Provider",
+      "providerOpenAI": "OpenAI (Tier 4/5)",
+      "providerAnthropic": "Anthropic (Commercial)",
+      "providerGoogle": "Google Gemini",
+      "providerMixed": "Mixed/Proxy Router",
+      "capacity": "Est. Monthly Capacity ($)",
+      "capacityPlaceholder": "e.g. 5000",
+      "submit": "Submit Application",
+      "submitting": "Validating Input & Requesting...",
+      "success": "Application Received",
+      "successMessage": "We will review your upstream capacity limits and KYC details. An invite code will be sent to {email} within 48 hours.",
+      "submitAnother": "Submit Another",
+      "terms": "By applying, you agree to BloomX Infrastructure Terms. KYC verification required."
+    }
+  },
+  "dashboard": {
+    "nav": {
+      "overview": "Overview",
+      "keys": "API Keys",
+      "usage": "Usage",
+      "billing": "Billing",
+      "settings": "Settings",
+      "signOut": "Sign Out"
+    },
+    "header": {
+      "credits": "Available Credits",
+      "addFunds": "Add Funds"
+    },
+    "overview": {
+      "totalRequests": "Total Requests (30d)",
+      "avgLatency": "Avg Latency",
+      "errorRate": "Error Rate",
+      "fromLastMonth": "from last month",
+      "p99": "P99 across all regions",
+      "optimalHealth": "Optimal Health",
+      "quickIntegration": "Quick Integration",
+      "integrationDesc": "BloomX is fully compatible with OpenAI SDKs. Just change the base URL and pass your BloomX key."
+    },
+    "keys": {
+      "title": "API Keys",
+      "description": "Manage your secret API keys to authenticate requests to BloomX.",
+      "createNew": "Create new secret key",
+      "creating": "Creating...",
+      "noKeys": "No API Keys Yet",
+      "noKeysDesc": "Create your first API key to start using BloomX.",
+      "createFirst": "Create API Key",
+      "successTitle": "API Key Created Successfully",
+      "successDesc": "Please save this key somewhere safe. For security reasons, you won't be able to view it again.",
+      "tableHeaders": {
+        "name": "Name",
+        "key": "Secret Key",
+        "created": "Created",
+        "lastUsed": "Last Used",
+        "actions": "Actions"
+      },
+      "productionKey": "Production Key",
+      "inactiveKey": "Inactive Key",
+      "never": "Never",
+      "justNow": "Just now",
+      "warning": "Never share your keys",
+      "warningDesc": "Your secret keys carry the same privileges as your account. Do not commit them to GitHub, public repositories, or client-side code."
+    },
+    "billing": {
+      "currentBalance": "Current Invoice Balance",
+      "equivalentCredits": "Equivalent to {amount} Platform Credits",
+      "autoRecharge": "Auto-recharge",
+      "autoRechargeDesc": "When balance falls below $50.00",
+      "topUp": "Top up Credits",
+      "customAmount": "Or enter custom amount ($)",
+      "customAmountPlaceholder": "Enter amount (min $10)",
+      "securePayment": "Payments are securely processed by Stripe",
+      "checkout": "Proceed to Checkout",
+      "paymentHistory": "Payment History",
+      "noTransactions": "No recent transactions found."
+    },
+    "settings": {
+      "organizationDetails": "Organization Details",
+      "organizationDesc": "Manage your company workspace settings.",
+      "email": "Email",
+      "userId": "User ID",
+      "accountType": "Account Type",
+      "teamMembers": "Team Members",
+      "teamMembersDesc": "Invite colleagues to access API keys and billing.",
+      "inviteUser": "Invite User",
+      "you": "(You)",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "Irreversible actions for your workspace.",
+      "deleteWorkspace": "Delete Workspace",
+      "deleteWorkspaceDesc": "Permanently delete your workspace, all API keys, and flush your remaining credits. This cannot be undone."
+    }
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signInWithGoogle": "Sign in with Google",
+    "signInAnonymously": "Try Anonymously",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "signInButton": "Sign In",
+    "signUpButton": "Sign Up",
+    "or": "or"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Documentation",
+    "apiReference": "API Reference",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "contact": "Contact",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "security": "Security",
+    "allRightsReserved": "All rights reserved."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import"
+  }
+}
