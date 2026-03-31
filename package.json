@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && npm run copy-cf-files",
-    "copy-cf-files": "copy _headers dist\\ && copy _redirects dist\\",
+    "copy-cf-files": "node -e \"require('fs').copyFileSync('_headers','dist/_headers');require('fs').copyFileSync('_redirects','dist/_redirects')\"",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
