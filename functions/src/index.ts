@@ -3,6 +3,7 @@ import {createHash} from 'crypto';
 import * as functions from 'firebase-functions';
 import {defineSecret} from 'firebase-functions/params';
 import * as nodemailer from 'nodemailer';
+import {callMerchantChat, type MerchantApiTestPayload} from './platformProxy';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -162,6 +163,45 @@ export const verifyEmailCode = functions
   await codeDoc.ref.delete();
 
   return { success: true };
+  });
+
+export const testMerchantApi = functions
+  .runWith({invoker: 'public'})
+  .https.onCall(async (data: MerchantApiTestPayload, context) => {
+    if (!context.auth?.uid) {
+      throw new functions.https.HttpsError('unauthenticated', 'Please sign in before testing merchant API');
+    }
+
+    const result = await callMerchantChat(data);
+    await firestore.collection('merchantApiTestLogs').add({
+      ownerId: context.auth.uid,
+      modelName: String(data.modelName || ''),
+      endpoint: result.endpoint,
+      ok: result.ok,
+      merchantStatus: result.status,
+      latencyMs: result.latencyMs,
+      responsePreview: result.text.slice(0, 1000),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    if (!result.ok) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        `Merchant API test failed with HTTP ${result.status}`,
+        {
+          merchantStatus: result.status,
+          latencyMs: result.latencyMs,
+          responsePreview: result.text.slice(0, 1000),
+        }
+      );
+    }
+
+    return {
+      success: true,
+      merchantStatus: result.status,
+      latencyMs: result.latencyMs,
+      responsePreview: result.text.slice(0, 1000),
+    };
   });
 
 export const cleanupExpiredCodes = functions.pubsub.schedule('every 1 hours').onRun(async () => {

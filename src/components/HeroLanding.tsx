@@ -12,7 +12,7 @@ interface HeroLandingProps {
 }
 
 const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { currentUser, userProfile, logout } = useAuth();
     const navigate = useNavigate();
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -34,6 +34,20 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         navigate('/dashboard');
         setShowUserMenu(false);
     };
+
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        const top = element.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    };
+
+    const roleLabel = (role?: string) => {
+        const zh = i18n.language?.startsWith('zh');
+        if (role === 'admin') return zh ? '管理员' : 'Admin';
+        if (role === 'seller') return zh ? '商家' : 'Merchant';
+        return zh ? '用户' : 'User';
+    };
     
     return (
         <>
@@ -49,10 +63,10 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                         </div>
 
                         <div className="hidden md:flex items-center gap-8 text-sm">
-                            <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.features')}</button>
-                            <button onClick={() => document.getElementById('models')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">Models</button>
-                            <Link to="/marketplace" className="text-white/70 hover:text-white transition-colors duration-300">Marketplace</Link>
-                            <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.pricing')}</button>
+                            <button onClick={() => scrollToSection('features')} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.features')}</button>
+                            <button onClick={() => scrollToSection('models')} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.models')}</button>
+                            <Link to="/marketplace" className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.marketplace')}</Link>
+                            <button onClick={() => scrollToSection('pricing')} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.pricing')}</button>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -83,7 +97,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                                                 <div className="p-3 border-b border-white/10">
                                                     <div className="text-sm text-white font-medium truncate">{currentUser.email}</div>
                                                     <div className="text-xs text-white/50 mt-1">
-                                                        {userProfile?.role === 'admin' ? '管理员' : userProfile?.role === 'seller' ? '卖家' : '买家'}
+                                                        {roleLabel(userProfile?.role)}
                                                     </div>
                                                     {userProfile?.credits !== undefined && (
                                                         <div className="text-xs text-violet-400 mt-1 flex items-center gap-1">
@@ -98,21 +112,21 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
                                                     >
                                                         <User size={16} />
-                                                        个人中心
+                                                        {i18n.language?.startsWith('zh') ? '个人中心' : 'Account center'}
                                                     </button>
                                                     <button
                                                         onClick={() => { navigate('/dashboard'); setShowUserMenu(false); }}
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
                                                     >
                                                         <Settings size={16} />
-                                                        设置
+                                                        {t('dashboard.nav.settings')}
                                                     </button>
                                                     <button
                                                         onClick={handleLogout}
                                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                                                     >
                                                         <LogOut size={16} />
-                                                        退出登录
+                                                        {t('dashboard.nav.signOut')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -142,7 +156,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                             <Sparkles size={14} className="text-white/60" />
                             <span className="text-sm text-white/70">
                                 <ShimmerText duration={3000}>
-                                    Introducing BloomX Infrastructure
+                                    {i18n.language?.startsWith('zh') ? 'BloomX 模型 API 交易市场' : 'BloomX Model API Marketplace'}
                                 </ShimmerText>
                             </span>
                         </div>
@@ -182,7 +196,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                             </button>
 
                             <button
-                                onClick={() => document.getElementById('models')?.scrollIntoView({ behavior: 'smooth' })}
+                                onClick={() => scrollToSection('models')}
                                 className="px-8 py-4 rounded-full glass-apple text-white text-base font-medium hover:bg-white/5 transition-all duration-400 btn-apple"
                             >
                                 {t('hero.ctaSecondary')}
@@ -197,19 +211,19 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                                 <div className="text-4xl font-semibold text-white mb-2">
                                     <NumberTicker value={247} duration={2000} />
                                 </div>
-                                <div className="text-sm text-white/40">Active Nodes</div>
+                                <div className="text-sm text-white/40">{i18n.language?.startsWith('zh') ? '在售节点' : 'Listed nodes'}</div>
                             </div>
                             <div className="text-center">
                                 <div className="text-4xl font-semibold text-white mb-2">
                                     <NumberTicker value={99.9} suffix="%" duration={2000} />
                                 </div>
-                                <div className="text-sm text-white/40">Uptime</div>
+                                <div className="text-sm text-white/40">{i18n.language?.startsWith('zh') ? '测试通过率' : 'Test pass rate'}</div>
                             </div>
                             <div className="text-center">
                                 <div className="text-4xl font-semibold text-white mb-2">
                                     <NumberTicker value={124} suffix="ms" duration={2000} />
                                 </div>
-                                <div className="text-sm text-white/40">Response Time</div>
+                                <div className="text-sm text-white/40">{i18n.language?.startsWith('zh') ? '中位延迟' : 'Median latency'}</div>
                             </div>
                         </div>
                     </FadeIn>

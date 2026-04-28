@@ -20,6 +20,62 @@ if (!admin.apps.length) {
 
 const firestore = admin.firestore();
 
+const normalizeChatEndpoint = (endpoint: string) => {
+  const trimmed = endpoint.trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  if (/\/chat\/completions$/i.test(trimmed)) return trimmed;
+  if (/\/v1$/i.test(trimmed)) return `${trimmed}/chat/completions`;
+  return `${trimmed}/v1/chat/completions`;
+};
+
+const merchantHeaders = (authHeader: string, apiKey: string) => ({
+  'Content-Type': 'application/json',
+  [authHeader]: authHeader.toLowerCase() === 'authorization' && !/^Bearer\s+/i.test(apiKey)
+    ? `Bearer ${apiKey}`
+    : apiKey,
+});
+
+export type MerchantApiTestPayload = {
+  endpoint?: string;
+  authHeader?: string;
+  apiKey?: string;
+  modelName?: string;
+  prompt?: string;
+};
+
+export const callMerchantChat = async (payload: MerchantApiTestPayload) => {
+  const endpoint = normalizeChatEndpoint(String(payload.endpoint || ''));
+  const authHeader = String(payload.authHeader || 'Authorization').trim() || 'Authorization';
+  const apiKey = String(payload.apiKey || '').trim();
+  const modelName = String(payload.modelName || '').trim();
+  const prompt = String(payload.prompt || 'Reply with exactly: BloomX API test passed.').trim();
+
+  if (!endpoint || !apiKey || !modelName) {
+    throw new Error('missing_merchant_api_config');
+  }
+
+  const startedAt = Date.now();
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: merchantHeaders(authHeader, apiKey),
+    body: JSON.stringify({
+      model: modelName,
+      messages: [{role: 'user', content: prompt}],
+      max_tokens: 64,
+      temperature: 0,
+    }),
+  });
+  const text = await response.text();
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    latencyMs: Date.now() - startedAt,
+    text,
+    endpoint,
+  };
+};
+
 const sendJson = (response: any, status: number, body: unknown) => {
   response.set('Access-Control-Allow-Origin', '*');
   response.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -129,21 +185,21 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
 
   try {
     const authHeader = String(secret.authHeader || 'Authorization');
-    const merchantResponse = await fetch(String(secret.endpoint), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        [authHeader]: authHeader.toLowerCase() === 'authorization' ? `Bearer ${secret.apiKey}` : String(secret.apiKey),
-      },
-      body: JSON.stringify({ model: modelName, prompt, input }),
+    const merchantResponse = await callMerchantChat({
+      endpoint: String(secret.endpoint),
+      authHeader,
+      apiKey: String(secret.apiKey),
+      modelName,
+      prompt: String(prompt || input),
     });
-    const text = await merchantResponse.text();
+    const text = merchantResponse.text;
 
     const updates: Promise<unknown>[] = [
       callRef.update({
         status: merchantResponse.ok ? 'completed' : 'failed',
         responsePreview: text.slice(0, 1200),
         merchantStatus: merchantResponse.status,
+        latencyMs: merchantResponse.latencyMs,
         completedAt: admin.firestore.FieldValue.serverTimestamp(),
       }),
     ];

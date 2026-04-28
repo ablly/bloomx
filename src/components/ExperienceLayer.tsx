@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 const chapterFallback = ['入口', '发现', '决策', '交易'];
 
 const routeChapterLabels: Record<string, string[]> = {
-  '/': ['01 愿景', '02 供给', '03 路由', '04 接入'],
+  '/': ['01 愿景', '02 供给', '03 订阅', '04 接入'],
   '/marketplace': ['01 搜索', '02 筛选', '03 模型', '04 调用'],
   '/pricing': ['01 方案', '02 用量', '03 结算', '04 开始'],
 };
@@ -55,13 +55,6 @@ export default function ExperienceLayer() {
       const ratio = Math.min(1, Math.max(0, window.scrollY / max));
       documentElement.style.setProperty('--taste-progress', ratio.toFixed(4));
 
-      document.querySelectorAll<HTMLElement>('.taste-depth').forEach((node, index) => {
-        const rect = node.getBoundingClientRect();
-        const local = (window.innerHeight * 0.5 - rect.top) / window.innerHeight;
-        const offset = Math.max(-16, Math.min(24, local * (10 + index)));
-        node.style.setProperty('--taste-depth-offset', `${offset}px`);
-      });
-
       let active = 0;
       state.sections.forEach((section, index) => {
         const rect = section.getBoundingClientRect();
@@ -85,19 +78,13 @@ export default function ExperienceLayer() {
         .filter((node) => node.offsetHeight > 48)
         .slice(0, 24);
 
-      candidates.forEach((node, index) => {
-        node.classList.add('taste-reveal');
-        if (index < 8) node.classList.add('taste-depth');
-      });
+      candidates.forEach((node) => node.classList.add('taste-reveal'));
 
       const headings = Array.from(root.querySelectorAll<HTMLElement>('h1, h2, [data-screen-label]'))
         .filter((node) => node.textContent && node.offsetHeight > 0)
         .slice(0, 4);
 
-      state.sections = headings.length
-        ? headings
-        : candidates.filter((_, index) => index % 3 === 0).slice(0, 4);
-
+      state.sections = headings.length ? headings : candidates.filter((_, index) => index % 3 === 0).slice(0, 4);
       if (!state.sections.length) state.sections = [root];
 
       rail.replaceChildren(
@@ -120,7 +107,6 @@ export default function ExperienceLayer() {
           },
           { threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
         );
-
         candidates.forEach((node) => state.revealObserver?.observe(node));
       } else {
         candidates.forEach((node) => node.classList.add('is-visible'));

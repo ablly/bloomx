@@ -6,10 +6,12 @@ const ModelCatalog = () => {
     const { t } = useTranslation();
     
     const models = [
-        { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI', input: '$0.005', output: '$0.015', status: 'Optimal' },
-        { id: 'claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic', input: '$0.015', output: '$0.075', status: 'Optimal' },
-        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google', input: '$0.003', output: '$0.010', status: 'High Traffic' },
-        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI', input: '$0.010', output: '$0.030', status: 'Optimal' },
+        { id: 'gpt-5.1', provider: 'OpenAI', input: '$1.25 / 1M', output: '$10.00 / 1M', status: 'Optimal' },
+        { id: 'claude-sonnet-4.5', provider: 'Anthropic', input: '$3.00 / 1M', output: '$15.00 / 1M', status: 'Optimal' },
+        { id: 'claude-haiku-4.5', provider: 'Anthropic', input: '$1.00 / 1M', output: '$5.00 / 1M', status: 'High Traffic' },
+        { id: 'gemini-2.5-pro', provider: 'Google', input: '$1.25 / 1M', output: '$10.00 / 1M', status: 'Optimal' },
+        { id: 'gemini-2.5-flash-lite', provider: 'Google', input: '$0.10 / 1M', output: '$0.40 / 1M', status: 'High Traffic' },
+        { id: 'deepseek-chat / deepseek-reasoner', provider: 'DeepSeek', input: '$0.028+ / 1M', output: 'market', status: 'High Traffic' },
     ];
 
     return (

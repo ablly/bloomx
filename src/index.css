@@ -266,17 +266,33 @@ body.taste-enhanced [role="button"] {
 body.taste-enhanced input,
 body.taste-enhanced select,
 body.taste-enhanced textarea {
-  border: 1px solid rgba(33, 31, 27, 0.14);
-  background-color: rgba(255, 252, 246, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(183, 255, 225, 0.22);
+  background-color: rgba(6, 18, 18, 0.78);
+  color: rgba(247, 255, 249, 0.96);
+  caret-color: #b7ffe1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+}
+
+body.taste-enhanced input::placeholder,
+body.taste-enhanced textarea::placeholder {
+  color: rgba(247, 255, 249, 0.48);
 }
 
 body.taste-enhanced input:focus,
 body.taste-enhanced select:focus,
 body.taste-enhanced textarea:focus {
-  outline: 3px solid rgba(215, 111, 55, 0.18);
-  border-color: rgba(215, 111, 55, 0.44);
+  outline: 3px solid rgba(183, 255, 225, 0.16);
+  border-color: rgba(183, 255, 225, 0.48);
+}
+
+body.taste-enhanced input:-webkit-autofill,
+body.taste-enhanced textarea:-webkit-autofill,
+body.taste-enhanced select:-webkit-autofill {
+  -webkit-text-fill-color: #f7fff9;
+  caret-color: #b7ffe1;
+  box-shadow: 0 0 0 1000px rgba(6, 18, 18, 0.92) inset;
+  transition: background-color 9999s ease-out;
 }
 
 body.taste-enhanced img {
@@ -302,10 +318,10 @@ body.taste-enhanced[data-story-route="marketplace"] form {
 body.taste-enhanced[data-story-route="marketplace"] input,
 body.taste-enhanced[data-story-route="marketplace"] select {
   min-height: 56px;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(247, 255, 249, 0.96);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
-    rgba(5, 18, 24, 0.34);
+    linear-gradient(135deg, rgba(183, 255, 225, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(5, 18, 24, 0.84);
   border-color: rgba(167, 243, 208, 0.18);
 }
 
