@@ -47,3 +47,4 @@ worktrees
 .codex/
 .playwright-mcp/
 .kiro/settings/
+.cloudflare-pages-deploy/

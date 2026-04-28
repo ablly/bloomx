@@ -12,7 +12,7 @@
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
-    "deploy:cloudflare": "npm run build && wrangler pages deploy dist --project-name=bloomx",
+    "deploy:cloudflare": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-cloudflare-pages.ps1",
     "db": "tsx scripts/db-manager.ts",
     "db:stats": "tsx scripts/db-manager.ts stats",
     "db:list": "tsx scripts/db-manager.ts list",
