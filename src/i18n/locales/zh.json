@@ -9,24 +9,24 @@
   },
   "hero": {
     "title": "让闲置 AI API 能力",
-    "titleHighlight": "进入可交易市场",
-    "subtitle": "BloomX 是面向商家和开发者的模型 API 交易平台：商家上架经过测试的模型接口，用户用积分订阅并调用。",
+    "titleHighlight": "进入可交易市场。",
+    "subtitle": "BloomX 是面向商家和开发者的模型 API 交易平台：商家上架经过测试的模型接口，用户用积分订阅并调用合适的商家模型。",
     "ctaPrimary": "进入 BloomX 控制台",
-    "ctaSecondary": "查看模型供应",
+    "ctaSecondary": "查看模型供给",
     "feature1": "商家上架",
     "feature2": "积分订阅",
     "feature3": "调用结算"
   },
   "features": {
     "title": "为什么选择 BloomX",
-    "subtitle": "把分散的模型 API 供应、订阅、调用和结算统一到一个平台",
+    "subtitle": "把分散的模型 API 供给、订阅、调用和结算统一到一个平台。",
     "routing": {
       "title": "上架前测试",
-      "description": "商家提交模型名称、Base URL 和 API Key 后，平台先真实测试，失败不得上架。"
+      "description": "商家提交模型名称、Base URL 和 API Key 后，平台先进行真实连通性测试，失败不得上架。"
     },
     "credits": {
       "title": "统一积分",
-      "description": "用户购买或订阅套餐获得积分，再按模型和商家价格消耗。"
+      "description": "用户购买或订阅套餐获得积分，再按模型、商家和价格消耗。"
     },
     "verified": {
       "title": "商家结算",
@@ -39,7 +39,7 @@
   },
   "howItWorks": {
     "title": "工作流程",
-    "subtitle": "商家供给、用户订阅、平台结算三条线闭环",
+    "subtitle": "商家供给、用户订阅、平台结算三条线闭环。",
     "step1": {
       "title": "商家提交 API",
       "description": "填写模型名称、URL、Key、价格和说明，平台先进行连通性测试。"
@@ -68,7 +68,7 @@
       "price": "$10",
       "credits": "1,000 平台积分",
       "feature1": "市场模型订阅",
-      "feature2": "邮箱支持",
+      "feature2": "邮件支持",
       "feature3": "调用失败退款"
     },
     "scale": {
@@ -84,8 +84,8 @@
     }
   },
   "models": {
-    "title": "主流模型供应",
-    "subtitle": "展示平台可接入的主流模型方向。真实可售模型以商家测试通过后的 Firebase 市场数据为准。",
+    "title": "主流模型供给",
+    "subtitle": "这里展示平台可接入的主流模型方向。真实可售模型以商家测试通过后的 Firebase 市场数据为准。",
     "tableHeaders": {
       "model": "模型",
       "provider": "供应商",
@@ -195,7 +195,7 @@
     },
     "settings": {
       "organizationDetails": "账户资料",
-      "organizationDesc": "管理当前账号和工作区信息。",
+      "organizationDesc": "管理当前账户和工作区信息。",
       "email": "邮箱",
       "userId": "用户 ID",
       "accountType": "账户类型",

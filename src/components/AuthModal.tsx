@@ -14,11 +14,11 @@ const authCopy = {
     resetTitle: '重置密码',
     resetSubtitle: '输入邮箱地址，我们会发送重置链接。',
     loginSubtitle: '登录后进入 BloomX 控制台，管理积分、订阅和商家 API。',
-    registerSubtitle: '注册后获得 100 积分，并可通过邮箱验证码启用账号。',
+    registerSubtitle: '注册后获得 100 积分，并通过邮箱验证码启用账号。',
     enterEmail: '请先输入邮箱',
     invalidEmail: '邮箱格式不正确',
     codeSent: '验证码已发送到你的邮箱，有效期 10 分钟。',
-    codeSentInline: '验证码已发送，请检查邮箱收件箱和垃圾邮件。',
+    codeSentInline: '验证码已发送，请检查收件箱和垃圾邮件。',
     sendFailed: '验证码发送失败，请稍后重试',
     resetSent: '密码重置邮件已发送，请检查邮箱。',
     success: '登录成功',
@@ -26,6 +26,10 @@ const authCopy = {
     verificationCode: '验证码',
     sendCode: '发送验证码',
     passwordPlaceholder: '至少 6 位密码',
+    togglePassword: '切换密码可见性',
+    genericError: '操作失败，请稍后重试',
+    googleFailed: 'Google 登录失败',
+    anonymousFailed: '匿名登录失败',
   },
   en: {
     resetTitle: 'Reset Password',
@@ -43,8 +47,15 @@ const authCopy = {
     verificationCode: 'Verification code',
     sendCode: 'Send code',
     passwordPlaceholder: 'At least 6 characters',
+    togglePassword: 'Toggle password visibility',
+    genericError: 'Operation failed. Please try again.',
+    googleFailed: 'Google sign-in failed',
+    anonymousFailed: 'Anonymous sign-in failed',
   },
 };
+
+const inputClassName =
+  'w-full rounded-xl bg-[#071514]/92 border border-emerald-200/25 text-white placeholder:text-white/36 caret-emerald-200 focus:outline-none focus:border-emerald-200/65 focus:ring-2 focus:ring-emerald-200/15 text-sm transition shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const { login, register, loginWithGoogle, loginAnonymously, resetPassword } = useAuth();
@@ -146,7 +157,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         setError(language === 'zh' ? result.error.messageZh : result.error.message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : c.genericError);
     } finally {
       setLoading(false);
     }
@@ -164,7 +175,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         setError(language === 'zh' ? result.error.messageZh : result.error.message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign-in failed');
+      setError(err instanceof Error ? err.message : c.googleFailed);
     } finally {
       setLoading(false);
     }
@@ -182,7 +193,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         setError(language === 'zh' ? result.error.messageZh : result.error.message);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Anonymous sign-in failed');
+      setError(err instanceof Error ? err.message : c.anonymousFailed);
     } finally {
       setLoading(false);
     }
@@ -193,87 +204,87 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-md mx-4 bg-gradient-to-b from-[#07100f] to-[#111118] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-60 h-40 bg-emerald-400/16 rounded-full blur-3xl pointer-events-none" />
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white transition z-10" aria-label={t('common.close')}>
+      <div className="absolute inset-0 bg-[#050808]/82 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-md mx-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#07100f] to-[#111118] shadow-2xl">
+        <div className="absolute -top-20 left-1/2 h-40 w-60 -translate-x-1/2 rounded-full bg-emerald-400/16 blur-3xl pointer-events-none" />
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 text-white/50 hover:text-white transition" aria-label={t('common.close')}>
           <X size={20} />
         </button>
 
         <div className="relative p-8">
-          <div className="text-center mb-8">
+          <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-white">{title}</h2>
-            <p className="text-white/55 text-sm mt-2">{subtitle}</p>
+            <p className="mt-2 text-sm text-white/58">{subtitle}</p>
           </div>
 
           {mode !== 'reset' && (
             <>
-              <div className="space-y-3 mb-6">
-                <button onClick={handleGoogle} disabled={loading} className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/6 border border-white/12 text-white/85 hover:bg-white/10 transition text-sm font-medium disabled:opacity-50">
+              <div className="mb-6 space-y-3">
+                <button onClick={handleGoogle} disabled={loading} className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/12 bg-white/6 px-4 py-3 text-sm font-medium text-white/85 transition hover:bg-white/10 disabled:opacity-50">
                   <Globe size={18} />
                   {t('auth.signInWithGoogle')}
                 </button>
-                <button onClick={handleAnon} disabled={loading} className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white/6 border border-white/12 text-white/85 hover:bg-white/10 transition text-sm font-medium disabled:opacity-50">
+                <button onClick={handleAnon} disabled={loading} className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/12 bg-white/6 px-4 py-3 text-sm font-medium text-white/85 transition hover:bg-white/10 disabled:opacity-50">
                   <Ghost size={18} />
                   {t('auth.signInAnonymously')}
                 </button>
               </div>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-white/35 text-xs uppercase tracking-widest">{t('auth.or')}</span>
-                <div className="flex-1 h-px bg-white/10" />
+              <div className="mb-6 flex items-center gap-4">
+                <div className="h-px flex-1 bg-white/10" />
+                <span className="text-xs uppercase tracking-widest text-white/35">{t('auth.or')}</span>
+                <div className="h-px flex-1 bg-white/10" />
               </div>
             </>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-white/60 mb-1.5 uppercase tracking-wider">{t('auth.email')}</label>
+              <label className="mb-1.5 block text-xs uppercase tracking-wider text-white/62">{t('auth.email')}</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="you@company.com" className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#071514]/90 border border-emerald-200/20 text-white placeholder:text-white/35 caret-emerald-200 focus:outline-none focus:border-emerald-200/60 focus:ring-2 focus:ring-emerald-200/15 text-sm transition" />
+                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="you@company.com" className={`${inputClassName} py-3 pl-10 pr-4`} />
               </div>
             </div>
 
             {mode === 'register' && (
               <div>
-                <label className="block text-xs text-white/60 mb-1.5 uppercase tracking-wider">{c.verificationCode}</label>
+                <label className="mb-1.5 block text-xs uppercase tracking-wider text-white/62">{c.verificationCode}</label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
-                    <input type="text" value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} required maxLength={6} placeholder="123456" className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#071514]/90 border border-emerald-200/20 text-white placeholder:text-white/35 caret-emerald-200 focus:outline-none focus:border-emerald-200/60 focus:ring-2 focus:ring-emerald-200/15 text-sm transition" />
+                    <input type="text" value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} required maxLength={6} placeholder="123456" className={`${inputClassName} py-3 pl-10 pr-4`} />
                   </div>
-                  <button type="button" onClick={handleSendCode} disabled={sendingCode || countdown > 0} className="px-4 py-3 rounded-xl bg-white/6 border border-white/12 text-white/85 hover:bg-white/10 transition text-xs font-medium disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5">
+                  <button type="button" onClick={handleSendCode} disabled={sendingCode || countdown > 0} className="flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-white/12 bg-white/6 px-4 py-3 text-xs font-medium text-white/85 transition hover:bg-white/10 disabled:opacity-50">
                     {sendingCode ? <Loader2 size={14} className="animate-spin" /> : countdown > 0 ? <><Clock size={14} />{countdown}s</> : c.sendCode}
                   </button>
                 </div>
-                {codeSent && !success && <p className="text-xs text-emerald-300 mt-1.5">{c.codeSentInline}</p>}
+                {codeSent && !success && <p className="mt-1.5 text-xs text-emerald-300">{c.codeSentInline}</p>}
               </div>
             )}
 
             {mode !== 'reset' && (
               <div>
-                <label className="block text-xs text-white/60 mb-1.5 uppercase tracking-wider">{t('auth.password')}</label>
+                <label className="mb-1.5 block text-xs uppercase tracking-wider text-white/62">{t('auth.password')}</label>
                 <div className="relative">
-                  <input type={showPw ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} placeholder={c.passwordPlaceholder} className="w-full pl-4 pr-10 py-3 rounded-xl bg-[#071514]/90 border border-emerald-200/20 text-white placeholder:text-white/35 caret-emerald-200 focus:outline-none focus:border-emerald-200/60 focus:ring-2 focus:ring-emerald-200/15 text-sm transition" />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/45 hover:text-white transition" aria-label="toggle password visibility">
+                  <input type={showPw ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} placeholder={c.passwordPlaceholder} className={`${inputClassName} py-3 pl-4 pr-10`} />
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/45 transition hover:text-white" aria-label={c.togglePassword}>
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
             )}
 
-            {error && <div className="text-red-300 text-xs bg-red-500/10 border border-red-500/25 rounded-lg p-3">{error}</div>}
-            {success && <div className="text-emerald-300 text-xs bg-emerald-500/10 border border-emerald-500/25 rounded-lg p-3">{success}</div>}
+            {error && <div className="rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-300">{error}</div>}
+            {success && <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-3 text-xs text-emerald-300">{success}</div>}
 
-            <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-white/90 transition disabled:opacity-50">
+            <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#07100f] transition hover:bg-white/90 disabled:opacity-50">
               {loading ? <Loader2 size={18} className="animate-spin" /> : <>{mode === 'login' ? t('auth.signInButton') : t('auth.signUpButton')}<ArrowRight size={16} /></>}
             </button>
           </form>
 
-          <p className="text-center text-white/45 text-sm mt-6">
+          <p className="mt-6 text-center text-sm text-white/45">
             {mode === 'login' ? t('auth.dontHaveAccount') : t('auth.alreadyHaveAccount')}{' '}
-            <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }} className="text-emerald-300 hover:text-emerald-200 font-medium transition">
+            <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }} className="font-medium text-emerald-300 transition hover:text-emerald-200">
               {mode === 'login' ? t('auth.signUp') : t('auth.signIn')}
             </button>
           </p>

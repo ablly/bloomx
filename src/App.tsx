@@ -93,8 +93,9 @@ function App() {
                 {/* Dot pattern overlay */}
                 <DotPattern className="opacity-20" spacing={30} dotSize={1.5} fade={true} />
 
-                <Suspense fallback={<RouteFallback />}>
-                    <Routes>
+                <div className="relative z-10">
+                    <Suspense fallback={<RouteFallback />}>
+                        <Routes>
                         {/* Landing Page */}
                         <Route path="/" element={<LandingPage />} />
 
@@ -159,8 +160,9 @@ function App() {
 
                         {/* 404 */}
                         <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </Suspense>
+                        </Routes>
+                    </Suspense>
+                </div>
             </div>
         </BrowserRouter>
     );

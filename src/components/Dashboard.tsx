@@ -92,18 +92,18 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   ];
 
   return (
-    <div className="relative min-h-screen bg-black font-sans text-white flex">
-      <aside className="w-64 border-r border-white/10 bg-black/70 p-6 flex flex-col justify-between">
+    <div className="relative flex min-h-screen bg-[#070b0d] font-sans text-white">
+      <aside className="flex w-64 flex-col justify-between border-r border-white/10 bg-[#070b0d]/78 p-6 backdrop-blur-xl">
         <div>
-          <Link to="/" className="flex items-center gap-2 mb-12">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-black font-bold">B</div>
-            <span className="font-semibold text-xl tracking-tight">BloomX</span>
+          <Link to="/" className="mb-12 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white font-bold text-[#070b0d]">B</div>
+            <span className="text-xl font-semibold tracking-tight">BloomX</span>
           </Link>
           <nav className="space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
-                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === item.id ? 'bg-white/12 text-white' : 'text-white/55 hover:bg-white/6 hover:text-white'}`}>
+                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeTab === item.id ? 'bg-white/12 text-white' : 'text-white/58 hover:bg-white/6 hover:text-white'}`}>
                   <Icon size={18} />
                   {item.label}
                 </button>
@@ -111,26 +111,26 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             })}
           </nav>
         </div>
-        <button onClick={onLogout} className="flex items-center gap-3 px-4 py-2 text-sm text-white/55 hover:text-white transition">
+        <button onClick={onLogout} className="flex items-center gap-3 px-4 py-2 text-sm text-white/58 transition hover:text-white">
           <LogOut size={18} />
           {t('dashboard.nav.signOut')}
         </button>
       </aside>
 
-      <main className="flex-1 p-10 overflow-y-auto w-full max-w-6xl">
-        <header className="flex justify-between items-center mb-10">
+      <main className="w-full max-w-6xl flex-1 overflow-y-auto p-10">
+        <header className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">{navItems.find((item) => item.id === activeTab)?.label}</h1>
-            <p className="text-sm text-white/50 mt-2">
+            <p className="mt-2 text-sm text-white/55">
               {zh ? '面向模型 API 订阅、调用和结算的个人中心。' : 'Account center for model API subscriptions, calls, and billing.'}
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs text-white/50 uppercase tracking-widest">{t('dashboard.header.credits')}</div>
-              <div className="text-lg font-mono font-medium">{userProfile?.credits?.toFixed(2) || '0.00'}</div>
+            <div className="hidden text-right sm:block">
+              <div className="text-xs uppercase tracking-widest text-white/50">{t('dashboard.header.credits')}</div>
+              <div className="font-mono text-lg font-medium">{userProfile?.credits?.toFixed(2) || '0.00'}</div>
             </div>
-            <button onClick={() => setActiveTab('billing')} className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/90 transition">
+            <button onClick={() => setActiveTab('billing')} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#070b0d] transition hover:bg-white/90">
               {t('dashboard.header.addFunds')}
             </button>
           </div>
@@ -138,28 +138,32 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {overviewStats.map((stat) => (
-                <div key={stat.label} className="liquid-glass rounded-2xl p-6 border border-white/10">
-                  <div className="text-white/50 text-xs uppercase tracking-widest mb-2">{stat.label}</div>
-                  <div className="text-4xl font-medium mb-1">{stat.value}</div>
-                  <div className="text-emerald-300 text-sm">{stat.note}</div>
+                <div key={stat.label} className="liquid-glass rounded-2xl border border-white/10 p-6">
+                  <div className="mb-2 text-xs uppercase tracking-widest text-white/50">{stat.label}</div>
+                  <div className="mb-1 text-4xl font-medium">{stat.value}</div>
+                  <div className="text-sm text-emerald-300">{stat.note}</div>
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 liquid-glass rounded-2xl p-6 border border-white/10">
-                <h3 className="text-lg font-semibold mb-3">{zh ? '业务闭环' : 'Business loop'}</h3>
-                <div className="grid sm:grid-cols-3 gap-3">
-                  {[zh ? '商家测试 API 后上架' : 'Merchant tests and lists API', zh ? '用户订阅并消耗积分' : 'User subscribes and spends credits', zh ? '成功调用计入商家收入' : 'Successful calls become merchant revenue'].map((item) => (
-                    <div key={item} className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">{item}</div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="liquid-glass rounded-2xl border border-white/10 p-6 lg:col-span-2">
+                <h3 className="mb-3 text-lg font-semibold">{zh ? '业务闭环' : 'Business loop'}</h3>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    zh ? '商家测试 API 后上架' : 'Merchant tests and lists API',
+                    zh ? '用户订阅并消耗积分' : 'User subscribes and spends credits',
+                    zh ? '成功调用计入商家收入' : 'Successful calls become merchant revenue',
+                  ].map((item) => (
+                    <div key={item} className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/72">{item}</div>
                   ))}
                 </div>
               </div>
-              <div className="liquid-glass rounded-2xl p-6 border border-white/10">
-                <h3 className="font-medium mb-3">{t('dashboard.overview.quickIntegration')}</h3>
-                <p className="text-sm text-white/55 mb-4">{t('dashboard.overview.integrationDesc')}</p>
-                <pre className="bg-black/60 rounded-xl p-4 overflow-x-auto text-[11px] font-mono text-white/80 border border-white/10">{`import OpenAI from 'openai';
+              <div className="liquid-glass rounded-2xl border border-white/10 p-6">
+                <h3 className="mb-3 font-medium">{t('dashboard.overview.quickIntegration')}</h3>
+                <p className="mb-4 text-sm text-white/58">{t('dashboard.overview.integrationDesc')}</p>
+                <pre className="overflow-x-auto rounded-xl border border-white/10 bg-[#050808]/70 p-4 font-mono text-[11px] text-white/82">{`import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: 'bx_live_...',
@@ -177,24 +181,24 @@ await client.chat.completions.create({
 
         {activeTab === 'keys' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <p className="text-white/60">{t('dashboard.keys.description')}</p>
-              <button onClick={handleCreateKey} disabled={creatingKey} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm border border-white/10 disabled:opacity-50">
+            <div className="flex items-center justify-between">
+              <p className="text-white/62">{t('dashboard.keys.description')}</p>
+              <button onClick={handleCreateKey} disabled={creatingKey} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm hover:bg-white/20 disabled:opacity-50">
                 <Plus size={16} />
                 {creatingKey ? t('dashboard.keys.creating') : t('dashboard.keys.createNew')}
               </button>
             </div>
             {newKeyFull && (
-              <div className="rounded-2xl p-6 border border-emerald-400/30 bg-emerald-500/8">
-                <div className="flex items-start gap-3 mb-4">
-                  <Check size={20} className="text-emerald-300 mt-0.5" />
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/8 p-6">
+                <div className="mb-4 flex items-start gap-3">
+                  <Check size={20} className="mt-0.5 text-emerald-300" />
                   <div>
                     <h3 className="text-lg font-medium">{t('dashboard.keys.successTitle')}</h3>
-                    <p className="text-sm text-white/60">{t('dashboard.keys.successDesc')}</p>
+                    <p className="text-sm text-white/62">{t('dashboard.keys.successDesc')}</p>
                   </div>
                 </div>
-                <div className="bg-black/40 rounded-xl p-4 flex items-center justify-between gap-3 border border-white/10">
-                  <code className="text-sm font-mono break-all">{newKeyFull}</code>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#050808]/60 p-4">
+                  <code className="break-all font-mono text-sm">{newKeyFull}</code>
                   <button onClick={() => handleCopy(newKeyFull)} aria-label="Copy API key">{copied ? <Check size={18} className="text-emerald-300" /> : <Copy size={18} />}</button>
                 </div>
               </div>
@@ -204,15 +208,15 @@ await client.chat.completions.create({
             ) : apiKeys.length === 0 ? (
               <div className="liquid-glass rounded-2xl border border-white/10 p-12 text-center">
                 <KeyRound size={42} className="mx-auto mb-4 text-white/25" />
-                <h3 className="text-lg font-medium mb-2">{t('dashboard.keys.noKeys')}</h3>
-                <p className="text-white/50 text-sm mb-6">{t('dashboard.keys.noKeysDesc')}</p>
-                <button onClick={handleCreateKey} disabled={creatingKey} className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50">{t('dashboard.keys.createFirst')}</button>
+                <h3 className="mb-2 text-lg font-medium">{t('dashboard.keys.noKeys')}</h3>
+                <p className="mb-6 text-sm text-white/50">{t('dashboard.keys.noKeysDesc')}</p>
+                <button onClick={handleCreateKey} disabled={creatingKey} className="rounded-lg bg-white px-6 py-2 text-sm font-medium text-[#070b0d] disabled:opacity-50">{t('dashboard.keys.createFirst')}</button>
               </div>
             ) : (
-              <div className="liquid-glass rounded-2xl overflow-hidden border border-white/10">
+              <div className="liquid-glass overflow-hidden rounded-2xl border border-white/10">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-white/10 text-xs text-white/50 uppercase bg-white/5">
+                    <tr className="border-b border-white/10 bg-white/5 text-xs uppercase text-white/50">
                       <th className="px-6 py-4">{t('dashboard.keys.tableHeaders.name')}</th>
                       <th className="px-6 py-4">{t('dashboard.keys.tableHeaders.key')}</th>
                       <th className="px-6 py-4">{t('dashboard.keys.tableHeaders.created')}</th>
@@ -223,8 +227,8 @@ await client.chat.completions.create({
                     {apiKeys.map((key) => (
                       <tr key={key.id} className="hover:bg-white/5">
                         <td className="px-6 py-4">{key.is_active ? t('dashboard.keys.productionKey') : t('dashboard.keys.inactiveKey')}</td>
-                        <td className="px-6 py-4 font-mono text-white/80">{key.key_prefix}</td>
-                        <td className="px-6 py-4 text-white/60">{formatDate(key.createdAt)}</td>
+                        <td className="px-6 py-4 font-mono text-white/82">{key.key_prefix}</td>
+                        <td className="px-6 py-4 text-white/62">{formatDate(key.createdAt)}</td>
                         <td className="px-6 py-4">
                           <button onClick={() => handleDeleteKey(key.id)} className="text-red-300 hover:text-red-200" aria-label={t('common.delete')}><Trash2 size={16} /></button>
                         </td>
@@ -234,9 +238,9 @@ await client.chat.completions.create({
                 </table>
               </div>
             )}
-            <div className="rounded-xl border border-amber-400/20 bg-amber-500/8 p-4 flex gap-3 text-sm text-amber-100/85">
+            <div className="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/8 p-4 text-sm text-amber-100/85">
               <AlertTriangle size={18} />
-              <div><strong>{t('dashboard.keys.warning')}</strong><p className="text-amber-100/65 mt-1">{t('dashboard.keys.warningDesc')}</p></div>
+              <div><strong>{t('dashboard.keys.warning')}</strong><p className="mt-1 text-amber-100/65">{t('dashboard.keys.warningDesc')}</p></div>
             </div>
           </div>
         )}
@@ -244,54 +248,54 @@ await client.chat.completions.create({
         {activeTab === 'purchases' && (
           <div className="liquid-glass rounded-2xl border border-white/10 p-10 text-center">
             <ShoppingBag size={42} className="mx-auto mb-4 text-white/30" />
-            <h3 className="text-xl font-medium mb-2">{t('dashboard.nav.purchases')}</h3>
-            <p className="text-white/50 mb-6">{zh ? '订阅数据会从 Firebase subscriptions 集合读取。' : 'Subscription data is read from the Firebase subscriptions collection.'}</p>
-            <Link to="/my-purchases" className="inline-block bg-white text-black px-6 py-3 rounded-xl font-semibold">{zh ? '查看完整列表' : 'View full list'}</Link>
+            <h3 className="mb-2 text-xl font-medium">{t('dashboard.nav.purchases')}</h3>
+            <p className="mb-6 text-white/50">{zh ? '订阅数据会从 Firebase subscriptions 集合读取。' : 'Subscription data is read from the Firebase subscriptions collection.'}</p>
+            <Link to="/my-purchases" className="inline-block rounded-xl bg-white px-6 py-3 font-semibold text-[#070b0d]">{zh ? '查看完整列表' : 'View full list'}</Link>
           </div>
         )}
 
         {activeTab === 'usage' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="liquid-glass rounded-2xl p-6 border border-white/10">
-              <h3 className="text-white/70 font-medium mb-4">{zh ? '按模型统计' : 'Usage by model'}</h3>
-              <p className="text-white/45 text-sm">{zh ? '真实调用后会展示 apiCallRecords 中的模型、延迟、成本与状态。' : 'Real calls will show model, latency, cost, and status from apiCallRecords.'}</p>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="liquid-glass rounded-2xl border border-white/10 p-6">
+              <h3 className="mb-4 font-medium text-white/72">{zh ? '按模型统计' : 'Usage by model'}</h3>
+              <p className="text-sm text-white/48">{zh ? '真实调用后会展示 apiCallRecords 中的模型、延迟、成本与状态。' : 'Real calls will show model, latency, cost, and status from apiCallRecords.'}</p>
             </div>
-            <div className="liquid-glass rounded-2xl p-6 border border-white/10">
-              <h3 className="text-white/70 font-medium mb-4">{zh ? '商家健康度' : 'Merchant health'}</h3>
-              <p className="text-white/45 text-sm">{zh ? '失败调用会退款，并进入售后审核记录。' : 'Failed calls refund credits and remain available for support review.'}</p>
+            <div className="liquid-glass rounded-2xl border border-white/10 p-6">
+              <h3 className="mb-4 font-medium text-white/72">{zh ? '商家健康度' : 'Merchant health'}</h3>
+              <p className="text-sm text-white/48">{zh ? '失败调用会退款，并进入售后审核记录。' : 'Failed calls refund credits and remain available for support review.'}</p>
             </div>
           </div>
         )}
 
         {activeTab === 'billing' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="liquid-glass rounded-2xl p-8 border border-white/10">
-              <h3 className="text-white/90 font-medium mb-2">{t('dashboard.billing.currentBalance')}</h3>
-              <div className="text-5xl font-mono my-6">{userProfile?.credits?.toFixed(2) || '0.00'}</div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="liquid-glass rounded-2xl border border-white/10 p-8">
+              <h3 className="mb-2 font-medium text-white/90">{t('dashboard.billing.currentBalance')}</h3>
+              <div className="my-6 font-mono text-5xl">{userProfile?.credits?.toFixed(2) || '0.00'}</div>
               <p className="text-sm text-white/50">{t('dashboard.billing.securePayment')}</p>
             </div>
-            <div className="liquid-glass rounded-2xl p-8 border border-white/10">
-              <h3 className="text-white/90 font-medium mb-6">{t('dashboard.billing.topUp')}</h3>
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {['$10', '$50', '$100'].map((amount) => <button key={amount} className="border border-white/10 bg-white/5 rounded-xl py-3 text-sm font-mono">{amount}</button>)}
+            <div className="liquid-glass rounded-2xl border border-white/10 p-8">
+              <h3 className="mb-6 font-medium text-white/90">{t('dashboard.billing.topUp')}</h3>
+              <div className="mb-6 grid grid-cols-3 gap-3">
+                {['$10', '$50', '$100'].map((amount) => <button key={amount} className="rounded-xl border border-white/10 bg-white/5 py-3 font-mono text-sm">{amount}</button>)}
               </div>
               <input type="number" placeholder={t('dashboard.billing.customAmountPlaceholder')} className="w-full rounded-xl px-4 py-3 text-white placeholder:text-white/35" />
-              <button className="w-full bg-white text-black rounded-xl py-3 font-semibold mt-6">{t('dashboard.billing.checkout')}</button>
+              <button className="mt-6 w-full rounded-xl bg-white py-3 font-semibold text-[#070b0d]">{t('dashboard.billing.checkout')}</button>
             </div>
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className="space-y-6 max-w-3xl">
-            <div className="liquid-glass rounded-2xl border border-white/10 overflow-hidden">
-              <div className="p-6 border-b border-white/10">
+          <div className="max-w-3xl space-y-6">
+            <div className="liquid-glass overflow-hidden rounded-2xl border border-white/10">
+              <div className="border-b border-white/10 p-6">
                 <h3 className="text-lg font-medium">{t('dashboard.settings.organizationDetails')}</h3>
                 <p className="text-sm text-white/50">{t('dashboard.settings.organizationDesc')}</p>
               </div>
-              <div className="p-6 space-y-4">
-                <label className="block text-xs text-white/50 uppercase">{t('dashboard.settings.email')}<input value={currentUser?.email || ''} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 text-white/70" /></label>
-                <label className="block text-xs text-white/50 uppercase">{t('dashboard.settings.userId')}<input value={currentUser?.uid || ''} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 text-white/70 font-mono text-xs" /></label>
-                <label className="block text-xs text-white/50 uppercase">{t('dashboard.settings.accountType')}<input value={userProfile?.role?.toUpperCase() || 'BUYER'} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 text-white/70" /></label>
+              <div className="space-y-4 p-6">
+                <label className="block text-xs uppercase text-white/50">{t('dashboard.settings.email')}<input value={currentUser?.email || ''} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 text-white/70" /></label>
+                <label className="block text-xs uppercase text-white/50">{t('dashboard.settings.userId')}<input value={currentUser?.uid || ''} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 font-mono text-xs text-white/70" /></label>
+                <label className="block text-xs uppercase text-white/50">{t('dashboard.settings.accountType')}<input value={userProfile?.role?.toUpperCase() || 'BUYER'} disabled className="mt-2 w-full rounded-xl px-4 py-2.5 text-white/70" /></label>
               </div>
             </div>
           </div>
