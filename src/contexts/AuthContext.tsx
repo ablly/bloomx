@@ -2,22 +2,17 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import {
     type User,
     onAuthStateChanged,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signOut,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signInAnonymously,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { authService, type AuthResult } from '../services/authService';
 
 // ─── Types ──────────────────────────────────────────────────────
 interface UserProfile {
     uid: string;
     email: string | null;
     role: 'buyer' | 'seller' | 'admin';
-    credits_balance: number;
+    credits: number;
     createdAt: Date | null;
 }
 
@@ -25,10 +20,11 @@ interface AuthContextType {
     currentUser: User | null;
     userProfile: UserProfile | null;
     loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string) => Promise<void>;
-    loginWithGoogle: () => Promise<void>;
-    loginAnonymously: () => Promise<void>;
+    login: (email: string, password: string) => Promise<AuthResult>;
+    register: (email: string, password: string, verificationCode?: string) => Promise<AuthResult>;
+    loginWithGoogle: () => Promise<AuthResult>;
+    loginAnonymously: () => Promise<AuthResult>;
+    resetPassword: (email: string) => Promise<AuthResult>;
     logout: () => Promise<void>;
 }
 
@@ -47,22 +43,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Helper: ensure Firestore profile exists
-    const ensureProfile = async (user: User) => {
+    // Helper: load user profile from Firestore
+    const loadProfile = async (user: User) => {
         const ref = doc(db, 'users', user.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-            setUserProfile(snap.data() as UserProfile);
-        } else {
-            const profile: UserProfile = {
-                uid: user.uid,
-                email: user.email,
-                role: 'buyer',
-                credits_balance: 100, // Welcome bonus
-                createdAt: new Date(),
-            };
-            await setDoc(ref, { ...profile, createdAt: serverTimestamp() });
-            setUserProfile(profile);
+            const data = snap.data();
+            const credits = Number(data.credits_balance ?? data.credits ?? 0);
+
+            if (data.credits_balance === undefined && data.credits !== undefined) {
+                await updateDoc(ref, {
+                    credits_balance: credits,
+                    updatedAt: serverTimestamp(),
+                });
+            }
+
+            setUserProfile({
+                uid: data.uid,
+                email: data.email,
+                role: data.role || 'buyer',
+                credits,
+                createdAt: data.createdAt?.toDate?.() || null,
+            });
         }
     };
 
@@ -72,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setCurrentUser(user);
             if (user) {
                 try {
-                    await ensureProfile(user);
+                    await loadProfile(user);
                 } catch (e) {
                     console.error('Failed to load profile:', e);
                 }
@@ -85,29 +87,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     // ─── Auth Methods ─────────────────────────────────────────────
-    const login = async (email: string, password: string) => {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        await ensureProfile(cred.user);
+    const login = async (email: string, password: string): Promise<AuthResult> => {
+        const result = await authService.signInWithEmail(email, password);
+        if (result.success && result.user) {
+            await loadProfile(result.user);
+        }
+        return result;
     };
 
-    const register = async (email: string, password: string) => {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await ensureProfile(cred.user);
+    const register = async (email: string, password: string, verificationCode?: string): Promise<AuthResult> => {
+        const result = await authService.registerWithEmail(email, password, verificationCode);
+        if (result.success && result.user) {
+            await loadProfile(result.user);
+        }
+        return result;
     };
 
-    const loginWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        const cred = await signInWithPopup(auth, provider);
-        await ensureProfile(cred.user);
+    const loginWithGoogle = async (): Promise<AuthResult> => {
+        const result = await authService.signInWithGoogle();
+        if (result.success && result.user) {
+            await loadProfile(result.user);
+        }
+        return result;
     };
 
-    const loginAnonymously = async () => {
-        const cred = await signInAnonymously(auth);
-        await ensureProfile(cred.user);
+    const loginAnonymously = async (): Promise<AuthResult> => {
+        const result = await authService.signInAnonymously();
+        if (result.success && result.user) {
+            await loadProfile(result.user);
+        }
+        return result;
+    };
+
+    const resetPassword = async (email: string): Promise<AuthResult> => {
+        return await authService.resetPassword(email);
     };
 
     const logout = async () => {
-        await signOut(auth);
+        await authService.signOut();
         setUserProfile(null);
     };
 
@@ -121,6 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 register,
                 loginWithGoogle,
                 loginAnonymously,
+                resetPassword,
                 logout,
             }}
         >

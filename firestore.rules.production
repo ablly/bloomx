@@ -1,0 +1,207 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ═══════════════════════════════════════════════════════════
+    // Helper Functions
+    // ═══════════════════════════════════════════════════════════
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isSeller() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'seller';
+    }
+    
+    function isVerifiedEmail() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Users Collection
+    // ═══════════════════════════════════════════════════════════
+    
+    match /users/{userId} {
+      // Anyone authenticated can read user profiles
+      allow read: if isAuthenticated();
+      
+      // Users can create their own profile on first login
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == userId &&
+                       request.resource.data.uid == userId;
+      
+      // Users can update their own profile, admins can update any
+      allow update: if isOwner(userId) || isAdmin();
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+      
+      // ─────────────────────────────────────────────────────────
+      // API Keys Subcollection
+      // ─────────────────────────────────────────────────────────
+      
+      match /api_keys/{keyId} {
+        // Users can read their own API keys
+        allow read: if isOwner(userId);
+        
+        // Users can create their own API keys
+        allow create: if isOwner(userId) &&
+                         request.resource.data.user_id == userId;
+        
+        // Users can update their own API keys (e.g., disable)
+        allow update: if isOwner(userId);
+        
+        // Users can delete their own API keys
+        allow delete: if isOwner(userId);
+      }
+      
+      // ─────────────────────────────────────────────────────────
+      // Transactions Subcollection
+      // ─────────────────────────────────────────────────────────
+      
+      match /transactions/{transactionId} {
+        // Users can read their own transactions
+        allow read: if isOwner(userId);
+        
+        // System can create transactions (via Cloud Functions)
+        allow create: if isOwner(userId) &&
+                         request.resource.data.user_id == userId;
+        
+        // Transactions are immutable
+        allow update: if false;
+        
+        // Only admins can delete transactions
+        allow delete: if isAdmin();
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Seller Applications
+    // ═══════════════════════════════════════════════════════════
+    
+    match /seller_applications/{applicationId} {
+      // Authenticated users can read their own applications
+      allow read: if isAuthenticated() && 
+                     (resource.data.user_id == request.auth.uid || isAdmin());
+      
+      // Authenticated users can create applications
+      allow create: if isAuthenticated() &&
+                       request.resource.data.user_id == request.auth.uid &&
+                       request.resource.data.status == 'pending';
+      
+      // Only admins can update applications (approve/reject)
+      allow update: if isAdmin();
+      
+      // Only admins can delete applications
+      allow delete: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Products
+    // ═══════════════════════════════════════════════════════════
+    
+    match /products/{productId} {
+      // Anyone can read products (public marketplace)
+      allow read: if true;
+      
+      // Only sellers and admins can create products
+      allow create: if (isSeller() || isAdmin()) &&
+                       request.resource.data.seller_id == request.auth.uid;
+      
+      // Sellers can update their own products, admins can update any
+      allow update: if (isSeller() && resource.data.seller_id == request.auth.uid) || 
+                       isAdmin();
+      
+      // Only admins can delete products
+      allow delete: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Purchases
+    // ═══════════════════════════════════════════════════════════
+    
+    match /purchases/{purchaseId} {
+      // Users can read their own purchases, admins can read all
+      allow read: if isAuthenticated() && 
+                     (resource.data.buyer_id == request.auth.uid || isAdmin());
+      
+      // Users can create purchases
+      allow create: if isAuthenticated() &&
+                       request.resource.data.buyer_id == request.auth.uid;
+      
+      // Only admins can update purchases
+      allow update: if isAdmin();
+      
+      // Only admins can delete purchases
+      allow delete: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Usage Logs
+    // ═══════════════════════════════════════════════════════════
+    
+    match /usage_logs/{logId} {
+      // Users can read their own logs, admins can read all
+      allow read: if isAuthenticated() && 
+                     (resource.data.user_id == request.auth.uid || isAdmin());
+      
+      // System can create logs (via Cloud Functions or API Gateway)
+      allow create: if isAuthenticated();
+      
+      // Logs are immutable
+      allow update: if false;
+      
+      // Only admins can delete logs
+      allow delete: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Earnings (Seller earnings tracking)
+    // ═══════════════════════════════════════════════════════════
+    
+    match /earnings/{earningId} {
+      // Sellers can read their own earnings, admins can read all
+      allow read: if isAuthenticated() && 
+                     (resource.data.seller_id == request.auth.uid || isAdmin());
+      
+      // System creates earnings records
+      allow create: if isAdmin();
+      
+      // Only admins can update earnings
+      allow update: if isAdmin();
+      
+      // Only admins can delete earnings
+      allow delete: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // System Configuration (Admin only)
+    // ═══════════════════════════════════════════════════════════
+    
+    match /system_config/{configId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // ═══════════════════════════════════════════════════════════
+    // Default Deny All
+    // ═══════════════════════════════════════════════════════════
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

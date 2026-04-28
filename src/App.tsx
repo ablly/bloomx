@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useState } from 'react';
 import BackgroundVideo from './components/BackgroundVideo';
 import HeroLanding from './components/HeroLanding';
 import Features from './components/Features';
@@ -9,82 +10,159 @@ import Testimonials from './components/Testimonials';
 import SellerApplyForm from './components/SellerApplyForm';
 import CTABanner from './components/CTABanner';
 import Footer from './components/Footer';
-import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
-import PageTransition from './components/PageTransition';
 import { useAuth } from './contexts/AuthContext';
 import { Particles, DotPattern } from './components/ui';
 
-function App() {
-    const { currentUser, loading, logout } = useAuth();
-    const [view, setView] = useState<'landing' | 'dashboard'>('landing');
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Marketplace = lazy(() => import('./components/Marketplace'));
+const ProductDetail = lazy(() => import('./components/ProductDetail'));
+const MyPurchases = lazy(() => import('./components/MyPurchases'));
+const SellerDashboard = lazy(() => import('./components/seller/SellerDashboard'));
+const SellerProductForm = lazy(() => import('./components/seller/SellerProductForm'));
+const DiagnosticPage = lazy(() => import('./components/DiagnosticPage'));
+
+function RouteFallback() {
+    return (
+        <div className="min-h-screen grid place-items-center px-6 text-white">
+            <div className="glass-apple rounded-3xl px-6 py-4 text-sm tracking-wide text-white/70">
+                Loading workspace...
+            </div>
+        </div>
+    );
+}
+
+// Landing Page Component
+function LandingPage() {
+    const { currentUser } = useAuth();
     const [authOpen, setAuthOpen] = useState(false);
 
-    // If user is logged in and wants to enter the dashboard
     const handleDashboardEnter = () => {
         if (currentUser) {
-            setView('dashboard');
+            window.location.href = '/dashboard';
         } else {
             setAuthOpen(true);
         }
     };
 
-    // After successful login, go to dashboard
-    const handleAuthClose = () => {
-        setAuthOpen(false);
-        if (currentUser) {
-            setView('dashboard');
-        }
-    };
+    return (
+        <>
+            <HeroLanding onDashboardEnter={handleDashboardEnter} />
+            <Features />
+            <HowItWorks />
+            <ModelCatalog />
+            <Pricing />
+            <Testimonials />
+            <SellerApplyForm />
+            <CTABanner onDashboardEnter={handleDashboardEnter} />
+            <Footer />
+            <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+        </>
+    );
+}
+
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    const { currentUser } = useAuth(); // 移除 loading 检查
+
+    // 如果没有用户，重定向到首页
+    if (!currentUser) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <>{children}</>;
+}
+
+function App() {
+    const { logout } = useAuth(); // 移除 loading 检查
 
     const handleLogout = async () => {
         await logout();
-        setView('landing');
+        window.location.href = '/';
     };
 
-    // Show a loading spinner while Firebase checks auth state
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-black">
-                <div className="relative">
-                    <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
-                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-fuchsia-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1s'}} />
-                </div>
-            </div>
-        );
-    }
-
+    // 直接渲染，不等待 Auth 初始化
     return (
-        <div className="relative min-h-screen bg-black font-sans scroll-smooth overflow-hidden">
-            <BackgroundVideo />
-            
-            {/* Particles effect */}
-            <Particles count={80} color="rgba(255,255,255,0.3)" size={2} speed={0.3} />
-            
-            {/* Dot pattern overlay */}
-            <DotPattern className="opacity-20" spacing={30} dotSize={1.5} fade={true} />
+        <BrowserRouter>
+            <div className="relative min-h-screen bg-black font-sans scroll-smooth overflow-hidden">
+                <BackgroundVideo />
+                
+                {/* Particles effect */}
+                <Particles count={80} color="rgba(255,255,255,0.3)" size={2} speed={0.3} />
+                
+                {/* Dot pattern overlay */}
+                <DotPattern className="opacity-20" spacing={30} dotSize={1.5} fade={true} />
 
-            <PageTransition isActive={view === 'dashboard' && !!currentUser}>
-                <Dashboard onLogout={handleLogout} />
-            </PageTransition>
+                <Suspense fallback={<RouteFallback />}>
+                    <Routes>
+                        {/* Landing Page */}
+                        <Route path="/" element={<LandingPage />} />
 
-            <PageTransition isActive={view === 'landing'}>
-                <div>
-                    <HeroLanding onDashboardEnter={handleDashboardEnter} />
-                    <Features />
-                    <HowItWorks />
-                    <ModelCatalog />
-                    <Pricing />
-                    <Testimonials />
-                    <SellerApplyForm />
-                    <CTABanner onDashboardEnter={handleDashboardEnter} />
-                    <Footer />
-                </div>
-            </PageTransition>
+                        {/* Buyer Dashboard */}
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <ProtectedRoute>
+                                    <Dashboard onLogout={handleLogout} />
+                                </ProtectedRoute>
+                            }
+                        />
 
-            {/* Auth Modal */}
-            <AuthModal isOpen={authOpen} onClose={handleAuthClose} />
-        </div>
+                        {/* Marketplace */}
+                        <Route path="/marketplace" element={<Marketplace />} />
+
+                        {/* Product Detail */}
+                        <Route path="/product/:productId" element={<ProductDetail />} />
+
+                        {/* My Purchases */}
+                        <Route
+                            path="/my-purchases"
+                            element={
+                                <ProtectedRoute>
+                                    <MyPurchases />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Seller Dashboard */}
+                        <Route
+                            path="/seller/dashboard"
+                            element={
+                                <ProtectedRoute>
+                                    <SellerDashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Seller Product Form - New */}
+                        <Route
+                            path="/seller/products/new"
+                            element={
+                                <ProtectedRoute>
+                                    <SellerProductForm />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Seller Product Form - Edit */}
+                        <Route
+                            path="/seller/products/:productId"
+                            element={
+                                <ProtectedRoute>
+                                    <SellerProductForm />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Diagnostic Page */}
+                        <Route path="/diagnostic" element={<DiagnosticPage />} />
+
+                        {/* 404 */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Suspense>
+            </div>
+        </BrowserRouter>
     );
 }
 

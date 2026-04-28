@@ -32,6 +32,241 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;1,8..60,300&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --taste-bg: #f7f3ec;
+        --taste-ink: #211f1b;
+        --taste-muted: #746d61;
+        --taste-line: rgba(33, 31, 27, 0.12);
+        --taste-warm: #d76f37;
+        --taste-green: #2f6f5e;
+        --taste-blue: #355c8a;
+        --taste-shadow: 0 22px 70px rgba(35, 28, 18, 0.14);
+        --taste-radius: 18px;
+        --taste-progress: 0;
+        --taste-pointer-x: 50%;
+        --taste-pointer-y: 35%;
+      }
+
+      html {
+        background: var(--taste-bg);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--taste-ink);
+        background:
+          radial-gradient(circle at var(--taste-pointer-x) var(--taste-pointer-y), rgba(215, 111, 55, 0.16), transparent 28rem),
+          linear-gradient(135deg, #fbf7ef 0%, #f0e8db 44%, #eef3ec 100%);
+        font-family: ui-sans-serif, "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+        text-rendering: geometricPrecision;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(33, 31, 27, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(33, 31, 27, 0.035) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08));
+      }
+
+      #root {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+      }
+
+      .taste-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+        width: calc(var(--taste-progress) * 100%);
+        height: 4px;
+        background: linear-gradient(90deg, var(--taste-warm), var(--taste-green), var(--taste-blue));
+        box-shadow: 0 0 28px rgba(215, 111, 55, 0.42);
+        transform-origin: left center;
+        transition: width 120ms ease-out;
+      }
+
+      .taste-narrative {
+        position: fixed;
+        right: 22px;
+        top: 50%;
+        z-index: 9998;
+        display: grid;
+        gap: 10px;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .taste-chapter {
+        display: grid;
+        grid-template-columns: 8px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-width: 124px;
+        max-width: 180px;
+        color: rgba(33, 31, 27, 0.52);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-align: left;
+        opacity: 0.5;
+        transform: translateX(10px);
+        transition: transform 180ms ease, opacity 180ms ease, color 180ms ease;
+      }
+
+      .taste-chapter::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: currentColor;
+        box-shadow: 0 0 0 5px rgba(33, 31, 27, 0.06);
+      }
+
+      .taste-chapter.is-active {
+        color: var(--taste-warm);
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      #root > .relative.min-h-screen > .fixed.bottom-4.right-4 {
+        display: none !important;
+      }
+
+      a,
+      button,
+      [role="button"] {
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
+      }
+
+      a:hover,
+      button:hover,
+      [role="button"]:hover {
+        transform: translateY(-1px);
+      }
+
+      body.taste-enhanced button,
+      body.taste-enhanced [role="button"],
+      body.taste-enhanced input,
+      body.taste-enhanced select,
+      body.taste-enhanced textarea {
+        border-radius: 14px;
+      }
+
+      body.taste-enhanced button,
+      body.taste-enhanced [role="button"] {
+        border-color: rgba(33, 31, 27, 0.14);
+        box-shadow: 0 10px 28px rgba(35, 28, 18, 0.08);
+      }
+
+      body.taste-enhanced input,
+      body.taste-enhanced select,
+      body.taste-enhanced textarea {
+        border: 1px solid rgba(33, 31, 27, 0.14);
+        background-color: rgba(255, 252, 246, 0.82);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.54);
+        backdrop-filter: blur(10px);
+      }
+
+      body.taste-enhanced input:focus,
+      body.taste-enhanced select:focus,
+      body.taste-enhanced textarea:focus {
+        outline: 3px solid rgba(215, 111, 55, 0.18);
+        border-color: rgba(215, 111, 55, 0.44);
+      }
+
+      body.taste-enhanced img {
+        border-radius: min(18px, var(--taste-radius));
+      }
+
+      body.taste-enhanced nav,
+      body.taste-enhanced header {
+        backdrop-filter: blur(14px);
+      }
+
+      main,
+      section,
+      article,
+      header,
+      form,
+      nav,
+      aside,
+      [class*="card" i],
+      [class*="panel" i],
+      [class*="item" i],
+      [class*="product" i] {
+        border-color: var(--taste-line);
+      }
+
+      section,
+      article,
+      [class*="card" i],
+      [class*="panel" i],
+      [class*="product" i] {
+        transition: transform 240ms ease, opacity 240ms ease, box-shadow 240ms ease;
+      }
+
+      .taste-reveal {
+        opacity: 0;
+        transform: translateY(26px) scale(0.985);
+      }
+
+      .taste-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .taste-depth {
+        transform: translateY(calc(var(--taste-depth-offset, 0px) * -1));
+      }
+
+      @media (min-width: 760px) {
+        [class*="card" i]:hover,
+        [class*="product" i]:hover,
+        article:hover {
+          box-shadow: var(--taste-shadow);
+        }
+      }
+
+      @media (max-width: 760px) {
+        .taste-narrative {
+          right: 10px;
+          gap: 7px;
+        }
+
+        .taste-chapter {
+          min-width: 8px;
+          max-width: 8px;
+          overflow: hidden;
+          color: rgba(33, 31, 27, 0.38);
+        }
+
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 1ms !important;
+          animation-duration: 1ms !important;
+        }
+
+        .taste-reveal {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

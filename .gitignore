@@ -33,6 +33,17 @@ dist-ssr
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
 
 # Build files
 *.tsbuildinfo
+
+# Git worktrees
+.worktrees
+worktrees
+
+# Local AI/tooling state
+.codex/
+.playwright-mcp/
+.kiro/settings/

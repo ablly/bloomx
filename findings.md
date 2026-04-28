@@ -1,0 +1,37 @@
+# Findings: Project Progress Review and Firebase Sync
+
+## Running Findings
+- Planning files did not exist before this review, so they were created fresh.
+- Firebase service account exists locally and has already been confirmed to match project `bloomx-core-infra-26`.
+- Git working tree is heavily dirty before this review; many app, Firebase, docs, and config files already had modifications.
+- `package.json` contains Firebase deploy scripts and database management scripts.
+- `src/lib/firebase.ts` is the canonical Firebase client entry; `src/config/firebase.ts` is a compatibility re-export.
+- `firebase.json` targets Firestore, Functions, and Hosting for project deployment.
+- `firestore.rules` contains duplicate `match /users/{userId}` blocks and mojibake comments, which makes rules review harder and can create surprising rule-merging behavior.
+- `firestore.indexes.json` currently emphasizes older collection names such as `api_keys`, `transactions`, `usage_logs`, and `seller_applications`; newer runtime collections include `apiOffers`, `apiOfferStats`, and `apiCallRecords`.
+- Several placeholder/empty files exist, including `src/components/AdminSeedData.tsx`, `src/components/DevTools.tsx`, and `src/components/icons/CustomIcons.tsx`.
+- Main app build passes with warnings:
+  - `captchaService.ts` is both statically and dynamically imported, so the dynamic import is ineffective.
+  - Production JS chunk is larger than 500 kB after minification.
+- Functions build currently fails before deployment:
+  - `firebase-functions` and `nodemailer` cannot be resolved from `functions`.
+  - Several Functions parameters have implicit `any` types.
+- Dependency audit reports 13 vulnerabilities: 2 low, 9 moderate, 1 high, and 1 critical.
+  - Notable direct issues include Vite high severity and PostCSS moderate severity.
+  - Critical issue is via `protobufjs`.
+- App currently mounts `AuthDebug` in `src/App.tsx`; the component is tiny, but this should be kept dev-only or removed for production.
+- `AuthModal` and `captchaService` include success/debug console logs that can expose auth flow details in production.
+- Current docs such as `PROJECT_PROGRESS_REVIEW.md`, `NEXT_STEPS_ACTION_PLAN.md`, `TODO.md`, and `README.md` contain substantial mojibake and stale assumptions.
+- Stale docs claim Firestore is not created, but the real Firebase project now has Firestore data.
+- Marketplace reads real `products`, but the real Firestore `products` collection is empty, so the marketplace will render an empty state.
+- There are two active product/offer models:
+  - `products`/`sellers` used by `Marketplace`, `ProductDetail`, and seller product services.
+  - `apiOffers`/`sellerProfiles` used by `CommercePlatformRuntime`.
+- User credits are split across `credits_balance` and `credits`, which can break wallet consistency.
+- Functions gateway uses `credits`, while Auth/Dashboard use `credits_balance`.
+- Production readiness should be reduced from prior 80% claims because Functions cannot build, core business collections are empty, rules need cleanup, and dependencies need remediation.
+- Real Firestore progress sync completed:
+  - `projectProgress/current` exists.
+  - `projectProgressReviews/review-20260427-054247` exists.
+  - Readback verified `productionReadinessPercent=35`, `functionsBuild=fail`, and `realFirebaseConnected=true`.
+  - Sync metadata readback verified `progressSyncVerified=true`.

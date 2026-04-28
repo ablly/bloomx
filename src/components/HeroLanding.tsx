@@ -1,6 +1,9 @@
 // HeroLanding - Apple-inspired minimal design
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, User, LogOut, Settings, CreditCard } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import { FadeIn, GradientText, NumberTicker, ShimmerText } from './ui';
 
@@ -10,6 +13,27 @@ interface HeroLandingProps {
 
 const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
     const { t } = useTranslation();
+    const { currentUser, userProfile, logout } = useAuth();
+    const navigate = useNavigate();
+    const [showUserMenu, setShowUserMenu] = useState(false);
+
+    // 监听用户状态变化，自动关闭菜单
+    useEffect(() => {
+        if (!currentUser) {
+            setShowUserMenu(false);
+        }
+    }, [currentUser]);
+
+    const handleLogout = async () => {
+        await logout();
+        setShowUserMenu(false);
+        window.location.reload();
+    };
+
+    const handleDashboard = () => {
+        navigate('/dashboard');
+        setShowUserMenu(false);
+    };
     
     return (
         <>
@@ -27,17 +51,82 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                         <div className="hidden md:flex items-center gap-8 text-sm">
                             <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.features')}</button>
                             <button onClick={() => document.getElementById('models')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">Models</button>
+                            <Link to="/marketplace" className="text-white/70 hover:text-white transition-colors duration-300">Marketplace</Link>
                             <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-white/70 hover:text-white transition-colors duration-300">{t('nav.pricing')}</button>
                         </div>
 
                         <div className="flex items-center gap-3">
                             <LanguageSwitcher />
-                            <button
-                                onClick={onDashboardEnter}
-                                className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-white/90 transition-all duration-300 btn-apple"
-                            >
-                                {t('hero.ctaPrimary')}
-                            </button>
+                            
+                            {currentUser ? (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserMenu(!showUserMenu)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 border border-white/20"
+                                    >
+                                        {currentUser.photoURL ? (
+                                            <img src={currentUser.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
+                                        ) : (
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+                                                <User size={14} className="text-white" />
+                                            </div>
+                                        )}
+                                        <span className="text-sm text-white font-medium">
+                                            {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
+                                        </span>
+                                    </button>
+
+                                    {showUserMenu && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                                            <div className="absolute right-0 mt-2 w-56 bg-[#0a0a0f]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                                                <div className="p-3 border-b border-white/10">
+                                                    <div className="text-sm text-white font-medium truncate">{currentUser.email}</div>
+                                                    <div className="text-xs text-white/50 mt-1">
+                                                        {userProfile?.role === 'admin' ? '管理员' : userProfile?.role === 'seller' ? '卖家' : '买家'}
+                                                    </div>
+                                                    {userProfile?.credits !== undefined && (
+                                                        <div className="text-xs text-violet-400 mt-1 flex items-center gap-1">
+                                                            <CreditCard size={12} />
+                                                            {userProfile.credits} Credits
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="py-1">
+                                                    <button
+                                                        onClick={handleDashboard}
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                    >
+                                                        <User size={16} />
+                                                        个人中心
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { navigate('/dashboard'); setShowUserMenu(false); }}
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                    >
+                                                        <Settings size={16} />
+                                                        设置
+                                                    </button>
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                                                    >
+                                                        <LogOut size={16} />
+                                                        退出登录
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={onDashboardEnter}
+                                    className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-white/90 transition-all duration-300 btn-apple"
+                                >
+                                    {t('hero.ctaPrimary')}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

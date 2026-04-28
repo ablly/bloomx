@@ -1,0 +1,54 @@
+# Firebase Commerce Setup
+
+This project stores the merchant marketplace, subscriptions, credits, and API call ledger in Firebase.
+
+## Collections
+
+- `users/{uid}`: user profile, credit balance, and platform API key.
+- `sellerProfiles/{uid}`: merchant registration profile for the logged-in user.
+- `apiOffers/{offerId}`: public marketplace listing data.
+- `merchantApiSecrets/{offerId}`: private merchant endpoint secret material.
+- `subscriptions/{subscriptionId}`: user subscriptions to merchant models.
+- `apiCallRecords/{recordId}`: API usage ledger and merchant response preview.
+
+## Required Environment Variables
+
+Frontend:
+
+```bash
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_INVOKE_MERCHANT_MODEL_URL=
+```
+
+`VITE_INVOKE_MERCHANT_MODEL_URL` should point to the deployed HTTPS function URL for `invokeMerchantModel`.
+
+## Deploy Order
+
+1. Deploy Firestore rules.
+2. Deploy Functions.
+3. Copy the deployed `invokeMerchantModel` URL into the frontend environment.
+4. Rebuild and redeploy the frontend.
+
+## Local Acceptance Flow
+
+1. Open the app without logging in.
+2. Open `Platform Console`.
+3. Confirm settings, wallet, subscriptions, API key, and call records are hidden.
+4. Log in.
+5. Submit merchant registration.
+6. Upload an API offer.
+7. Subscribe to the listed model.
+8. Add credits.
+9. Call the subscribed model.
+10. Confirm Firebase contains the updated user wallet, offer, subscription, and call record.
+
+## Security Notes
+
+- Merchant API keys must stay in `merchantApiSecrets`, not in `apiOffers`.
+- Firestore client rules should allow users to read only their own private documents.
+- Production calls should go through `invokeMerchantModel`; the frontend fallback call path is only for local development when the function URL is not configured.

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, KeyRound, Activity, CreditCard, Settings, Plus, Copy, LogOut, ArrowUpRight, Check, Code2, AlertTriangle, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { LayoutDashboard, KeyRound, Activity, CreditCard, Settings, Plus, Copy, LogOut, ArrowUpRight, Check, Code2, AlertTriangle, Trash2, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { createApiKey, listApiKeys, deleteApiKey, type ApiKey } from '../services/apiKeyService';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     const navItems = [
         { id: 'overview', label: t('dashboard.nav.overview'), icon: LayoutDashboard },
         { id: 'keys', label: t('dashboard.nav.keys'), icon: KeyRound },
+        { id: 'purchases', label: '我的购买', icon: ShoppingBag },
         { id: 'usage', label: t('dashboard.nav.usage'), icon: Activity },
         { id: 'billing', label: t('dashboard.nav.billing'), icon: CreditCard },
         { id: 'settings', label: t('dashboard.nav.settings'), icon: Settings },
@@ -157,7 +159,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                         <div className="text-right hidden sm:block">
                             <div className="text-xs text-white/50 uppercase tracking-widest">{t('dashboard.header.credits')}</div>
                             <div className="text-lg font-mono font-medium">
-                                ${userProfile?.credits_balance?.toFixed(2) || '0.00'}
+                                ${userProfile?.credits?.toFixed(2) || '0.00'}
                             </div>
                         </div>
                         <button
@@ -359,10 +361,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                             <div className="liquid-glass rounded-2xl p-8 border border-white/10 flex flex-col">
                                 <h3 className="text-white/60 font-medium mb-6">Current Invoice Balance</h3>
                                 <div className="text-6xl font-sans tracking-tighter mb-2">
-                                    ${userProfile?.credits_balance?.toFixed(2) || '0.00'}
+                                    ${userProfile?.credits?.toFixed(2) || '0.00'}
                                 </div>
                                 <p className="text-white/40 text-sm mb-10">
-                                    Equivalent to {((userProfile?.credits_balance || 0) * 100).toLocaleString()} Platform Credits
+                                    Equivalent to {((userProfile?.credits || 0) * 100).toLocaleString()} Platform Credits
                                 </p>
 
                                 <div className="mt-auto space-y-4">
@@ -424,6 +426,23 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                             <div className="liquid-glass rounded-2xl border border-white/10 p-6 text-center text-white/30 text-sm">
                                 No recent transactions found.
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MY PURCHASES TAB */}
+                {activeTab === 'purchases' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="text-center py-12">
+                            <ShoppingBag size={48} className="mx-auto mb-4 text-white/30" />
+                            <h3 className="text-xl font-medium text-white mb-2">我的购买</h3>
+                            <p className="text-white/50 mb-6">查看您购买的所有 API 产品</p>
+                            <Link
+                                to="/my-purchases"
+                                className="inline-block bg-white hover:bg-white/90 text-black px-6 py-3 rounded-xl font-semibold transition-colors duration-200"
+                            >
+                                查看完整列表
+                            </Link>
                         </div>
                     </div>
                 )}
