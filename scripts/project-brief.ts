@@ -7,6 +7,7 @@ const urls = {
   n8n: 'http://127.0.0.1:5173/n8n-workflows.html',
   hub: 'http://127.0.0.1:5173/project-hub.html',
   n8nCloud: 'https://ablly.app.n8n.cloud',
+  stripeDocs: 'https://docs.stripe.com/payments/payment-methods/overview',
   dodoDocs: 'https://docs.dodopayments.com/developer-resources/mcp-server',
 };
 
@@ -42,11 +43,12 @@ const productionWorkflowStandards = [
 ];
 
 const paymentPlan = [
-  'Dodo Payments 作为默认支付平台候选，用于一次性付款、订阅、积分充值、退款和后续用量/积分账单。',
-  'Dodo MCP 分两类：Payments MCP 负责 API 操作，Knowledge MCP 负责文档搜索；本项目后续接入前必须配置测试 API key 和 webhook key。',
-  '支付链路必须服务端落单：前端只拿 checkout/portal 链接，订单状态以 Dodo Webhook 和本地账本为准。',
+  '支付路线采用 Stripe 首发 + Dodo Payments 备选，避免把全球收款能力写死到单一平台。',
+  'Stripe 首发覆盖 Visa、Mastercard、Alipay 和 WeChat Pay，更适合先验证全球用户购买积分和订阅。',
+  'Dodo Payments 预留为 Merchant of Record 备选，用于后续全球税务、VAT/GST、争议和跨境销售合规。',
+  '支付链路必须服务端落单：前端只拿 checkout/portal 链接，订单状态以 provider Webhook 和本地账本为准。',
   '必须建立 payment_transactions、credit_ledger、subscriptions、refunds、seller_settlements、webhook_events 等账本集合。',
-  '上线前必须完成测试模式、Webhook 验签、幂等处理、退款/争议、税务/MoR 责任确认和管理员对账页。',
+  '上线前必须完成测试模式、Webhook 验签、幂等处理、退款/争议、Stripe 税务责任确认、Dodo MoR 责任确认和管理员对账页。',
 ];
 
 const adminPlan = [
@@ -71,6 +73,7 @@ function printLinks() {
   console.log(`n8n 工作流访问页: ${urls.n8n}`);
   console.log(`项目总览页: ${urls.hub}`);
   console.log(`n8n 云端实例: ${urls.n8nCloud}`);
+  console.log(`Stripe 支付方式文档: ${urls.stripeDocs}`);
   console.log(`Dodo Payments MCP 文档: ${urls.dodoDocs}`);
 }
 
@@ -90,7 +93,7 @@ function printWorkflowOptions() {
 }
 
 function printPaymentPlan() {
-  console.log('Dodo Payments 支付规划');
+  console.log('支付平台规划');
   console.log('');
   for (const item of paymentPlan) {
     console.log(`- ${item}`);
@@ -124,8 +127,8 @@ function printBrief() {
   console.log('');
   printAdminPlan();
   console.log('');
-  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、Activepieces 免费自托管优先、Dodo Payments 支付方向、完成后运行验证和自审、审核通过后推送 GitHub。');
-  console.log('当前建议下一步: 先做管理员后台 MVP + 商家入驻审核工作流 + Dodo Payments 测试支付规格，形成真正可运营闭环。');
+  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、Activepieces 免费自托管优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审、审核通过后推送 GitHub。');
+  console.log('当前建议下一步: 先做管理员后台 MVP + 商家入驻审核工作流 + Stripe 测试支付规格 + Dodo Payments 备选接口，形成真正可运营闭环。');
 }
 
 if (mode === 'links') {

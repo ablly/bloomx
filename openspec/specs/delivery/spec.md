@@ -69,13 +69,13 @@
 - THEN 不得把 n8n Cloud 作为默认生产依赖
 - AND n8n 自托管只能作为既有 n8n 工作流迁移兼容备选
 
-### Requirement: Dodo Payments 作为支付平台方向
-项目 SHALL 将 Dodo Payments 作为默认支付平台方向规划支付、订阅、积分充值、退款、Webhook 对账和商家结算。
+### Requirement: Stripe 首发并预留 Dodo Payments
+项目 SHALL 将 Stripe 作为首发支付通道，并为 Dodo Payments 预留 Merchant of Record 和全球税务合规备选通道。
 
 #### Scenario: 新增支付能力
 - GIVEN 一个需求涉及付款、订阅、积分、退款、争议或结算
 - WHEN 编写 OpenSpec design
-- THEN 方案说明 Dodo Payments 中的支付对象、Webhook 事件和测试/生产环境
+- THEN 方案说明 Stripe 与 Dodo Payments 的 provider 选择、支付对象、Webhook 事件和测试/生产环境
 - AND 说明服务端密钥管理、Webhook 验签、幂等键、本地账本和管理员对账入口
 
 #### Scenario: 支付状态更新

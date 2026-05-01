@@ -247,6 +247,7 @@
           <div class="links">
             <a href="/">项目预览页</a>
             <a href="/n8n-workflows.html">历史 n8n 工作流访问页</a>
+            <a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe 支付方式文档</a>
             <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP 文档</a>
           </div>
         </article>
@@ -269,7 +270,7 @@
             <li>OpenSpec + Superpowers 交付规则已落地。</li>
             <li>Taste + Open Design 已作为默认 UI 设计原则。</li>
             <li>n8n Cloud 不再作为默认生产依赖。</li>
-            <li>Dodo Payments 已进入支付平台规划。</li>
+            <li>支付路线已改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
           </ul>
         </article>
 
@@ -278,7 +279,8 @@
           <ul>
             <li>管理员后台 MVP。</li>
             <li>Activepieces 商家入驻审核工作流。</li>
-            <li>Dodo Payments 测试支付规格。</li>
+            <li>Stripe 测试支付规格。</li>
+            <li>Dodo Payments 备选接口。</li>
             <li>订单、积分和 Webhook 账本。</li>
           </ul>
         </article>
@@ -326,17 +328,19 @@
         </article>
 
         <article class="panel full">
-          <h2>Dodo Payments 支付平台规划</h2>
+          <h2>支付平台规划</h2>
           <div class="decision">
             <div class="stack">
-              <span class="badge">建议采用：测试环境先接入</span>
-              <p>Dodo Payments 适合 BloomX 的一次性付款、订阅、积分充值、退款和后续用量/积分账单。前端只负责发起 checkout 或进入 customer portal，订单状态以服务端账本和 Dodo Webhook 为准。</p>
-              <p>它的 MCP 分两类：Payments MCP 负责支付 API 操作，Knowledge MCP 负责文档搜索。正式接入前需要测试 API key、webhook key、测试/生产环境隔离和密钥管理。</p>
+              <span class="badge">建议采用：Stripe 首发，Dodo 备选</span>
+              <p>Stripe 更适合 BloomX 首发全球支付，因为它覆盖 Visa、Mastercard、支付宝和微信支付，开发生态成熟，适合先验证积分充值和订阅。</p>
+              <p>Dodo Payments 适合作为 Merchant of Record 备选，用于后续全球税务、VAT/GST、争议和跨境销售合规。前端只负责发起 checkout 或进入 customer portal，订单状态以服务端账本和 provider Webhook 为准。</p>
             </div>
             <div>
+              <div class="row"><b>首发通道</b><span>Stripe：Visa、Mastercard、Alipay、WeChat Pay。</span></div>
+              <div class="row"><b>备选通道</b><span>Dodo Payments：MoR、税务合规、跨境销售责任。</span></div>
               <div class="row"><b>必须有</b><span>Webhook 验签、幂等键、订单账本、积分账本、退款记录、对账页。</span></div>
               <div class="row"><b>先不做</b><span>直接从前端写支付状态、把密钥放前端、绕过管理员审核的自动结算。</span></div>
-              <div class="row"><b>MCP 文档</b><span><a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP Server</a></span></div>
+              <div class="row"><b>文档</b><span><a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe Payment Methods</a> / <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo MCP Server</a></span></div>
             </div>
           </div>
         </article>
