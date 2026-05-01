@@ -20,6 +20,8 @@
     "brief": "tsx scripts/project-brief.ts",
     "links": "tsx scripts/project-brief.ts links",
     "workflow-options": "tsx scripts/project-brief.ts workflows",
+    "payment-plan": "tsx scripts/project-brief.ts payments",
+    "admin-plan": "tsx scripts/project-brief.ts admin",
     "spec:list": "openspec list",
     "spec:list:all": "openspec list --specs",
     "spec:validate": "openspec validate --all",

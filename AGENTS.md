@@ -10,7 +10,8 @@
 - 非平凡功能、架构、自动化、前端或 UI 改动默认使用 OpenSpec + Superpowers 的规格闭环。
 - 小文案、小修复、单点 bug 可以直接改，但仍要说明验证结果。
 - 前端与 UI 设计默认使用 Taste + Open Design 原则：真实状态、清晰层级、克制装饰、可检查、可迭代。
-- 流程自动化默认优先使用 n8n 自托管免费 Community Edition；如果 n8n Cloud 收费或许可不适合当前场景，优先评估 Activepieces、Node-RED、Windmill、Automatisch 等免费/开源替代方案。Make.com 只作为历史资料或迁移参考，除非用户明确要求。
+- 流程自动化默认使用免费/开源自托管路线，生产默认平台为 Activepieces 自托管社区版；Node-RED 用于轻量事件流和基础设施编排，Windmill 用于脚本型后台任务，n8n 自托管只作为历史 n8n 工作流迁移兼容备选，n8n Cloud 不再作为默认方案。Make.com 只作为历史资料或迁移参考，除非用户明确要求。
+- 支付平台默认按 Dodo Payments 方向规划：所有支付、订阅、积分充值、退款、Webhook 对账和商家结算相关设计必须预留 Dodo Payments 接入位，并通过服务端完成密钥、签名和幂等校验。
 
 ## 每次完成后的固定动作
 
@@ -28,7 +29,8 @@
 - 简便查看入口：`npm run brief`。
 - 使用到的 skill、MCP 和工具调用清单；如果没有使用某类能力，也要写“未使用”。
 - 剩余风险或下一步。
-- 如果任务涉及工作流，必须说明当前选择的是 n8n Cloud、n8n 自托管，还是免费/开源替代方案。
+- 如果任务涉及工作流，必须说明当前选择的是 Activepieces、Node-RED、Windmill、n8n 自托管迁移兼容，还是其它免费/开源替代方案。
+- 如果任务涉及支付，必须说明 Dodo Payments 的支付对象、Webhook、幂等键、订单/积分账本、退款/争议、管理员审核入口和测试/生产环境隔离。
 
 ## 固定访问入口
 
@@ -48,6 +50,14 @@ http://127.0.0.1:5173/
 
 ```text
 http://127.0.0.1:5173/n8n-workflows.html
+```
+
+- 免费工作流与支付总览：
+
+```bash
+npm run workflow-options
+npm run payment-plan
+npm run admin-plan
 ```
 
 - 项目总览页：

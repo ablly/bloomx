@@ -9,12 +9,12 @@
         color-scheme: dark;
         --bg: #101215;
         --panel: #181b20;
+        --soft: #20252c;
         --line: #2b3139;
         --text: #f4f0e8;
         --muted: #a8b0bb;
         --accent: #78c6a3;
         --warn: #e6b45c;
-        --soft: #20252c;
       }
 
       * {
@@ -35,15 +35,17 @@
       }
 
       main {
-        width: min(1120px, calc(100vw - 32px));
+        width: min(1180px, calc(100vw - 32px));
         margin: 0 auto;
         padding: 36px 0 48px;
       }
 
       header {
         display: grid;
-        gap: 12px;
-        padding-bottom: 24px;
+        grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+        gap: 28px;
+        align-items: end;
+        padding-bottom: 26px;
         border-bottom: 1px solid var(--line);
       }
 
@@ -65,71 +67,6 @@
         line-height: 1.7;
       }
 
-      code {
-        color: var(--text);
-        background: #0c0e11;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        padding: 3px 6px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: 16px;
-        margin-top: 20px;
-      }
-
-      .panel {
-        grid-column: span 6;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 18px;
-      }
-
-      .panel.full {
-        grid-column: 1 / -1;
-      }
-
-      .stack {
-        display: grid;
-        gap: 12px;
-      }
-
-      .workflow-list {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(180px, 1fr));
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 2px;
-      }
-
-      .workflow-option {
-        min-height: 170px;
-        background: var(--soft);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 14px;
-      }
-
-      .workflow-option strong {
-        display: block;
-        margin-bottom: 8px;
-      }
-
-      .workflow-option span {
-        display: block;
-        color: var(--muted);
-        line-height: 1.55;
-        font-size: 14px;
-      }
-
-      .links {
-        display: grid;
-        gap: 10px;
-      }
-
       a {
         color: var(--accent);
         text-decoration: none;
@@ -137,6 +74,19 @@
 
       a:hover {
         text-decoration: underline;
+      }
+
+      code {
+        display: block;
+        width: 100%;
+        margin-top: 8px;
+        overflow-x: auto;
+        white-space: nowrap;
+        color: var(--text);
+        background: #0c0e11;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
       }
 
       ul {
@@ -162,16 +112,118 @@
         background: var(--accent);
       }
 
-      .command {
-        display: block;
-        margin-top: 8px;
-        overflow-x: auto;
-        white-space: nowrap;
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+        margin-top: 20px;
       }
 
-      @media (max-width: 760px) {
-        .panel {
+      .panel {
+        grid-column: span 6;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .panel.full {
+        grid-column: 1 / -1;
+      }
+
+      .panel.third {
+        grid-column: span 4;
+      }
+
+      .links,
+      .stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        width: fit-content;
+        border: 1px solid color-mix(in oklch, var(--accent), transparent 40%);
+        border-radius: 999px;
+        padding: 4px 9px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .decision {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 16px;
+      }
+
+      .matrix {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(210px, 1fr));
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .tile {
+        min-height: 166px;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .tile strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .tile span,
+      .row span {
+        display: block;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .row b {
+        color: var(--text);
+      }
+
+      .hero-note {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      @media (max-width: 860px) {
+        header,
+        .decision {
+          grid-template-columns: 1fr;
+        }
+
+        .panel,
+        .panel.third {
           grid-column: 1 / -1;
+        }
+
+        .row {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -179,9 +231,14 @@
   <body>
     <main>
       <header>
-        <span class="status"><span class="dot"></span>规格闭环已接入</span>
-        <h1>BloomX 项目总览</h1>
-        <p>这里是给经理视角看的短入口：不翻一堆文档，直接看当前规则、入口、进度和下一步。</p>
+        <div class="stack">
+          <span class="status"><span class="dot"></span>免费自托管路线已确定</span>
+          <h1>BloomX 项目总览</h1>
+          <p>这里给你看最短结论：工作流、支付、管理员后台和下一步。不用翻一堆文档。</p>
+        </div>
+        <div class="hero-note">
+          <p>当前建议：先做管理员后台 MVP，再接商家入驻审核工作流和 Dodo Payments 测试支付，形成可运营闭环。</p>
+        </div>
       </header>
 
       <section class="grid" aria-label="项目总览">
@@ -189,73 +246,109 @@
           <h2>常用入口</h2>
           <div class="links">
             <a href="/">项目预览页</a>
-            <a href="/n8n-workflows.html">n8n 工作流访问页</a>
-            <a href="https://ablly.app.n8n.cloud">n8n 云端实例</a>
+            <a href="/n8n-workflows.html">历史 n8n 工作流访问页</a>
+            <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP 文档</a>
           </div>
         </article>
 
         <article class="panel">
           <h2>常用命令</h2>
           <p>启动本地预览</p>
-          <code class="command">npm run dev -- --host 127.0.0.1</code>
-          <p style="margin-top: 14px">终端查看简报</p>
-          <code class="command">npm run brief</code>
-          <p style="margin-top: 14px">只看免费工作流候选</p>
-          <code class="command">npm run workflow-options</code>
+          <code>npm run dev -- --host 127.0.0.1</code>
+          <p style="margin-top: 14px">查看简报</p>
+          <code>npm run brief</code>
+          <p style="margin-top: 14px">专项查看</p>
+          <code>npm run workflow-options</code>
+          <code>npm run payment-plan</code>
+          <code>npm run admin-plan</code>
         </article>
 
-        <article class="panel">
+        <article class="panel third">
           <h2>当前进度</h2>
           <ul>
             <li>OpenSpec + Superpowers 交付规则已落地。</li>
-            <li>中文文档、Taste + Open Design、完成后自审与 GitHub 推送规则已固定。</li>
-            <li>n8n 工作流访问页已创建。</li>
-            <li>首页关键中文乱码已修复。</li>
-            <li>已加入免费/开源工作流候选，避免被 n8n Cloud 费用卡住。</li>
+            <li>Taste + Open Design 已作为默认 UI 设计原则。</li>
+            <li>n8n Cloud 不再作为默认生产依赖。</li>
+            <li>Dodo Payments 已进入支付平台规划。</li>
           </ul>
         </article>
 
-        <article class="panel">
-          <h2>下一步建议</h2>
+        <article class="panel third">
+          <h2>下一步</h2>
           <ul>
-            <li>先选免费路线：n8n 自托管 Community Edition 或 Activepieces。</li>
-            <li>推荐试点：商家入驻审核，因为它最适合审批、通知、失败记录和人工复核。</li>
-            <li>每个闭环都绑定工作流方案、验证命令和可预览入口。</li>
+            <li>管理员后台 MVP。</li>
+            <li>Activepieces 商家入驻审核工作流。</li>
+            <li>Dodo Payments 测试支付规格。</li>
+            <li>订单、积分和 Webhook 账本。</li>
           </ul>
+        </article>
+
+        <article class="panel third">
+          <h2>管理员后台结论</h2>
+          <p>必须做。没有管理员后台，审核、退款、对账、风控、结算和失败工作流重放都会卡住。</p>
         </article>
 
         <article class="panel full">
-          <h2>免费/开源工作流候选</h2>
-          <div class="workflow-list">
-            <div class="workflow-option">
-              <strong>n8n 自托管</strong>
-              <span>免费 Community Edition，最省迁移成本；需要自己维护服务器、备份和安全。</span>
-            </div>
-            <div class="workflow-option">
+          <h2>免费/开源工作流路线</h2>
+          <div class="matrix">
+            <div class="tile">
               <strong>Activepieces</strong>
-              <span>MIT 社区版，最像 Zapier/n8n；适合后续作为免费优先替代。</span>
+              <span>默认生产平台。MIT core，自托管，负责审批、Webhook、通知、重试和跨系统编排。</span>
             </div>
-            <div class="workflow-option">
+            <div class="tile">
               <strong>Node-RED</strong>
-              <span>Apache-2.0，适合 Webhook、HTTP 编排和轻量后台事件流。</span>
+              <span>轻量事件流补位。适合健康检查、HTTP 转发、内部事件桥接，不承担核心审批。</span>
             </div>
-            <div class="workflow-option">
+            <div class="tile">
               <strong>Windmill</strong>
-              <span>免费开源自托管，适合开发者脚本、内部工具和数据任务。</span>
+              <span>脚本后台任务补位。适合对账、批处理、数据修复和定时结算草稿。</span>
             </div>
-            <div class="workflow-option">
-              <strong>Automatisch</strong>
-              <span>AGPL 社区版，开源 Zapier 替代；适合隐私敏感的自托管自动化。</span>
+            <div class="tile">
+              <strong>n8n 自托管</strong>
+              <span>仅作迁移兼容备选。n8n Cloud 不再作为默认生产依赖。</span>
             </div>
           </div>
         </article>
 
         <article class="panel full">
-          <h2>固定交付标准</h2>
-          <p>
-            后续每次完成任务，我都会给出项目预览页、n8n 工作流访问页、简报命令、验证结果、
-            使用到的 skill、MCP 和工具调用清单，并说明剩余风险。
-          </p>
+          <h2>生产工作流标准</h2>
+          <div class="decision">
+            <div class="stack">
+              <span class="badge">商业标准</span>
+              <p>所有核心工作流都必须具备幂等键、重试、超时、失败死信、审计日志、密钥管理、测试/生产环境隔离和回滚策略。</p>
+            </div>
+            <div>
+              <div class="row"><b>必须记录</b><span>requestId、actor、输入摘要、输出摘要、错误、耗时、重放入口。</span></div>
+              <div class="row"><b>必须保护</b><span>API key、webhook secret、支付密钥，全部走服务端和密钥管理。</span></div>
+              <div class="row"><b>必须复核</b><span>支付、退款、结算、商家审核、API 上架都要有管理员入口。</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel full">
+          <h2>Dodo Payments 支付平台规划</h2>
+          <div class="decision">
+            <div class="stack">
+              <span class="badge">建议采用：测试环境先接入</span>
+              <p>Dodo Payments 适合 BloomX 的一次性付款、订阅、积分充值、退款和后续用量/积分账单。前端只负责发起 checkout 或进入 customer portal，订单状态以服务端账本和 Dodo Webhook 为准。</p>
+              <p>它的 MCP 分两类：Payments MCP 负责支付 API 操作，Knowledge MCP 负责文档搜索。正式接入前需要测试 API key、webhook key、测试/生产环境隔离和密钥管理。</p>
+            </div>
+            <div>
+              <div class="row"><b>必须有</b><span>Webhook 验签、幂等键、订单账本、积分账本、退款记录、对账页。</span></div>
+              <div class="row"><b>先不做</b><span>直接从前端写支付状态、把密钥放前端、绕过管理员审核的自动结算。</span></div>
+              <div class="row"><b>MCP 文档</b><span><a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP Server</a></span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel full">
+          <h2>管理员后台范围</h2>
+          <div class="matrix">
+            <div class="tile"><strong>审核</strong><span>商家申请、API 商品、模型测试结果、人工复核。</span></div>
+            <div class="tile"><strong>支付</strong><span>订单、订阅、积分账本、退款、争议、Webhook 事件。</span></div>
+            <div class="tile"><strong>运营</strong><span>用户、商家、工单、工作流运行、失败重放、通知记录。</span></div>
+            <div class="tile"><strong>权限</strong><span>admin、operator、support、finance、reviewer，敏感操作全审计。</span></div>
+          </div>
         </article>
       </section>
     </main>

@@ -40,20 +40,58 @@
 - WHEN 准备交付
 - THEN 实现已检查交互状态、响应式布局、文案质量、视觉一致性和动效性能风险
 
-### Requirement: n8n 作为默认流程自动化工作流
-项目 SHALL 将 n8n 作为所有新流程自动化、业务事件编排和跨系统通知的默认工作流平台。
+### Requirement: 免费自托管作为默认流程自动化路线
+项目 SHALL 将免费/开源自托管平台作为所有新流程自动化、业务事件编排和跨系统通知的默认路线，生产默认平台为 Activepieces 自托管社区版。
 
 #### Scenario: 新增自动化流程
 - GIVEN 一个新需求需要业务流程编排、Webhook 投递、跨系统通知或运营自动化
 - WHEN 编写 OpenSpec design
-- THEN 方案优先使用 n8n 工作流
+- THEN 方案优先使用 Activepieces 自托管社区版
 - AND 记录 workflow 名称、触发源、输入输出、失败记录和验收方式
+- AND 记录幂等键、重试策略、超时策略、死信记录、审计日志、密钥管理和回滚方式
+
+#### Scenario: 特定场景需要补位工具
+- GIVEN 自动化需求更适合轻量事件流、基础设施编排或脚本型任务
+- WHEN 编写 OpenSpec design
+- THEN 可以选择 Node-RED 作为轻量事件流补位
+- OR 可以选择 Windmill 作为脚本型后台任务补位
+- AND 说明为什么不使用 Activepieces
 
 #### Scenario: 历史 Make 资料存在
 - GIVEN 项目中存在 Make.com 文档、脚本或历史记录
 - WHEN 新增流程自动化方案
 - THEN 不得把 Make 作为默认流程平台
 - AND Make 只能作为历史参考或迁移兼容资料
+
+#### Scenario: 历史 n8n 资料存在
+- GIVEN 项目中存在 n8n Cloud 工作流、文档或访问页
+- WHEN 新增或迁移自动化方案
+- THEN 不得把 n8n Cloud 作为默认生产依赖
+- AND n8n 自托管只能作为既有 n8n 工作流迁移兼容备选
+
+### Requirement: Dodo Payments 作为支付平台方向
+项目 SHALL 将 Dodo Payments 作为默认支付平台方向规划支付、订阅、积分充值、退款、Webhook 对账和商家结算。
+
+#### Scenario: 新增支付能力
+- GIVEN 一个需求涉及付款、订阅、积分、退款、争议或结算
+- WHEN 编写 OpenSpec design
+- THEN 方案说明 Dodo Payments 中的支付对象、Webhook 事件和测试/生产环境
+- AND 说明服务端密钥管理、Webhook 验签、幂等键、本地账本和管理员对账入口
+
+#### Scenario: 支付状态更新
+- GIVEN Dodo Payments 发送支付或订阅相关 Webhook
+- WHEN 系统处理该事件
+- THEN 系统以服务端账本为准更新订单、订阅或积分状态
+- AND 保存 webhook event 原文摘要、验签结果、处理状态和重放记录
+
+### Requirement: 管理员后台为生产必需能力
+项目 SHALL 提供管理员后台来支撑审核、支付对账、退款、工作流运行、商家结算、风控和审计。
+
+#### Scenario: 生产运营
+- GIVEN BloomX 进入真实商家和用户运营
+- WHEN 管理员需要处理审核、支付、退款、结算或异常工作流
+- THEN 管理员后台提供可检索、可复核、可审计的操作入口
+- AND 敏感操作记录 actor、时间、原因、前后状态和 requestId
 
 ### Requirement: 完成后运行与自审
 项目 SHALL 在每次完成工作后运行相关验证并自审问题，直到当前范围内没有阻塞问题。
