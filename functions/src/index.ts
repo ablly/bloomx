@@ -258,3 +258,4 @@ export const onUserDelete = functions.auth.user().onDelete(async (user) => {
 });
 
 export { invokeMerchantModel } from './platformProxy';
+export { runAdminAction } from './adminActions';

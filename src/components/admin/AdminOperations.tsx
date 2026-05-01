@@ -38,6 +38,7 @@ import {
   type AdminSectionKey,
   type AdminSnapshot,
 } from '../../services/adminOperationsService';
+import { runAdminAction, type AdminActionType } from '../../services/adminActionService';
 import { listPaymentProviderConfigs } from '../../services/paymentProviderService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -715,6 +716,12 @@ function RecordInspector({
   record?: AdminRecord;
   canRunActions: boolean;
 }) {
+  const [actionState, setActionState] = useState<{
+    status: 'idle' | 'submitting' | 'success' | 'error';
+    message: string;
+    requestId?: string;
+  }>({ status: 'idle', message: '' });
+
   if (!record) return null;
 
   const fields = section.key === 'users'
@@ -733,9 +740,45 @@ function RecordInspector({
         ['更新时间', formatDate(record.updatedAt)],
       ];
 
-  const plannedActions = section.key === 'users'
-    ? ['调整角色', '冻结账号', '修正积分', '导出用户审计']
-    : ['提交复核', '写入审计', '重放失败事件', '导出摘要'];
+  const plannedActions: Array<{ label: string; actionType: AdminActionType }> = section.key === 'users'
+    ? [
+        { label: '调整角色', actionType: 'adjust_user_role' },
+        { label: '冻结账号', actionType: 'freeze_user' },
+        { label: '修正积分', actionType: 'adjust_user_credits' },
+        { label: '导出用户审计', actionType: 'export_user_audit' },
+      ]
+    : [
+        { label: '提交复核', actionType: 'submit_review' },
+        { label: '重放失败事件', actionType: 'replay_failed_event' },
+        { label: '导出摘要', actionType: 'export_record_summary' },
+      ];
+
+  const submitAction = async (actionType: AdminActionType, label: string) => {
+    setActionState({ status: 'submitting', message: `${label} dry-run 提交中` });
+    try {
+      const result = await runAdminAction({
+        actionType,
+        targetCollection: record.collection,
+        targetId: record.id,
+        reason: `Admin console dry-run: ${label}`,
+        metadata: {
+          section: section.key,
+          recordTitle: record.title,
+          currentStatus: record.status,
+        },
+      });
+      setActionState({
+        status: 'success',
+        message: `${label} 已写入审计 dry-run`,
+        requestId: result.requestId,
+      });
+    } catch (error) {
+      setActionState({
+        status: 'error',
+        message: error instanceof Error ? error.message : `${label} 提交失败`,
+      });
+    }
+  };
 
   return (
     <aside className="border-t border-white/10 bg-[#091011]/95 p-5 xl:border-l xl:border-t-0">
@@ -758,25 +801,63 @@ function RecordInspector({
       </div>
 
       <div className="mt-5 rounded-lg border border-[#d9b46a]/25 bg-[#d9b46a]/10 p-3 text-xs leading-5 text-[#efd18c]">
-        敏感操作只展示入口，不从前端直接写数据。下一步需要接入服务端动作 API，统一写 audit_logs 并带 requestId、actor、reason、before/after。
+        敏感操作先走服务端 dry-run 审计，不直接改用户、支付或账本数据。真实执行会在下一阶段接入审批、回滚和权限策略。
       </div>
 
       <div className="mt-4 grid gap-2">
         {plannedActions.map((action) => (
-          <ServerActionButton key={action} enabled={canRunActions} label={action} compact />
+          <ServerActionButton
+            key={action.actionType}
+            enabled={canRunActions && actionState.status !== 'submitting'}
+            label={action.label}
+            compact
+            onRun={() => void submitAction(action.actionType, action.label)}
+          />
         ))}
       </div>
+
+      {actionState.status !== 'idle' && (
+        <div
+          className={`mt-4 rounded-lg border px-3 py-2 text-xs leading-5 ${
+            actionState.status === 'success'
+              ? 'border-[#78c6a3]/25 bg-[#78c6a3]/10 text-[#9be2c8]'
+              : actionState.status === 'error'
+                ? 'border-[#e07d6b]/25 bg-[#e07d6b]/10 text-[#f0a091]'
+                : 'border-white/10 bg-white/[0.035] text-white/55'
+          }`}
+        >
+          <div>{actionState.message}</div>
+          {actionState.requestId && <div className="mt-1 font-mono text-white/70">requestId: {actionState.requestId}</div>}
+        </div>
+      )}
     </aside>
   );
 }
 
-function ServerActionButton({ enabled, label, compact = false }: { enabled: boolean; label: string; compact?: boolean }) {
+function ServerActionButton({
+  enabled,
+  label,
+  compact = false,
+  onRun,
+}: {
+  enabled: boolean;
+  label: string;
+  compact?: boolean;
+  onRun?: () => void;
+}) {
+  const canRun = enabled && Boolean(onRun);
+
   return (
     <button
       type="button"
-      disabled
-      title={enabled ? '下一步接入服务端审计动作 API' : '需要管理员权限'}
-      className={`rounded-lg border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-white/38 ${
+      disabled={!canRun}
+      onClick={onRun}
+      title={canRun ? '提交服务端 dry-run 审计动作' : enabled ? '该动作等待服务端真实执行策略' : '需要管理员权限'}
+      className={`rounded-lg border px-4 text-sm font-semibold transition active:translate-y-px ${
+        canRun
+          ? 'border-[#78c6a3]/25 bg-[#78c6a3]/10 text-[#9be2c8] hover:bg-[#78c6a3]/14'
+          : 'border-white/10 bg-white/[0.035] text-white/38'
+      } ${
         compact ? 'min-h-10 text-left' : 'min-h-11'
       }`}
     >

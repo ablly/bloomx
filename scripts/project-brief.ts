@@ -56,7 +56,8 @@ const adminPlan = [
   '默认只允许 zqhablly@gmail.com 进入后台，可用 VITE_ADMIN_ALLOWED_EMAILS 扩展白名单。',
   '管理员密码不写入代码、文档或仓库，只在登录时提交给认证服务。',
   'Firestore 已限制后台运营集合：支付交易、积分账本、退款、Webhook、结算、工作流事件和审计日志禁止前端写入。',
-  '下一步必须补服务端动作 API：商家审核、商品上下架、退款复核、Webhook 重放、结算批准、权限变更和配置保存。',
+  '服务端管理员动作 API 已有 dry-run 基座：后台按钮可写 audit_logs 并返回 requestId，但暂不直接改生产数据。',
+  '下一步把 dry-run 升级为真实审批动作：商家审核、商品上下架、退款复核、Webhook 重放、结算批准、权限变更和配置保存。',
 ];
 
 function run(command: string): string {
@@ -117,7 +118,7 @@ function printBrief() {
   printList('管理员后台进度', adminPlan);
   console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
-  console.log('建议下一步: 实装服务端 Stripe checkout/webhook/portal API，再把后台按钮接到带审计日志的服务端动作。');
+  console.log('建议下一步: 先把 Admin Action dry-run 升级为真实可审批动作，再实装 Stripe checkout/webhook/portal API。');
 }
 
 if (mode === 'links') {

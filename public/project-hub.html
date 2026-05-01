@@ -270,14 +270,15 @@
             <li>n8n Cloud 不作为默认生产依赖，改为免费自托管路线。</li>
             <li>支付路线改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
             <li>管理员后台已要求登录，默认仅 Owner 邮箱可进入。</li>
+            <li>服务端管理员动作 API 已有 dry-run 审计基座，后台动作会返回 requestId。</li>
           </ul>
         </article>
 
         <article class="panel third">
           <h2>下一步</h2>
           <ul>
+            <li>把 Admin Action dry-run 升级为真实审批动作。</li>
             <li>实装 Stripe 服务端 checkout、webhook、portal API。</li>
-            <li>把后台操作按钮接入服务端审计动作。</li>
             <li>建立 Activepieces 商家入驻审核工作流。</li>
             <li>补订单、积分、Webhook、退款和结算账本闭环。</li>
             <li>确认 Dodo Payments MoR 启用边界。</li>
