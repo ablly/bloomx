@@ -9,17 +9,17 @@
 
 ## 实现准备
 
-- [ ] 新增 `paymentProviderService` 抽象接口和 provider registry。
-- [ ] 新增 Stripe adapter 骨架，不写入真实密钥。
-- [ ] 新增 Dodo adapter 占位和配置校验，不写入真实密钥。
-- [ ] 新增 Firestore 类型定义：交易、积分账本、订阅、退款、Webhook、结算、审计日志。
-- [ ] 新增管理员后台 `/admin/payments`、`/admin/ledger`、`/admin/webhooks` 的路由骨架。
-- [ ] 新增 webhook 幂等处理和失败记录服务骨架。
+- [x] 新增 `paymentProviderService` 抽象接口和 provider registry。
+- [x] 新增 Stripe adapter 骨架，不写入真实密钥。
+- [x] 新增 Dodo adapter 占位和配置校验，不写入真实密钥。
+- [x] 新增 Firestore 类型定义：交易、积分账本、订阅、退款、Webhook、结算、审计日志。
+- [x] 新增管理员后台 `/admin/payments`、`/admin/ledger`、`/admin/webhooks` 的路由骨架。
+- [x] 新增 webhook 幂等处理和失败记录服务骨架。
 
 ## 验证
 
-- [ ] `npm run spec:validate:strict`
-- [ ] `npm run build`
-- [ ] 本地预览访问 `/project-hub.html`、`/` 和后续 `/admin`。
-- [ ] 自审支付密钥没有进入前端和仓库。
-- [ ] 自审所有支付状态变更都以服务端账本和 Webhook 为准。
+- [x] `npm run spec:validate:strict`
+- [x] `npm run build`
+- [x] 本地预览访问 `/project-hub.html`、`/` 和后续 `/admin`。
+- [x] 自审支付密钥没有进入前端和仓库。
+- [x] 自审所有支付状态变更都以服务端账本和 Webhook 为准。

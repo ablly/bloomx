@@ -237,7 +237,7 @@
           <p>这里给你看最短结论：工作流、支付、管理员后台和下一步。不用翻一堆文档。</p>
         </div>
         <div class="hero-note">
-          <p>当前建议：先做管理员后台 MVP，再接商家入驻审核工作流和 Dodo Payments 测试支付，形成可运营闭环。</p>
+          <p>当前建议：继续把管理员后台从路由骨架推进到真实数据读写，再接商家入驻审核工作流和 Stripe 测试支付，形成可运营闭环。</p>
         </div>
       </header>
 
@@ -246,6 +246,7 @@
           <h2>常用入口</h2>
           <div class="links">
             <a href="/">项目预览页</a>
+            <a href="/admin">管理员后台入口</a>
             <a href="/n8n-workflows.html">历史 n8n 工作流访问页</a>
             <a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe 支付方式文档</a>
             <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP 文档</a>
@@ -271,16 +272,17 @@
             <li>Taste + Open Design 已作为默认 UI 设计原则。</li>
             <li>n8n Cloud 不再作为默认生产依赖。</li>
             <li>支付路线已改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
+            <li>支付 Provider 抽象、Webhook 幂等骨架和管理员后台入口已建立。</li>
           </ul>
         </article>
 
         <article class="panel third">
           <h2>下一步</h2>
           <ul>
-            <li>管理员后台 MVP。</li>
+            <li>把管理员后台接入真实 Firestore 数据。</li>
             <li>Activepieces 商家入驻审核工作流。</li>
-            <li>Stripe 测试支付规格。</li>
-            <li>Dodo Payments 备选接口。</li>
+            <li>Stripe 测试支付服务端 checkout 和 Webhook。</li>
+            <li>Dodo Payments MoR 备选接口验签和事件映射。</li>
             <li>订单、积分和 Webhook 账本。</li>
           </ul>
         </article>

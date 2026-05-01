@@ -4,9 +4,9 @@ const mode = process.argv[2] ?? 'brief';
 
 const urls = {
   preview: 'http://127.0.0.1:5173/',
+  admin: 'http://127.0.0.1:5173/admin',
   n8n: 'http://127.0.0.1:5173/n8n-workflows.html',
   hub: 'http://127.0.0.1:5173/project-hub.html',
-  n8nCloud: 'https://ablly.app.n8n.cloud',
   stripeDocs: 'https://docs.stripe.com/payments/payment-methods/overview',
   dodoDocs: 'https://docs.dodopayments.com/developer-resources/mcp-server',
 };
@@ -70,9 +70,9 @@ function printLinks() {
   console.log('');
   console.log('启动本地预览: npm run dev -- --host 127.0.0.1');
   console.log(`项目预览页: ${urls.preview}`);
+  console.log(`管理员后台入口: ${urls.admin}`);
   console.log(`n8n 工作流访问页: ${urls.n8n}`);
   console.log(`项目总览页: ${urls.hub}`);
-  console.log(`n8n 云端实例: ${urls.n8nCloud}`);
   console.log(`Stripe 支付方式文档: ${urls.stripeDocs}`);
   console.log(`Dodo Payments MCP 文档: ${urls.dodoDocs}`);
 }
@@ -128,7 +128,7 @@ function printBrief() {
   printAdminPlan();
   console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、Activepieces 免费自托管优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审、审核通过后推送 GitHub。');
-  console.log('当前建议下一步: 先做管理员后台 MVP + 商家入驻审核工作流 + Stripe 测试支付规格 + Dodo Payments 备选接口，形成真正可运营闭环。');
+  console.log('当前建议下一步: 把管理员后台接入真实 Firestore 数据 + 建 Activepieces 商家审核流 + 实装 Stripe 测试 checkout/webhook + 预留 Dodo Payments MoR 备选接口。');
 }
 
 if (mode === 'links') {

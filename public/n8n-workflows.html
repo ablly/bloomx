@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BloomX n8n 工作流总览</title>
+    <title>BloomX 免费工作流总览</title>
     <style>
       :root {
         color-scheme: dark;
@@ -277,41 +277,41 @@
   <body>
     <main class="shell">
       <nav class="topbar">
-        <div class="brand"><span class="mark"></span><span>BloomX n8n 工作流</span></div>
-        <div class="status">Webhook-first · MCP 可选 · Make 仅历史参考</div>
+        <div class="brand"><span class="mark"></span><span>BloomX 免费工作流</span></div>
+        <div class="status">Activepieces 自托管 · Node-RED/Windmill 补位 · n8n 仅迁移</div>
       </nav>
 
       <section class="hero">
         <div>
           <h1>自动化工作流总览</h1>
           <p class="lead">
-            这里集中展示 BloomX 当前 n8n 工作流、编辑页入口、Production Webhook 和项目侧触发源。
-            n8n 编辑页需要你的 n8n 账号权限；Webhook 地址用于生产事件投递和 smoke test。
+            这里集中展示 BloomX 的免费自托管工作流路线、生产事件、签名密钥引用和项目侧触发源。
+            当前默认平台是 Activepieces 自托管社区版；n8n Cloud 不再作为生产默认依赖。
           </p>
         </div>
         <aside class="meta">
-          <div class="meta-row"><span>n8n 实例</span><span>ablly.app.n8n.cloud</span></div>
+          <div class="meta-row"><span>默认平台</span><span>Activepieces self-hosted</span></div>
           <div class="meta-row"><span>事件日志</span><span>automationWorkflowEvents</span></div>
-          <div class="meta-row"><span>签名密钥</span><span>MAKE_WORKFLOW_SIGNING_SECRET</span></div>
-          <div class="meta-row"><span>自检命令</span><span>npm run n8n:doctor</span></div>
+          <div class="meta-row"><span>签名密钥</span><span>WORKFLOW_SIGNING_SECRET</span></div>
+          <div class="meta-row"><span>自检命令</span><span>npm run workflow-options</span></div>
         </aside>
       </section>
 
-      <section class="grid" aria-label="n8n 工作流列表">
+      <section class="grid" aria-label="免费工作流列表">
         <article class="card primary">
           <div>
             <div class="eyebrow">seller_application.created</div>
             <h2>商家入驻审核</h2>
             <p class="desc">商家提交资料后触发审核分流，后续可接通知、表格和人工审核节点。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>WE9Iws9S43ETPRtk</code></div>
-              <div class="field"><b>Secret</b><code>N8N_SELLER_APPLICATION_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Activepieces / seller-review</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_SELLER_APPLICATION_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>seller_applications/{applicationId}</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/WE9Iws9S43ETPRtk" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/seller-application" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
 
@@ -321,14 +321,14 @@
             <h2>售后工单分流</h2>
             <p class="desc">API 失败、质量异常、重复扣费等售后事件进入运营处理链路。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>9vnpmUael8mGlHbY</code></div>
-              <div class="field"><b>Secret</b><code>N8N_SUPPORT_TICKET_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Activepieces / support-routing</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_SUPPORT_TICKET_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>supportTickets/{ticketId}</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/9vnpmUael8mGlHbY" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/support-ticket" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
 
@@ -338,14 +338,14 @@
             <h2>支付成功凭证</h2>
             <p class="desc">支付成功后生成凭证通知，并为后续积分和账务记录提供自动化入口。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>MWSzkpDrdKgHXl9d</code></div>
-              <div class="field"><b>Secret</b><code>N8N_PAYMENT_SUCCESS_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Activepieces / payment-receipt</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_PAYMENT_SUCCESS_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>transactions/{transactionId}</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/MWSzkpDrdKgHXl9d" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/payment-success" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
 
@@ -355,14 +355,14 @@
             <h2>商家月结快照</h2>
             <p class="desc">按月聚合商家收入、调用、退款和结算状态，支撑运营月结。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>gx2qLC7znhKWyv6v</code></div>
-              <div class="field"><b>Secret</b><code>N8N_SETTLEMENT_REPORT_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Windmill / settlement-snapshot</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_SETTLEMENT_REPORT_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>scheduled monthly, Asia/Shanghai</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/gx2qLC7znhKWyv6v" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/monthly-settlement" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
 
@@ -372,14 +372,14 @@
             <h2>API 健康巡检</h2>
             <p class="desc">定时记录 API 健康状态，为商品下架、告警和商家质量评分做准备。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>VSteT3SW4ATR2vEk</code></div>
-              <div class="field"><b>Secret</b><code>N8N_API_HEALTH_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Node-RED / api-health</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_API_HEALTH_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>scheduled every 30 minutes</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/VSteT3SW4ATR2vEk" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/api-health" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
 
@@ -389,20 +389,20 @@
             <h2>全项目事件总线</h2>
             <p class="desc">承接用户、邮箱、商家、商品、调用、订阅、购买等二级事件，作为统一运营入口。</p>
             <div class="fields">
-              <div class="field"><b>Workflow ID</b><code>RUKS05m8KFQsDYSP</code></div>
-              <div class="field"><b>Secret</b><code>N8N_EVENT_BUS_WEBHOOK</code></div>
+              <div class="field"><b>目标平台</b><code>Activepieces / event-bus</code></div>
+              <div class="field"><b>Secret</b><code>WORKFLOW_EVENT_BUS_WEBHOOK</code></div>
               <div class="field"><b>触发源</b><code>users, email_logs, sellers, products, subscriptions, purchases</code></div>
             </div>
           </div>
           <div class="actions">
-            <a class="button main" href="https://ablly.app.n8n.cloud/workflow/RUKS05m8KFQsDYSP" target="_blank" rel="noreferrer">打开编辑页</a>
-            <a class="button" href="https://ablly.app.n8n.cloud/webhook/bloomx/event-bus" target="_blank" rel="noreferrer">Production Webhook</a>
+            <a class="button main" href="/project-hub.html">查看生产标准</a>
+            <a class="button" href="/project-hub.html">迁移说明</a>
           </div>
         </article>
       </section>
 
       <p class="note">
-        自审提示：编辑页需要 n8n 登录权限；直接打开 Production Webhook 可能返回方法或 payload 错误，这不代表工作流不可用。
+        自审提示：所有生产工作流必须免费自托管、可备份、可回滚、可审计。n8n 历史模板只用于迁移参考，不再作为商业运营默认依赖。
         正确验证方式是通过项目事件触发，或使用带签名和测试 payload 的 smoke test。
       </p>
     </main>

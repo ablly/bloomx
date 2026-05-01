@@ -19,6 +19,7 @@ const ProductDetail = lazy(() => import('./components/ProductDetail'));
 const MyPurchases = lazy(() => import('./components/MyPurchases'));
 const SellerDashboard = lazy(() => import('./components/seller/SellerDashboard'));
 const SellerProductForm = lazy(() => import('./components/seller/SellerProductForm'));
+const AdminOperations = lazy(() => import('./components/admin/AdminOperations'));
 
 function RouteFallback() {
     return (
@@ -139,6 +140,24 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <SellerProductForm />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Admin operations */}
+                        <Route
+                            path="/admin"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminOperations />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/:section"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminOperations />
                                 </ProtectedRoute>
                             }
                         />
