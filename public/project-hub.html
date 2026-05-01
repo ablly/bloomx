@@ -272,14 +272,14 @@
             <li>Taste + Open Design 已作为默认 UI 设计原则。</li>
             <li>n8n Cloud 不再作为默认生产依赖。</li>
             <li>支付路线已改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
-            <li>支付 Provider 抽象、Webhook 幂等骨架和管理员后台入口已建立。</li>
+            <li>支付 Provider 抽象、Webhook 幂等骨架和商业后台控制台已建立。</li>
           </ul>
         </article>
 
         <article class="panel third">
           <h2>下一步</h2>
           <ul>
-            <li>把管理员后台接入真实 Firestore 数据。</li>
+            <li>把管理员后台动作接入服务端 API 与审计日志。</li>
             <li>Activepieces 商家入驻审核工作流。</li>
             <li>Stripe 测试支付服务端 checkout 和 Webhook。</li>
             <li>Dodo Payments MoR 备选接口验签和事件映射。</li>
@@ -289,7 +289,7 @@
 
         <article class="panel third">
           <h2>管理员后台结论</h2>
-          <p>必须做。没有管理员后台，审核、退款、对账、风控、结算和失败工作流重放都会卡住。</p>
+          <p>必须做，而且已经从支付页升级为完整控制台。下一步要把审核、退款、结算、Webhook 重放和配置保存接入服务端审计 API。</p>
         </article>
 
         <article class="panel full">

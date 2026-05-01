@@ -53,8 +53,10 @@ const paymentPlan = [
 
 const adminPlan = [
   '需要管理员后台，而且是生产必需，不是锦上添花。',
-  '最低范围：用户、商家申请、API 商品审核、订单/订阅、积分账本、退款、工作流运行、Webhook 事件、结算、审计日志、系统配置。',
+  '当前 /admin 已升级为商业后台控制台，覆盖用户、商家、商品、订单、支付、积分账本、退款、工作流、Webhook、结算、审计日志和系统配置。',
+  '后台读取 Firestore 真实运营集合；没有数据时显示空状态，读取失败时显示权限/索引/配置问题，不再用假交易占位。',
   '权限至少分为 admin、operator、support、finance、reviewer；所有敏感操作必须写审计日志。',
+  '下一步必须补服务端动作 API：商家审核、商品上下架、退款复核、Webhook 重放、结算批准、权限变更和配置保存。',
 ];
 
 function run(command: string): string {
@@ -128,7 +130,7 @@ function printBrief() {
   printAdminPlan();
   console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、Activepieces 免费自托管优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审、审核通过后推送 GitHub。');
-  console.log('当前建议下一步: 把管理员后台接入真实 Firestore 数据 + 建 Activepieces 商家审核流 + 实装 Stripe 测试 checkout/webhook + 预留 Dodo Payments MoR 备选接口。');
+  console.log('当前建议下一步: 补服务端动作 API 与审计日志 + 建 Activepieces 商家审核流 + 实装 Stripe 测试 checkout/webhook + 预留 Dodo Payments MoR 备选接口。');
 }
 
 if (mode === 'links') {
