@@ -13,12 +13,23 @@
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "deploy:cloudflare": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-cloudflare-pages.ps1",
+    "make:hooks": "tsx scripts/create-make-hooks.ts",
+    "make:mcp:doctor": "tsx scripts/make-mcp-doctor.ts",
+    "n8n:doctor": "tsx scripts/n8n-doctor.ts",
+    "n8n:mcp:doctor": "tsx scripts/n8n-mcp-doctor.ts",
+    "spec:list": "openspec list",
+    "spec:list:all": "openspec list --specs",
+    "spec:validate": "openspec validate --all",
+    "spec:validate:strict": "openspec validate --all --strict --no-interactive",
+    "spec:view": "openspec view",
     "db": "tsx scripts/db-manager.ts",
     "db:stats": "tsx scripts/db-manager.ts stats",
     "db:list": "tsx scripts/db-manager.ts list",
     "db:init": "tsx scripts/init-production-data-rest.ts"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "^1.3.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/react": "^19.2.14",
@@ -35,6 +46,7 @@
     "vite": "^7.3.2"
   },
   "dependencies": {
+    "@remotion/cli": "^4.0.454",
     "clsx": "^2.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

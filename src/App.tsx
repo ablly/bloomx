@@ -12,7 +12,6 @@ import CTABanner from './components/CTABanner';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './contexts/AuthContext';
-import { Particles, DotPattern } from './components/ui';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Marketplace = lazy(() => import('./components/Marketplace'));
@@ -20,7 +19,6 @@ const ProductDetail = lazy(() => import('./components/ProductDetail'));
 const MyPurchases = lazy(() => import('./components/MyPurchases'));
 const SellerDashboard = lazy(() => import('./components/seller/SellerDashboard'));
 const SellerProductForm = lazy(() => import('./components/seller/SellerProductForm'));
-const DiagnosticPage = lazy(() => import('./components/DiagnosticPage'));
 
 function RouteFallback() {
     return (
@@ -32,7 +30,6 @@ function RouteFallback() {
     );
 }
 
-// Landing Page Component
 function LandingPage() {
     const { currentUser } = useAuth();
     const [authOpen, setAuthOpen] = useState(false);
@@ -61,11 +58,9 @@ function LandingPage() {
     );
 }
 
-// Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const { currentUser } = useAuth(); // 移除 loading 检查
+    const { currentUser } = useAuth();
 
-    // 如果没有用户，重定向到首页
     if (!currentUser) {
         return <Navigate to="/" replace />;
     }
@@ -74,24 +69,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-    const { logout } = useAuth(); // 移除 loading 检查
+    const { logout } = useAuth();
 
     const handleLogout = async () => {
         await logout();
         window.location.href = '/';
     };
 
-    // 直接渲染，不等待 Auth 初始化
     return (
         <BrowserRouter>
-            <div className="relative min-h-screen bg-black font-sans scroll-smooth overflow-hidden">
+            <div className="relative min-h-screen bg-[#050807] font-sans scroll-smooth overflow-x-hidden">
                 <BackgroundVideo />
-                
-                {/* Particles effect */}
-                <Particles count={80} color="rgba(255,255,255,0.3)" size={2} speed={0.3} />
-                
-                {/* Dot pattern overlay */}
-                <DotPattern className="opacity-20" spacing={30} dotSize={1.5} fade={true} />
 
                 <div className="relative z-10">
                     <Suspense fallback={<RouteFallback />}>
@@ -154,9 +142,6 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
-
-                        {/* Diagnostic Page */}
-                        <Route path="/diagnostic" element={<DiagnosticPage />} />
 
                         {/* 404 */}
                         <Route path="*" element={<Navigate to="/" replace />} />
