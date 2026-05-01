@@ -95,6 +95,12 @@
   }
 }
 
+@layer components {
+  .field-input {
+    @apply min-h-11 w-full rounded-lg border border-white/10 bg-white/[0.035] px-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#78c6a3]/45 disabled:cursor-not-allowed disabled:text-white/40;
+  }
+}
+
 /* Custom selection styling */
 ::selection {
   background-color: rgba(255, 255, 255, 0.2);

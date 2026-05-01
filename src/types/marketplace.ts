@@ -26,13 +26,15 @@ export interface Product {
   description: string;
   base_url: string;
   auth_type: 'bearer' | 'api_key' | 'basic';
-  auth_value_encrypted: string;
+  auth_value_encrypted?: string;
+  provider_type?: string;
   models: string[];
   pricing: {
     input_per_1k: number;
     output_per_1k: number;
   };
-  status: 'active' | 'inactive' | 'pending_review' | 'rejected';
+  status: 'active' | 'inactive' | 'pending_test' | 'pending_review' | 'test_failed' | 'rejected';
+  last_test_log_id?: string;
   rating: number;
   total_sales: number;
   review_count: number;

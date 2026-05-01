@@ -260,6 +260,7 @@
           <code>npm run workflow-options</code>
           <code>npm run payment-plan</code>
           <code>npm run admin-plan</code>
+          <code>npm run seller-api-plan</code>
         </article>
 
         <article class="panel third">
@@ -273,6 +274,7 @@
             <li>后台不使用 mock 数据；没有真实记录时直接显示空状态或读取失败。</li>
             <li>服务端管理员动作 API 已升级为审批状态机：提交请求、审计页审批执行/拒绝、结果回写 audit_logs。</li>
             <li>低风险动作可真实执行；支付、退款、结算和配置类动作继续锁定到专用生产 API。</li>
+            <li>商家 API 商品不允许直接上架；必须先服务端抓模型、逐模型测试，再提交管理员审核。</li>
           </ul>
         </article>
 
@@ -281,6 +283,7 @@
           <ul>
             <li>实装 Stripe 服务端 checkout、webhook、portal API。</li>
             <li>把支付、订单、积分、退款和结算账本接入管理员审计。</li>
+            <li>把 email_outbox 接入 Postmark/SES/Resend 并完成 SPF、DKIM、DMARC。</li>
             <li>建立 Activepieces 商家入驻审核工作流。</li>
             <li>确认 Dodo Payments MoR 启用边界。</li>
           </ul>
@@ -289,6 +292,28 @@
         <article class="panel third">
           <h2>后台安全结论</h2>
           <p>/admin 未登录只显示登录页；非白名单账号显示权限不足；支付、账本、退款、Webhook、结算和审计集合不允许前端直接写入。</p>
+        </article>
+
+        <article class="panel full">
+          <h2>商家 API 上架规则</h2>
+          <div class="matrix">
+            <div class="tile">
+              <strong>Provider Adapter</strong>
+              <span>支持 OpenAI、Anthropic、Gemini、Mistral、Cohere、Groq、Together、OpenRouter、Azure OpenAI、Ollama Gateway 和自定义 HTTPS 网关。</span>
+            </div>
+            <div class="tile">
+              <strong>模型抓取</strong>
+              <span>服务端请求真实 Provider 模型接口，拒绝 localhost、内网 IP、metadata 地址和非 HTTPS URL。</span>
+            </div>
+            <div class="tile">
+              <strong>连通性测试</strong>
+              <span>商家选择模型后逐个跑 smoke test，记录延迟、状态码、错误和响应摘要。</span>
+            </div>
+            <div class="tile">
+              <strong>审核上架</strong>
+              <span>测试通过只进入 pending_review；管理员审核通过后才 active，上架前不进 Marketplace。</span>
+            </div>
+          </div>
         </article>
 
         <article class="panel full">

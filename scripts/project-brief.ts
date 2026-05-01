@@ -62,6 +62,14 @@ const adminPlan = [
   '下一步实装 Stripe checkout、webhook、portal 和账本闭环，然后再开放支付相关后台动作。',
 ];
 
+const sellerApiPlan = [
+  '商家 API 商品不允许直接 active；提交后必须走服务端 Provider Adapter 抓模型、逐模型 smoke test、pending_review 管理员审核。',
+  '第一批 Provider 类型覆盖 OpenAI、OpenAI Compatible、Anthropic、Gemini、Azure OpenAI、Mistral、Cohere、Groq、Together、OpenRouter、Ollama Gateway、Custom HTTP；AWS Bedrock 先登记类型并阻断，等待专用 SigV4/IAM 连接器。',
+  '商家 API 密钥只提交给 Cloud Functions，使用 API_SECRET_ENCRYPTION_KEY 服务端加密保存到 merchantApiSecrets，不写入前端可读商品集合。',
+  '测试日志写入 merchantApiTestLogs，商品测试通过才进入 pending_review；测试失败会写入 email_outbox 等待生产邮件服务通知商家。',
+  '正式邮件通道必须接 Postmark/SES/Resend 等事务邮件服务，并完成 SPF、DKIM、DMARC 和自定义 Return-Path。',
+];
+
 function run(command: string): string {
   try {
     return execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -119,6 +127,8 @@ function printBrief() {
   console.log('');
   printList('管理员后台进度', adminPlan);
   console.log('');
+  printList('商家 API 入驻与审核', sellerApiPlan);
+  console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
   console.log('建议下一步: 实装 Stripe checkout/webhook/portal API，并把支付、订单、积分、退款账本闭环接入管理员审计。');
 }
@@ -131,6 +141,8 @@ if (mode === 'links') {
   printList('支付平台规划', paymentPlan);
 } else if (mode === 'admin') {
   printList('管理员后台进度', adminPlan);
+} else if (mode === 'seller-api') {
+  printList('商家 API 入驻与审核', sellerApiPlan);
 } else {
   printBrief();
 }

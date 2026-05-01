@@ -1,0 +1,8 @@
+- [x] 新增 Provider Adapter 规格与任务文档。
+- [x] 新增服务端 Provider Adapter 模块，支持主流 HTTP Provider 的模型抓取和 smoke test。
+- [x] 新增服务端商家 API 入驻函数：抓取模型、测试模型、提交商品。
+- [x] 前端商家商品表单改为 Provider 类型选择、模型抓取、模型选择、服务端测试、pending_review 提交。
+- [x] 移除商品直接 active 的测试逻辑，默认状态改为 pending_test/pending_review。
+- [x] 新增邮件 outbox 类型和简报说明，为后续 Postmark/SES/Resend 接入留出生产接口。
+- [x] 更新项目总览和简报，明确多 Provider 测试与无 mock 上架规则。
+- [x] 运行 Functions build、前端 build、OpenSpec strict validate、页面探测和敏感信息扫描。
