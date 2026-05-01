@@ -17,6 +17,8 @@
     "make:mcp:doctor": "tsx scripts/make-mcp-doctor.ts",
     "n8n:doctor": "tsx scripts/n8n-doctor.ts",
     "n8n:mcp:doctor": "tsx scripts/n8n-mcp-doctor.ts",
+    "brief": "tsx scripts/project-brief.ts",
+    "links": "tsx scripts/project-brief.ts links",
     "spec:list": "openspec list",
     "spec:list:all": "openspec list --specs",
     "spec:validate": "openspec validate --all",

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BloomX 项目总览</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101215;
+        --panel: #181b20;
+        --line: #2b3139;
+        --text: #f4f0e8;
+        --muted: #a8b0bb;
+        --accent: #78c6a3;
+        --warn: #e6b45c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Noto Sans SC",
+          "Microsoft YaHei",
+          ui-sans-serif,
+          system-ui,
+          sans-serif;
+      }
+
+      main {
+        width: min(1120px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 36px 0 48px;
+      }
+
+      header {
+        display: grid;
+        gap: 12px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(32px, 5vw, 58px);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      code {
+        color: var(--text);
+        background: #0c0e11;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 3px 6px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .panel {
+        grid-column: span 6;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .panel.full {
+        grid-column: 1 / -1;
+      }
+
+      .links {
+        display: grid;
+        gap: 10px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      .command {
+        display: block;
+        margin-top: 8px;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 760px) {
+        .panel {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="status"><span class="dot"></span>规格闭环已接入</span>
+        <h1>BloomX 项目总览</h1>
+        <p>这里是给经理视角看的短入口：不翻一堆文档，直接看当前规则、入口、进度和下一步。</p>
+      </header>
+
+      <section class="grid" aria-label="项目总览">
+        <article class="panel">
+          <h2>常用入口</h2>
+          <div class="links">
+            <a href="/">项目预览页</a>
+            <a href="/n8n-workflows.html">n8n 工作流访问页</a>
+            <a href="https://ablly.app.n8n.cloud">n8n 云端实例</a>
+          </div>
+        </article>
+
+        <article class="panel">
+          <h2>常用命令</h2>
+          <p>启动本地预览</p>
+          <code class="command">npm run dev -- --host 127.0.0.1</code>
+          <p style="margin-top: 14px">终端查看简报</p>
+          <code class="command">npm run brief</code>
+        </article>
+
+        <article class="panel">
+          <h2>当前进度</h2>
+          <ul>
+            <li>OpenSpec + Superpowers 交付规则已落地。</li>
+            <li>中文文档、n8n 优先、完成后自审与 GitHub 推送规则已固定。</li>
+            <li>n8n 工作流访问页已创建。</li>
+            <li>首页关键中文乱码已修复。</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>下一步建议</h2>
+          <ul>
+            <li>优先选一个业务闭环继续做规格化实现。</li>
+            <li>推荐顺序：商家入驻审核、API 调用计费、售后工单、结算看板。</li>
+            <li>每个闭环都绑定 n8n 工作流、验证命令和可预览入口。</li>
+          </ul>
+        </article>
+
+        <article class="panel full">
+          <h2>固定交付标准</h2>
+          <p>
+            后续每次完成任务，我都会给出项目预览页、n8n 工作流访问页、简报命令、验证结果、
+            使用到的 skill、MCP 和工具调用清单，并说明剩余风险。
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
