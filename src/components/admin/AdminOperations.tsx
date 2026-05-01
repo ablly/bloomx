@@ -210,6 +210,7 @@ export default function AdminOperations() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const role = String(userProfile?.role ?? (currentUser ? 'buyer' : 'preview'));
   const isAdminEmail = isAllowedAdminEmail(currentUser?.email);
   const isAuthorized = Boolean(currentUser && isAdminEmail);
@@ -237,6 +238,12 @@ export default function AdminOperations() {
   }, []);
 
   const dataset = snapshot?.datasets[activeKey];
+
+  useEffect(() => {
+    setSelectedRecordId(null);
+    setSearch('');
+    setStatusFilter('all');
+  }, [activeKey]);
   const statusOptions = useMemo(() => {
     if (!dataset) return ['all'];
     return ['all', ...Object.keys(dataset.statusCounts)];
@@ -252,6 +259,7 @@ export default function AdminOperations() {
   }, [dataset, search, statusFilter]);
 
   const canRunSensitiveActions = isAuthorized;
+  const selectedRecord = visibleRows.find((row) => row.id === selectedRecordId) ?? visibleRows[0];
 
   if (authLoading) {
     return (
@@ -347,6 +355,8 @@ export default function AdminOperations() {
               statusFilter={statusFilter}
               statusOptions={statusOptions}
               canRunActions={canRunSensitiveActions}
+              selectedRecord={selectedRecord}
+              onSelectRecord={setSelectedRecordId}
               onSearch={setSearch}
               onStatusFilter={setStatusFilter}
             />
@@ -566,6 +576,8 @@ function DataPanel({
   statusFilter,
   statusOptions,
   canRunActions,
+  selectedRecord,
+  onSelectRecord,
   onSearch,
   onStatusFilter,
 }: {
@@ -577,6 +589,8 @@ function DataPanel({
   statusFilter: string;
   statusOptions: string[];
   canRunActions: boolean;
+  selectedRecord?: AdminRecord;
+  onSelectRecord: (id: string) => void;
   onSearch: (value: string) => void;
   onStatusFilter: (value: string) => void;
 }) {
@@ -611,17 +625,7 @@ function DataPanel({
             ))}
           </select>
         </label>
-        <button
-          type="button"
-          disabled={!canRunActions}
-          className={`min-h-11 rounded-lg px-4 text-sm font-semibold transition active:translate-y-px ${
-            canRunActions
-              ? 'bg-white text-[#070b0d] hover:bg-white/88'
-              : 'cursor-not-allowed border border-white/10 bg-white/[0.035] text-white/36'
-          }`}
-        >
-          {section.action}
-        </button>
+        <ServerActionButton enabled={canRunActions} label={section.action} />
       </div>
 
       {dataset?.error ? (
@@ -629,13 +633,24 @@ function DataPanel({
       ) : rows.length === 0 ? (
         <EmptyState title="暂无可显示记录" detail="没有读取到真实记录，或当前筛选条件没有匹配项。" />
       ) : (
-        <DataTable rows={rows} />
+        <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <DataTable rows={rows} selectedId={selectedRecord?.id} onSelectRecord={onSelectRecord} />
+          <RecordInspector section={section} record={selectedRecord} canRunActions={canRunActions} />
+        </div>
       )}
     </section>
   );
 }
 
-function DataTable({ rows }: { rows: AdminRecord[] }) {
+function DataTable({
+  rows,
+  selectedId,
+  onSelectRecord,
+}: {
+  rows: AdminRecord[];
+  selectedId?: string;
+  onSelectRecord: (id: string) => void;
+}) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[860px] border-collapse text-left text-sm">
@@ -650,7 +665,13 @@ function DataTable({ rows }: { rows: AdminRecord[] }) {
         </thead>
         <tbody className="divide-y divide-white/8">
           {rows.map((row) => (
-            <tr key={`${row.collection}-${row.id}`} className="transition hover:bg-white/[0.025]">
+            <tr
+              key={`${row.collection}-${row.id}`}
+              onClick={() => onSelectRecord(row.id)}
+              className={`cursor-pointer transition hover:bg-white/[0.035] ${
+                selectedId === row.id ? 'bg-[#78c6a3]/8' : ''
+              }`}
+            >
               <td className="px-5 py-4">
                 <div className="font-mono text-sm text-white/88">{row.title}</div>
                 <div className="mt-1 max-w-xl truncate text-xs text-white/42">{row.subtitle}</div>
@@ -667,6 +688,100 @@ function DataTable({ rows }: { rows: AdminRecord[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function valueOf(record: AdminRecord | undefined, keys: string[], fallback = '未记录'): string {
+  if (!record) return fallback;
+  for (const key of keys) {
+    const value = record.raw[key];
+    if (value === null || value === undefined || value === '') continue;
+    if (typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
+      return formatDate(value.toDate());
+    }
+    if (typeof value === 'number') return value.toLocaleString();
+    if (typeof value === 'boolean') return value ? '是' : '否';
+    return String(value);
+  }
+  return fallback;
+}
+
+function RecordInspector({
+  section,
+  record,
+  canRunActions,
+}: {
+  section: SectionConfig;
+  record?: AdminRecord;
+  canRunActions: boolean;
+}) {
+  if (!record) return null;
+
+  const fields = section.key === 'users'
+    ? [
+        ['邮箱', valueOf(record, ['email'])],
+        ['角色', valueOf(record, ['role'])],
+        ['积分余额', valueOf(record, ['credits_balance', 'credits'], '0')],
+        ['邮箱验证', valueOf(record, ['emailVerified'])],
+        ['最近登录', valueOf(record, ['lastLoginAt'])],
+      ]
+    : [
+        ['归属', record.owner],
+        ['状态', record.status],
+        ['金额', record.amount ?? '未记录'],
+        ['创建时间', formatDate(record.createdAt)],
+        ['更新时间', formatDate(record.updatedAt)],
+      ];
+
+  const plannedActions = section.key === 'users'
+    ? ['调整角色', '冻结账号', '修正积分', '导出用户审计']
+    : ['提交复核', '写入审计', '重放失败事件', '导出摘要'];
+
+  return (
+    <aside className="border-t border-white/10 bg-[#091011]/95 p-5 xl:border-l xl:border-t-0">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.14em] text-white/35">Record Inspector</div>
+          <h3 className="mt-2 text-lg font-semibold">{record.title}</h3>
+          <p className="mt-1 break-all font-mono text-xs text-white/36">{record.collection}/{record.id}</p>
+        </div>
+        <span className={`shrink-0 rounded-full border px-3 py-1 text-xs ${statusTone(record.status)}`}>{record.status}</span>
+      </div>
+
+      <div className="mt-5 grid gap-2">
+        {fields.map(([label, value]) => (
+          <div key={label} className="rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2">
+            <div className="text-xs text-white/35">{label}</div>
+            <div className="mt-1 break-all text-sm font-semibold text-white/82">{value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 rounded-lg border border-[#d9b46a]/25 bg-[#d9b46a]/10 p-3 text-xs leading-5 text-[#efd18c]">
+        敏感操作只展示入口，不从前端直接写数据。下一步需要接入服务端动作 API，统一写 audit_logs 并带 requestId、actor、reason、before/after。
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {plannedActions.map((action) => (
+          <ServerActionButton key={action} enabled={canRunActions} label={action} compact />
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function ServerActionButton({ enabled, label, compact = false }: { enabled: boolean; label: string; compact?: boolean }) {
+  return (
+    <button
+      type="button"
+      disabled
+      title={enabled ? '下一步接入服务端审计动作 API' : '需要管理员权限'}
+      className={`rounded-lg border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-white/38 ${
+        compact ? 'min-h-10 text-left' : 'min-h-11'
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
