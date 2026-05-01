@@ -1,4 +1,4 @@
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Activity,
   ArrowLeft,
@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 type AdminTab = 'payments' | 'ledger' | 'webhooks';
 
 const adminRoles = new Set(['admin', 'operator', 'support', 'finance', 'reviewer']);
+const previewRole = 'preview';
 
 const tabConfig: Record<AdminTab, { label: string; description: string; icon: typeof CreditCard }> = {
   payments: {
@@ -60,13 +61,10 @@ export default function AdminOperations() {
   const tab = getTab(location.pathname);
   const active = tabConfig[tab];
   const ActiveIcon = active.icon;
-  const role = userProfile?.role ?? 'buyer';
+  const role = userProfile?.role ?? (currentUser ? 'buyer' : previewRole);
+  const isPreview = !currentUser;
 
-  if (!currentUser) {
-    return <Navigate to="/" replace />;
-  }
-
-  if (!adminRoles.has(role)) {
+  if (currentUser && !adminRoles.has(role)) {
     return (
       <main className="min-h-screen bg-[#070b0d] px-4 py-10 text-white">
         <section className="mx-auto max-w-2xl rounded-xl border border-white/10 bg-[#0b1213]/90 p-8">
@@ -89,9 +87,9 @@ export default function AdminOperations() {
       <div className="mx-auto max-w-7xl">
         <header className="mb-8 grid gap-5 border-b border-white/10 pb-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <Link to="/dashboard" className="mb-5 inline-flex items-center gap-2 text-sm text-white/52 hover:text-white">
+            <Link to={isPreview ? '/' : '/dashboard'} className="mb-5 inline-flex items-center gap-2 text-sm text-white/52 hover:text-white">
               <ArrowLeft size={16} />
-              返回用户控制台
+              {isPreview ? '返回项目首页' : '返回用户控制台'}
             </Link>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#78c6a3]/35 bg-[#78c6a3]/10 px-3 py-1 text-xs font-semibold text-[#9be2c8]">
               <Activity size={14} />
@@ -103,9 +101,15 @@ export default function AdminOperations() {
             </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/62">
-            当前角色：<span className="font-semibold text-white">{role}</span>
+            当前模式：<span className="font-semibold text-white">{isPreview ? '未登录预览' : role}</span>
           </div>
         </header>
+
+        {isPreview && (
+          <section className="mb-6 rounded-xl border border-[#e6b45c]/30 bg-[#e6b45c]/10 p-4 text-sm leading-6 text-[#f4d28c]">
+            当前是管理员后台预览模式，可以检查页面结构、支付路线和账本字段；真实支付、退款、Webhook 重放、审计导出必须登录管理员账号后才能执行。
+          </section>
+        )}
 
         <nav className="mb-6 flex gap-2 overflow-x-auto">
           {(Object.keys(tabConfig) as AdminTab[]).map((item) => {

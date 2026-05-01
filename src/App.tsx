@@ -147,19 +147,11 @@ function App() {
                         {/* Admin operations */}
                         <Route
                             path="/admin"
-                            element={
-                                <ProtectedRoute>
-                                    <AdminOperations />
-                                </ProtectedRoute>
-                            }
+                            element={<AdminOperations />}
                         />
                         <Route
                             path="/admin/:section"
-                            element={
-                                <ProtectedRoute>
-                                    <AdminOperations />
-                                </ProtectedRoute>
-                            }
+                            element={<AdminOperations />}
                         />
 
                         {/* 404 */}
