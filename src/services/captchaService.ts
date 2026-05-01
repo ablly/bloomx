@@ -26,6 +26,9 @@ type CallableResult = {
 const useCallableVerification = () =>
     import.meta.env.PROD || import.meta.env.VITE_USE_FUNCTION_VERIFICATION === 'true';
 
+const shouldLogLocalVerificationCode = () =>
+    import.meta.env.DEV && import.meta.env.VITE_DEBUG_VERIFICATION_CODE === 'true';
+
 function generateVerificationCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -72,12 +75,14 @@ export async function sendEmailVerificationCode(email: string): Promise<EmailVer
             attempts: 0,
         });
 
-        console.log('Verification code generated for local development:', {
-            email,
-            code,
-            verificationId: docRef.id,
-            expiresIn: '10 minutes',
-        });
+        if (shouldLogLocalVerificationCode()) {
+            console.info('Local verification code generated:', {
+                email,
+                code,
+                verificationId: docRef.id,
+                expiresIn: '10 minutes',
+            });
+        }
 
         return {
             success: true,
@@ -174,12 +179,8 @@ export function initRecaptcha(containerId: string): RecaptchaVerifier {
 
     recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
         size: 'invisible',
-        callback: () => {
-            console.log('reCAPTCHA verified');
-        },
-        'expired-callback': () => {
-            console.log('reCAPTCHA expired');
-        },
+        callback: () => undefined,
+        'expired-callback': () => undefined,
     });
 
     return recaptchaVerifier;

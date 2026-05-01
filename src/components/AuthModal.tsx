@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowRight, Clock, Eye, EyeOff, Ghost, Globe, Loader2, Mail, Shield, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { sendEmailVerificationCode } from '../services/captchaService';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -105,6 +104,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setError('');
 
     try {
+      const { sendEmailVerificationCode } = await import('../services/captchaService');
       const result = await sendEmailVerificationCode(email);
       if (result.success) {
         setCodeSent(true);
