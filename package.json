@@ -19,6 +19,7 @@
     "n8n:mcp:doctor": "tsx scripts/n8n-mcp-doctor.ts",
     "brief": "tsx scripts/project-brief.ts",
     "links": "tsx scripts/project-brief.ts links",
+    "workflow-options": "tsx scripts/project-brief.ts workflows",
     "spec:list": "openspec list",
     "spec:list:all": "openspec list --specs",
     "spec:validate": "openspec validate --all",
