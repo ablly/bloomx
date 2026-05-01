@@ -15,7 +15,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return signedIn() && currentUser().data.role == 'admin';
+      return signedIn()
+        && (
+          request.auth.token.email == 'zqhablly@gmail.com'
+          || currentUser().data.role == 'admin'
+        );
     }
 
     function isSeller() {
@@ -153,6 +157,41 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
       allow create: if signedIn() && request.resource.data.user_id == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    match /payment_transactions/{transactionId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /credit_ledger/{ledgerId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /refunds/{refundId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /webhook_events/{eventId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /seller_settlements/{settlementId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /automationWorkflowEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
     match /system_config/{configId} {

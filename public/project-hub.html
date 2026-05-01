@@ -26,12 +26,7 @@
         min-height: 100vh;
         background: var(--bg);
         color: var(--text);
-        font-family:
-          "Noto Sans SC",
-          "Microsoft YaHei",
-          ui-sans-serif,
-          system-ui,
-          sans-serif;
+        font-family: "Noto Sans SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
       }
 
       main {
@@ -42,7 +37,7 @@
 
       header {
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
         gap: 28px;
         align-items: end;
         padding-bottom: 26px;
@@ -51,7 +46,7 @@
 
       h1 {
         margin: 0;
-        font-size: clamp(32px, 5vw, 58px);
+        font-size: clamp(34px, 5vw, 56px);
         line-height: 1;
         letter-spacing: 0;
       }
@@ -61,10 +56,14 @@
         font-size: 18px;
       }
 
+      p,
+      li {
+        color: var(--muted);
+        line-height: 1.72;
+      }
+
       p {
         margin: 0;
-        color: var(--muted);
-        line-height: 1.7;
       }
 
       a {
@@ -92,8 +91,6 @@
       ul {
         margin: 0;
         padding-left: 20px;
-        color: var(--muted);
-        line-height: 1.8;
       }
 
       .status {
@@ -154,7 +151,7 @@
 
       .decision {
         display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
+        grid-template-columns: 1.1fr 0.9fr;
         gap: 16px;
       }
 
@@ -167,7 +164,7 @@
       }
 
       .tile {
-        min-height: 166px;
+        min-height: 154px;
         background: var(--soft);
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -232,12 +229,12 @@
     <main>
       <header>
         <div class="stack">
-          <span class="status"><span class="dot"></span>免费自托管路线已确定</span>
+          <span class="status"><span class="dot"></span>生产后台门禁已补强</span>
           <h1>BloomX 项目总览</h1>
-          <p>这里给你看最短结论：工作流、支付、管理员后台和下一步。不用翻一堆文档。</p>
+          <p>这里给你看最短结论：后台登录、免费工作流、支付路线、当前进度和下一步。不需要翻一堆 Markdown。</p>
         </div>
         <div class="hero-note">
-          <p>当前建议：继续把管理员后台从路由骨架推进到真实数据读写，再接商家入驻审核工作流和 Stripe 测试支付，形成可运营闭环。</p>
+          <p>当前优先级：先完成管理员安全边界，再落 Stripe 服务端 checkout/webhook/portal，最后把后台按钮接到带审计日志的服务端动作 API。</p>
         </div>
       </header>
 
@@ -246,8 +243,8 @@
           <h2>常用入口</h2>
           <div class="links">
             <a href="/">项目预览页</a>
-            <a href="/admin">管理员后台入口</a>
-            <a href="/n8n-workflows.html">历史 n8n 工作流访问页</a>
+            <a href="/admin">管理员后台</a>
+            <a href="/n8n-workflows.html">工作流访问页</a>
             <a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe 支付方式文档</a>
             <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP 文档</a>
           </div>
@@ -257,7 +254,7 @@
           <h2>常用命令</h2>
           <p>启动本地预览</p>
           <code>npm run dev -- --host 127.0.0.1</code>
-          <p style="margin-top: 14px">查看简报</p>
+          <p style="margin-top: 14px">查看总简报</p>
           <code>npm run brief</code>
           <p style="margin-top: 14px">专项查看</p>
           <code>npm run workflow-options</code>
@@ -269,27 +266,27 @@
           <h2>当前进度</h2>
           <ul>
             <li>OpenSpec + Superpowers 交付规则已落地。</li>
-            <li>Taste + Open Design 已作为默认 UI 设计原则。</li>
-            <li>n8n Cloud 不再作为默认生产依赖。</li>
-            <li>支付路线已改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
-            <li>支付 Provider 抽象、Webhook 幂等骨架和商业后台控制台已建立。</li>
+            <li>Taste + Open Design 作为 UI 设计原则。</li>
+            <li>n8n Cloud 不作为默认生产依赖，改为免费自托管路线。</li>
+            <li>支付路线改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
+            <li>管理员后台已要求登录，默认仅 Owner 邮箱可进入。</li>
           </ul>
         </article>
 
         <article class="panel third">
           <h2>下一步</h2>
           <ul>
-            <li>把管理员后台动作接入服务端 API 与审计日志。</li>
-            <li>Activepieces 商家入驻审核工作流。</li>
-            <li>Stripe 测试支付服务端 checkout 和 Webhook。</li>
-            <li>Dodo Payments MoR 备选接口验签和事件映射。</li>
-            <li>订单、积分和 Webhook 账本。</li>
+            <li>实装 Stripe 服务端 checkout、webhook、portal API。</li>
+            <li>把后台操作按钮接入服务端审计动作。</li>
+            <li>建立 Activepieces 商家入驻审核工作流。</li>
+            <li>补订单、积分、Webhook、退款和结算账本闭环。</li>
+            <li>确认 Dodo Payments MoR 启用边界。</li>
           </ul>
         </article>
 
         <article class="panel third">
-          <h2>管理员后台结论</h2>
-          <p>必须做，而且已经从支付页升级为完整控制台。下一步要把审核、退款、结算、Webhook 重放和配置保存接入服务端审计 API。</p>
+          <h2>后台安全结论</h2>
+          <p>/admin 未登录只显示登录页；非白名单账号显示权限不足；支付、账本、退款、Webhook、结算和审计集合不允许前端直接写入。</p>
         </article>
 
         <article class="panel full">
@@ -297,34 +294,19 @@
           <div class="matrix">
             <div class="tile">
               <strong>Activepieces</strong>
-              <span>默认生产平台。MIT core，自托管，负责审批、Webhook、通知、重试和跨系统编排。</span>
+              <span>默认生产平台，负责审批、Webhook、通知、重试和跨系统编排。</span>
             </div>
             <div class="tile">
               <strong>Node-RED</strong>
-              <span>轻量事件流补位。适合健康检查、HTTP 转发、内部事件桥接，不承担核心审批。</span>
+              <span>轻量事件流补位，适合健康检查、HTTP 转发和内部事件桥接。</span>
             </div>
             <div class="tile">
               <strong>Windmill</strong>
-              <span>脚本后台任务补位。适合对账、批处理、数据修复和定时结算草稿。</span>
+              <span>脚本后台任务补位，适合对账、批处理、数据修复和定时结算草稿。</span>
             </div>
             <div class="tile">
               <strong>n8n 自托管</strong>
-              <span>仅作迁移兼容备选。n8n Cloud 不再作为默认生产依赖。</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="panel full">
-          <h2>生产工作流标准</h2>
-          <div class="decision">
-            <div class="stack">
-              <span class="badge">商业标准</span>
-              <p>所有核心工作流都必须具备幂等键、重试、超时、失败死信、审计日志、密钥管理、测试/生产环境隔离和回滚策略。</p>
-            </div>
-            <div>
-              <div class="row"><b>必须记录</b><span>requestId、actor、输入摘要、输出摘要、错误、耗时、重放入口。</span></div>
-              <div class="row"><b>必须保护</b><span>API key、webhook secret、支付密钥，全部走服务端和密钥管理。</span></div>
-              <div class="row"><b>必须复核</b><span>支付、退款、结算、商家审核、API 上架都要有管理员入口。</span></div>
+              <span>只作为迁移兼容备选；n8n Cloud 不作为默认生产依赖。</span>
             </div>
           </div>
         </article>
@@ -334,26 +316,15 @@
           <div class="decision">
             <div class="stack">
               <span class="badge">建议采用：Stripe 首发，Dodo 备选</span>
-              <p>Stripe 更适合 BloomX 首发全球支付，因为它覆盖 Visa、Mastercard、支付宝和微信支付，开发生态成熟，适合先验证积分充值和订阅。</p>
-              <p>Dodo Payments 适合作为 Merchant of Record 备选，用于后续全球税务、VAT/GST、争议和跨境销售合规。前端只负责发起 checkout 或进入 customer portal，订单状态以服务端账本和 provider Webhook 为准。</p>
+              <p>Stripe 更适合 BloomX 首发全球支付，覆盖 Visa、Mastercard、Alipay 和 WeChat Pay。首发实现应使用 Checkout Sessions、Billing、Customer Portal 和 Connect Accounts v2。</p>
+              <p>Dodo Payments 保留为 Merchant of Record 备选，用于后续全球税务、VAT/GST、争议和跨境销售合规。</p>
             </div>
             <div>
-              <div class="row"><b>首发通道</b><span>Stripe：Visa、Mastercard、Alipay、WeChat Pay。</span></div>
+              <div class="row"><b>首发通道</b><span>Stripe：卡支付、支付宝、微信支付、订阅、Portal、Connect。</span></div>
               <div class="row"><b>备选通道</b><span>Dodo Payments：MoR、税务合规、跨境销售责任。</span></div>
               <div class="row"><b>必须有</b><span>Webhook 验签、幂等键、订单账本、积分账本、退款记录、对账页。</span></div>
-              <div class="row"><b>先不做</b><span>直接从前端写支付状态、把密钥放前端、绕过管理员审核的自动结算。</span></div>
-              <div class="row"><b>文档</b><span><a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe Payment Methods</a> / <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo MCP Server</a></span></div>
+              <div class="row"><b>禁止做</b><span>把密钥放前端、直接从前端改支付状态、绕过管理员审核自动结算。</span></div>
             </div>
-          </div>
-        </article>
-
-        <article class="panel full">
-          <h2>管理员后台范围</h2>
-          <div class="matrix">
-            <div class="tile"><strong>审核</strong><span>商家申请、API 商品、模型测试结果、人工复核。</span></div>
-            <div class="tile"><strong>支付</strong><span>订单、订阅、积分账本、退款、争议、Webhook 事件。</span></div>
-            <div class="tile"><strong>运营</strong><span>用户、商家、工单、工作流运行、失败重放、通知记录。</span></div>
-            <div class="tile"><strong>权限</strong><span>admin、operator、support、finance、reviewer，敏感操作全审计。</span></div>
           </div>
         </article>
       </section>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Activity,
@@ -15,6 +15,7 @@ import {
   KeyRound,
   Layers3,
   LockKeyhole,
+  LogIn,
   PackageCheck,
   ReceiptText,
   RefreshCcw,
@@ -41,6 +42,15 @@ import { listPaymentProviderConfigs } from '../../services/paymentProviderServic
 import { useAuth } from '../../contexts/AuthContext';
 
 const adminRoles = new Set(['admin', 'operator', 'support', 'finance', 'reviewer']);
+const allowedAdminEmails = String(import.meta.env.VITE_ADMIN_ALLOWED_EMAILS || 'zqhablly@gmail.com')
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+const primaryAdminEmail = allowedAdminEmails[0] ?? 'zqhablly@gmail.com';
+
+function isAllowedAdminEmail(email?: string | null): boolean {
+  return Boolean(email && allowedAdminEmails.includes(email.trim().toLowerCase()));
+}
 
 interface SectionConfig {
   key: AdminSectionKey;
@@ -191,7 +201,7 @@ function statusTone(status: string) {
 }
 
 export default function AdminOperations() {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, loading: authLoading, login, logout } = useAuth();
   const location = useLocation();
   const activeKey = getSection(location.pathname);
   const activeSection = sectionMap.get(activeKey) ?? sections[0];
@@ -201,8 +211,8 @@ export default function AdminOperations() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const role = String(userProfile?.role ?? (currentUser ? 'buyer' : 'preview'));
-  const isPreview = !currentUser;
-  const isAuthorized = Boolean(currentUser && adminRoles.has(role));
+  const isAdminEmail = isAllowedAdminEmail(currentUser?.email);
+  const isAuthorized = Boolean(currentUser && isAdminEmail);
 
   useEffect(() => {
     let alive = true;
@@ -241,10 +251,22 @@ export default function AdminOperations() {
     });
   }, [dataset, search, statusFilter]);
 
-  const canRunSensitiveActions = isAuthorized && !isPreview;
+  const canRunSensitiveActions = isAuthorized;
 
-  if (currentUser && !adminRoles.has(role)) {
-    return <AccessDenied role={role} />;
+  if (authLoading) {
+    return (
+      <main className="min-h-[100dvh] bg-[#070b0d] px-4 py-10 text-white">
+        <SkeletonGrid />
+      </main>
+    );
+  }
+
+  if (!currentUser) {
+    return <AdminLogin onLogin={login} onLogout={logout} />;
+  }
+
+  if (!isAdminEmail) {
+    return <AccessDenied role={role} email={currentUser.email} onLogout={logout} />;
   }
 
   return (
@@ -300,16 +322,10 @@ export default function AdminOperations() {
               <p className="mt-2 max-w-3xl text-sm leading-6 text-white/56">{activeSection.description}</p>
             </div>
             <div className="grid gap-2 text-sm text-white/62 sm:grid-cols-2 xl:min-w-[420px]">
-              <StatusPill label="身份" value={isPreview ? '预览模式' : role} icon={isAuthorized ? ShieldCheck : LockKeyhole} />
+              <StatusPill label="身份" value={adminRoles.has(role) ? role : 'owner'} icon={isAuthorized ? ShieldCheck : LockKeyhole} />
               <StatusPill label="更新" value={snapshot ? formatDate(snapshot.loadedAt) : '读取中'} icon={Clock3} />
             </div>
           </header>
-
-          {isPreview && (
-            <section className="mb-6 rounded-lg border border-[#d9b46a]/25 bg-[#d9b46a]/10 p-4 text-sm leading-6 text-[#efd18c]">
-              当前是未登录预览。可以查看后台结构、生产闸门和集合读取状态；真实审批、退款、Webhook 重放、结算批准、配置变更必须使用管理员账号和服务端审计 API。
-            </section>
-          )}
 
           {error && (
             <section className="mb-6 rounded-lg border border-[#e07d6b]/25 bg-[#e07d6b]/10 p-4 text-sm text-[#f0a091]">
@@ -341,19 +357,111 @@ export default function AdminOperations() {
   );
 }
 
-function AccessDenied({ role }: { role: string }) {
+function AdminLogin({
+  onLogin,
+  onLogout,
+}: {
+  onLogin: (email: string, password: string) => Promise<{ success: boolean; error?: { message?: string; messageZh?: string } }>;
+  onLogout: () => Promise<void>;
+}) {
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!password) {
+      setError('请输入管理员账号密码。');
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await onLogin(primaryAdminEmail, password);
+    setSubmitting(false);
+    setPassword('');
+
+    if (!result.success) {
+      setError('登录失败：Firebase Auth 里的账号密码不匹配，或者这个管理员邮箱还没有创建。请在 Firebase 控制台创建/重置该邮箱账号后再登录。');
+      return;
+    }
+
+    if (!isAllowedAdminEmail(primaryAdminEmail)) {
+      await onLogout();
+      setError('当前账号不在管理员白名单内。');
+    }
+  };
+
+  return (
+    <main className="grid min-h-[100dvh] place-items-center bg-[#070b0d] px-4 py-10 text-white">
+      <section className="w-full max-w-[560px]">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-[#0b1213]/90 p-7 shadow-[0_24px_70px_-36px_rgba(0,0,0,0.8)] sm:p-8">
+          <div className="flex items-center gap-3">
+            <LogIn className="text-[#9be2c8]" size={22} />
+            <div>
+              <h2 className="text-xl font-semibold">管理员登录</h2>
+              <p className="mt-1 text-sm text-white/45">密码只在登录时提交，不写入前端代码或仓库。</p>
+            </div>
+          </div>
+
+          <div className="mt-7 grid gap-4">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-white/72">管理员邮箱</span>
+              <input
+                value={primaryAdminEmail}
+                readOnly
+                className="min-h-11 rounded-lg border border-white/10 bg-white/[0.035] px-3 text-sm text-white/70 outline-none"
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-white/72">密码</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                className="min-h-11 rounded-lg border border-white/10 bg-white/[0.035] px-3 text-sm outline-none transition placeholder:text-white/28 focus:border-[#78c6a3]/45"
+                placeholder="输入管理员密码"
+              />
+            </label>
+          </div>
+
+          {error && (
+            <div className="mt-4 rounded-lg border border-[#e07d6b]/25 bg-[#e07d6b]/10 px-4 py-3 text-sm text-[#f0a091]">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-[#070b0d] transition hover:bg-white/88 active:translate-y-px disabled:cursor-wait disabled:bg-white/50"
+          >
+            {submitting ? '正在登录' : '进入管理员后台'}
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function AccessDenied({ role, email, onLogout }: { role: string; email: string | null; onLogout: () => Promise<void> }) {
   return (
     <main className="min-h-[100dvh] bg-[#070b0d] px-4 py-10 text-white">
       <section className="mx-auto max-w-2xl rounded-xl border border-white/10 bg-[#0b1213]/90 p-8">
         <ShieldAlert className="mb-4 text-[#d9b46a]" size={32} />
         <h1 className="text-2xl font-semibold">需要管理员权限</h1>
         <p className="mt-3 text-sm leading-6 text-white/58">
-          当前账号角色为 {role}。支付对账、积分修正、Webhook 重放、退款复核、商家结算和审计导出必须由授权运营角色执行。
+          当前登录邮箱为 {email || '未知'}，角色为 {role}。此后台只允许 {primaryAdminEmail} 进入。
         </p>
-        <Link to="/dashboard" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-4 text-sm text-white/74 hover:text-white">
-          <ArrowLeft size={16} />
-          返回控制台
-        </Link>
+        <button
+          type="button"
+          onClick={() => void onLogout()}
+          className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 px-4 text-sm text-white/74 hover:text-white"
+        >
+          退出当前账号
+        </button>
       </section>
     </main>
   );
