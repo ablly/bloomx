@@ -56,8 +56,10 @@ const adminPlan = [
   '默认只允许 zqhablly@gmail.com 进入后台，可用 VITE_ADMIN_ALLOWED_EMAILS 扩展白名单。',
   '管理员密码不写入代码、文档或仓库，只在登录时提交给认证服务。',
   'Firestore 已限制后台运营集合：支付交易、积分账本、退款、Webhook、结算、工作流事件和审计日志禁止前端写入。',
-  '服务端管理员动作 API 已有 dry-run 基座：后台按钮可写 audit_logs 并返回 requestId，但暂不直接改生产数据。',
-  '下一步把 dry-run 升级为真实审批动作：商家审核、商品上下架、退款复核、Webhook 重放、结算批准、权限变更和配置保存。',
+  '后台不使用 mock 数据：运营总览、表格、审计和风险项只读取真实 Firestore 集合；空状态会直接显示没有真实记录。',
+  '服务端管理员动作 API 已升级为审批状态机：普通动作写入 pending_approval，审计页可审批执行或拒绝。',
+  '当前只开放低风险真实执行：冻结/解冻用户、角色/积分带参数审批、提交复核、Webhook/工作流重放排队和审计摘要；支付、退款、结算和配置类动作继续锁定到专用生产 API。',
+  '下一步实装 Stripe checkout、webhook、portal 和账本闭环，然后再开放支付相关后台动作。',
 ];
 
 function run(command: string): string {
@@ -117,8 +119,8 @@ function printBrief() {
   console.log('');
   printList('管理员后台进度', adminPlan);
   console.log('');
-  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
-  console.log('建议下一步: 先把 Admin Action dry-run 升级为真实可审批动作，再实装 Stripe checkout/webhook/portal API。');
+  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
+  console.log('建议下一步: 实装 Stripe checkout/webhook/portal API，并把支付、订单、积分、退款账本闭环接入管理员审计。');
 }
 
 if (mode === 'links') {

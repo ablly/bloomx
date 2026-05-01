@@ -1,0 +1,7 @@
+- [x] 扩展 OpenSpec：定义管理员动作审批状态机、可执行白名单和阻断规则。
+- [x] 扩展服务端 `runAdminAction`：支持 `pending_approval`、`approve_admin_action`、`reject_admin_action`。
+- [x] 为第一批安全动作实现事务式执行和审计回写。
+- [x] 扩展前端 admin action service：支持提交请求、审批执行、拒绝请求。
+- [x] 扩展后台记录检查器：普通记录提交审批，审计记录显示审批/拒绝动作。
+- [x] 更新项目简报和总览页，说明当前后台动作闭环进度。
+- [x] 运行 Functions build、前端 build、OpenSpec strict validate、页面探测和敏感信息扫描。

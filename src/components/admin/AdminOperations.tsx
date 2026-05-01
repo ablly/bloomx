@@ -38,7 +38,12 @@ import {
   type AdminSectionKey,
   type AdminSnapshot,
 } from '../../services/adminOperationsService';
-import { runAdminAction, type AdminActionType } from '../../services/adminActionService';
+import {
+  approveAdminAction,
+  rejectAdminAction,
+  runAdminAction,
+  type AdminActionType,
+} from '../../services/adminActionService';
 import { listPaymentProviderConfigs } from '../../services/paymentProviderService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -721,6 +726,16 @@ function RecordInspector({
     message: string;
     requestId?: string;
   }>({ status: 'idle', message: '' });
+  const [roleDraft, setRoleDraft] = useState('seller');
+  const [creditDelta, setCreditDelta] = useState('');
+
+  useEffect(() => {
+    if (!record) return;
+    const currentRole = valueOf(record, ['role'], 'buyer');
+    setRoleDraft(currentRole === 'admin' ? 'buyer' : 'seller');
+    setCreditDelta('');
+    setActionState({ status: 'idle', message: '' });
+  }, [record?.id]);
 
   if (!record) return null;
 
@@ -740,36 +755,78 @@ function RecordInspector({
         ['更新时间', formatDate(record.updatedAt)],
       ];
 
-  const plannedActions: Array<{ label: string; actionType: AdminActionType }> = section.key === 'users'
+  const isAuditRequest = section.key === 'audit' && record.collection === 'audit_logs';
+  const requestStatus = valueOf(record, ['status'], record.status);
+  const requestCanBeReviewed = /pending_approval|dry_run_recorded|execution_failed/i.test(requestStatus);
+
+  const plannedActions: Array<{ label: string; actionType: AdminActionType }> = isAuditRequest
     ? [
-        { label: '调整角色', actionType: 'adjust_user_role' },
-        { label: '冻结账号', actionType: 'freeze_user' },
-        { label: '修正积分', actionType: 'adjust_user_credits' },
-        { label: '导出用户审计', actionType: 'export_user_audit' },
+        { label: '审批并执行', actionType: 'approve_admin_action' },
+        { label: '拒绝请求', actionType: 'reject_admin_action' },
       ]
-    : [
-        { label: '提交复核', actionType: 'submit_review' },
-        { label: '重放失败事件', actionType: 'replay_failed_event' },
-        { label: '导出摘要', actionType: 'export_record_summary' },
-      ];
+    : section.key === 'users'
+      ? [
+          { label: '调整角色', actionType: 'adjust_user_role' },
+          { label: '冻结账号', actionType: 'freeze_user' },
+          { label: '修正积分', actionType: 'adjust_user_credits' },
+          { label: '导出用户审计', actionType: 'export_user_audit' },
+        ]
+      : [
+          { label: '提交复核', actionType: 'submit_review' },
+          { label: '重放失败事件', actionType: 'replay_failed_event' },
+          { label: '导出摘要', actionType: 'export_record_summary' },
+        ];
 
   const submitAction = async (actionType: AdminActionType, label: string) => {
-    setActionState({ status: 'submitting', message: `${label} dry-run 提交中` });
+    const metadata: Record<string, string | number | boolean | null> = {
+      section: section.key,
+      recordTitle: record.title,
+      currentStatus: record.status,
+    };
+
+    if (actionType === 'adjust_user_role') {
+      metadata.nextRole = roleDraft;
+    }
+
+    if (actionType === 'adjust_user_credits') {
+      const parsedDelta = Number(creditDelta);
+      if (!Number.isFinite(parsedDelta) || parsedDelta === 0) {
+        setActionState({ status: 'error', message: '请输入非 0 的积分调整量，审批执行时服务端会再次校验。' });
+        return;
+      }
+      metadata.creditDelta = parsedDelta;
+    }
+
+    setActionState({ status: 'submitting', message: `${label} 提交中` });
     try {
-      const result = await runAdminAction({
-        actionType,
-        targetCollection: record.collection,
-        targetId: record.id,
-        reason: `Admin console dry-run: ${label}`,
-        metadata: {
-          section: section.key,
-          recordTitle: record.title,
-          currentStatus: record.status,
-        },
-      });
+      const result = actionType === 'approve_admin_action'
+        ? await approveAdminAction(record.id, `审批执行管理员动作: ${record.title}`)
+        : actionType === 'reject_admin_action'
+          ? await rejectAdminAction(record.id, `拒绝管理员动作: ${record.title}`)
+          : await runAdminAction({
+              actionType,
+              targetCollection: record.collection,
+              targetId: record.id,
+              reason: `提交管理员动作审批: ${label}`,
+              metadata,
+            });
+
+      if (!result.success) {
+        setActionState({
+          status: 'error',
+          message: result.error || `${label} 未执行，已写入审计错误`,
+          requestId: result.requestId,
+        });
+        return;
+      }
+
       setActionState({
         status: 'success',
-        message: `${label} 已写入审计 dry-run`,
+        message: actionType === 'approve_admin_action'
+          ? '请求已审批并执行，审计日志已回写'
+          : actionType === 'reject_admin_action'
+            ? '请求已拒绝，审计日志已回写'
+            : `${label} 已提交审批，等待在审计页执行`,
         requestId: result.requestId,
       });
     } catch (error) {
@@ -801,14 +858,43 @@ function RecordInspector({
       </div>
 
       <div className="mt-5 rounded-lg border border-[#d9b46a]/25 bg-[#d9b46a]/10 p-3 text-xs leading-5 text-[#efd18c]">
-        敏感操作先走服务端 dry-run 审计，不直接改用户、支付或账本数据。真实执行会在下一阶段接入审批、回滚和权限策略。
+        {isAuditRequest
+          ? '审计请求只能在这里审批或拒绝；服务端会校验权限、动作白名单和目标记录，资金/结算类动作不会被直接执行。'
+          : '敏感操作会先写入服务端审批请求，不从前端直接改生产数据。审批执行入口在审计页，所有结果会回写 audit_logs。'}
       </div>
+
+      {section.key === 'users' && !isAuditRequest && (
+        <div className="mt-4 grid gap-3 rounded-lg border border-white/10 bg-white/[0.025] p-3">
+          <label className="grid gap-2 text-xs text-white/55">
+            调整角色目标
+            <select
+              value={roleDraft}
+              onChange={(event) => setRoleDraft(event.target.value)}
+              className="min-h-10 rounded-lg border border-white/10 bg-[#0e1718] px-3 text-sm text-white outline-none focus:border-[#78c6a3]/45"
+            >
+              <option value="buyer">buyer</option>
+              <option value="seller">seller</option>
+              <option value="admin">admin</option>
+            </select>
+          </label>
+          <label className="grid gap-2 text-xs text-white/55">
+            积分调整量
+            <input
+              value={creditDelta}
+              onChange={(event) => setCreditDelta(event.target.value)}
+              inputMode="decimal"
+              placeholder="例如 100 或 -50"
+              className="min-h-10 rounded-lg border border-white/10 bg-white/[0.035] px-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-[#78c6a3]/45"
+            />
+          </label>
+        </div>
+      )}
 
       <div className="mt-4 grid gap-2">
         {plannedActions.map((action) => (
           <ServerActionButton
             key={action.actionType}
-            enabled={canRunActions && actionState.status !== 'submitting'}
+            enabled={canRunActions && actionState.status !== 'submitting' && (!isAuditRequest || requestCanBeReviewed)}
             label={action.label}
             compact
             onRun={() => void submitAction(action.actionType, action.label)}
@@ -852,7 +938,7 @@ function ServerActionButton({
       type="button"
       disabled={!canRun}
       onClick={onRun}
-      title={canRun ? '提交服务端 dry-run 审计动作' : enabled ? '该动作等待服务端真实执行策略' : '需要管理员权限'}
+      title={canRun ? '提交服务端审批动作' : enabled ? '该动作等待可执行状态或服务端策略' : '需要管理员权限'}
       className={`rounded-lg border px-4 text-sm font-semibold transition active:translate-y-px ${
         canRun
           ? 'border-[#78c6a3]/25 bg-[#78c6a3]/10 text-[#9be2c8] hover:bg-[#78c6a3]/14'

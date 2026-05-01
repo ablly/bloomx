@@ -229,12 +229,12 @@
     <main>
       <header>
         <div class="stack">
-          <span class="status"><span class="dot"></span>生产后台门禁已补强</span>
+          <span class="status"><span class="dot"></span>生产后台审批链路已补强</span>
           <h1>BloomX 项目总览</h1>
           <p>这里给你看最短结论：后台登录、免费工作流、支付路线、当前进度和下一步。不需要翻一堆 Markdown。</p>
         </div>
         <div class="hero-note">
-          <p>当前优先级：先完成管理员安全边界，再落 Stripe 服务端 checkout/webhook/portal，最后把后台按钮接到带审计日志的服务端动作 API。</p>
+          <p>当前优先级：不使用 mock 数据和假页面；后台只读真实 Firestore 集合，敏感动作必须经过服务端审批状态机，下一步接 Stripe 服务端支付闭环。</p>
         </div>
       </header>
 
@@ -270,17 +270,18 @@
             <li>n8n Cloud 不作为默认生产依赖，改为免费自托管路线。</li>
             <li>支付路线改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
             <li>管理员后台已要求登录，默认仅 Owner 邮箱可进入。</li>
-            <li>服务端管理员动作 API 已有 dry-run 审计基座，后台动作会返回 requestId。</li>
+            <li>后台不使用 mock 数据；没有真实记录时直接显示空状态或读取失败。</li>
+            <li>服务端管理员动作 API 已升级为审批状态机：提交请求、审计页审批执行/拒绝、结果回写 audit_logs。</li>
+            <li>低风险动作可真实执行；支付、退款、结算和配置类动作继续锁定到专用生产 API。</li>
           </ul>
         </article>
 
         <article class="panel third">
           <h2>下一步</h2>
           <ul>
-            <li>把 Admin Action dry-run 升级为真实审批动作。</li>
             <li>实装 Stripe 服务端 checkout、webhook、portal API。</li>
+            <li>把支付、订单、积分、退款和结算账本接入管理员审计。</li>
             <li>建立 Activepieces 商家入驻审核工作流。</li>
-            <li>补订单、积分、Webhook、退款和结算账本闭环。</li>
             <li>确认 Dodo Payments MoR 启用边界。</li>
           </ul>
         </article>
