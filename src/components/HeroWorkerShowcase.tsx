@@ -1,10 +1,10 @@
-import { Activity, CheckCircle2, KeyRound, Route, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, CreditCard, KeyRound, Route, Sparkles, UserPlus } from 'lucide-react';
 import { FadeIn } from './ui';
 
 const checks = [
-  { icon: KeyRound, label: '密钥托管', value: 'server only' },
-  { icon: Activity, label: '连通测试', value: 'p95 1.2s' },
-  { icon: ShieldCheck, label: '审核队列', value: 'pending' },
+  { icon: UserPlus, label: '注册账号', value: '1 min' },
+  { icon: CreditCard, label: '订阅积分', value: 'Stripe' },
+  { icon: KeyRound, label: '生成 Key', value: 'server only' },
 ];
 
 const HeroWorkerShowcase = () => {
@@ -29,7 +29,7 @@ const HeroWorkerShowcase = () => {
 
         <div className="absolute -left-8 top-10 hidden rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-xs font-semibold text-white/70 backdrop-blur-xl lg:block">
           <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[#72f2bb] shadow-[0_0_16px_rgba(114,242,187,0.9)]" />
-          active worker
+          automated guide
         </div>
 
         <div
@@ -51,8 +51,8 @@ const HeroWorkerShowcase = () => {
           <div className="grid gap-2.5 p-3">
             <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3">
               <div>
-                <div className="text-sm font-semibold text-white">商家 API 入驻任务</div>
-                <div className="mt-1 text-xs text-white/48">测试、审核、计价和账本路由自动串联</div>
+                <div className="text-sm font-semibold text-white">从注册到第一次调用</div>
+                <div className="mt-1 text-xs text-white/48">自动化使用文档演示 BloomX 的完整上手路径</div>
               </div>
               <Sparkles size={18} className="text-[#f3cf83]" />
             </div>
@@ -84,11 +84,11 @@ const HeroWorkerShowcase = () => {
         <div className="absolute -right-6 bottom-16 hidden w-48 rounded-2xl border border-[#72f2bb]/24 bg-[#07100f]/82 p-4 text-white shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl xl:block">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#72f2bb]">
             <CheckCircle2 size={15} />
-            settlement ready
+            first call ready
           </div>
           <div className="mt-3 flex items-center gap-2 text-sm font-semibold">
             <Route size={16} className="text-[#f3cf83]" />
-            调用失败可回溯
+            用量和账本可追踪
           </div>
         </div>
       </div>
