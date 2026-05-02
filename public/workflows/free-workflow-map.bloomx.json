@@ -1,0 +1,59 @@
+{
+  "project": "BloomX",
+  "updatedAt": "2026-05-02",
+  "recommendedProvider": "activepieces",
+  "mode": "free-self-hosted-workflow-stack",
+  "eventLogCollection": "automationWorkflowEvents",
+  "signingSecret": "WORKFLOW_SIGNING_SECRET",
+  "doctorCommand": "npm run workflow:doctor",
+  "workflows": [
+    {
+      "name": "Seller application review",
+      "provider": "activepieces",
+      "eventType": "seller_application.created",
+      "firebaseSecret": "WORKFLOW_SELLER_APPLICATION_WEBHOOK",
+      "targetFlow": "bloomx/seller-application-review",
+      "trigger": "seller_applications/{applicationId}"
+    },
+    {
+      "name": "Support ticket routing",
+      "provider": "activepieces",
+      "eventType": "support_ticket.created",
+      "firebaseSecret": "WORKFLOW_SUPPORT_TICKET_WEBHOOK",
+      "targetFlow": "bloomx/support-ticket-routing",
+      "trigger": "supportTickets/{ticketId}"
+    },
+    {
+      "name": "Payment success receipt",
+      "provider": "activepieces",
+      "eventType": "payment.succeeded",
+      "firebaseSecret": "WORKFLOW_PAYMENT_SUCCESS_WEBHOOK",
+      "targetFlow": "bloomx/payment-success-receipt",
+      "trigger": "transactions/{transactionId} and users/{userId}/transactions/{transactionId}"
+    },
+    {
+      "name": "Monthly settlement snapshot",
+      "provider": "windmill",
+      "eventType": "settlement.monthly_snapshot",
+      "firebaseSecret": "WORKFLOW_SETTLEMENT_REPORT_WEBHOOK",
+      "targetFlow": "bloomx/monthly-settlement-snapshot",
+      "trigger": "scheduled monthly, Asia/Shanghai"
+    },
+    {
+      "name": "API health monitor",
+      "provider": "node-red",
+      "eventType": "api_health.snapshot",
+      "firebaseSecret": "WORKFLOW_API_HEALTH_WEBHOOK",
+      "targetFlow": "bloomx/api-health-monitor",
+      "trigger": "scheduled every 30 minutes"
+    },
+    {
+      "name": "Platform event bus",
+      "provider": "activepieces",
+      "eventType": "secondary platform events",
+      "firebaseSecret": "WORKFLOW_EVENT_BUS_WEBHOOK",
+      "targetFlow": "bloomx/platform-event-bus",
+      "trigger": "users, email_logs, sellers, products, apiOffers, apiCallRecords, subscriptions, purchases"
+    }
+  ]
+}

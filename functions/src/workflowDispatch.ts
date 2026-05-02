@@ -22,26 +22,26 @@ if (!admin.apps.length) {
 
 const firestore = admin.firestore();
 
-const MAKE_WORKFLOW_SIGNING_SECRET = defineSecret('MAKE_WORKFLOW_SIGNING_SECRET');
+const WORKFLOW_SIGNING_SECRET = defineSecret('WORKFLOW_SIGNING_SECRET');
 
-const N8N_SELLER_APPLICATION_WEBHOOK = defineSecret('N8N_SELLER_APPLICATION_WEBHOOK');
-const N8N_SUPPORT_TICKET_WEBHOOK = defineSecret('N8N_SUPPORT_TICKET_WEBHOOK');
-const N8N_PAYMENT_SUCCESS_WEBHOOK = defineSecret('N8N_PAYMENT_SUCCESS_WEBHOOK');
-const N8N_SETTLEMENT_REPORT_WEBHOOK = defineSecret('N8N_SETTLEMENT_REPORT_WEBHOOK');
-const N8N_API_HEALTH_WEBHOOK = defineSecret('N8N_API_HEALTH_WEBHOOK');
-const N8N_EVENT_BUS_WEBHOOK = defineSecret('N8N_EVENT_BUS_WEBHOOK');
+const WORKFLOW_SELLER_APPLICATION_WEBHOOK = defineSecret('WORKFLOW_SELLER_APPLICATION_WEBHOOK');
+const WORKFLOW_SUPPORT_TICKET_WEBHOOK = defineSecret('WORKFLOW_SUPPORT_TICKET_WEBHOOK');
+const WORKFLOW_PAYMENT_SUCCESS_WEBHOOK = defineSecret('WORKFLOW_PAYMENT_SUCCESS_WEBHOOK');
+const WORKFLOW_SETTLEMENT_REPORT_WEBHOOK = defineSecret('WORKFLOW_SETTLEMENT_REPORT_WEBHOOK');
+const WORKFLOW_API_HEALTH_WEBHOOK = defineSecret('WORKFLOW_API_HEALTH_WEBHOOK');
+const WORKFLOW_EVENT_BUS_WEBHOOK = defineSecret('WORKFLOW_EVENT_BUS_WEBHOOK');
 
 const allWorkflowSecrets = [
-  N8N_SELLER_APPLICATION_WEBHOOK,
-  N8N_SUPPORT_TICKET_WEBHOOK,
-  N8N_PAYMENT_SUCCESS_WEBHOOK,
-  N8N_SETTLEMENT_REPORT_WEBHOOK,
-  N8N_API_HEALTH_WEBHOOK,
-  N8N_EVENT_BUS_WEBHOOK,
-  MAKE_WORKFLOW_SIGNING_SECRET,
+  WORKFLOW_SELLER_APPLICATION_WEBHOOK,
+  WORKFLOW_SUPPORT_TICKET_WEBHOOK,
+  WORKFLOW_PAYMENT_SUCCESS_WEBHOOK,
+  WORKFLOW_SETTLEMENT_REPORT_WEBHOOK,
+  WORKFLOW_API_HEALTH_WEBHOOK,
+  WORKFLOW_EVENT_BUS_WEBHOOK,
+  WORKFLOW_SIGNING_SECRET,
 ];
 
-type WorkflowProvider = 'n8n';
+type WorkflowProvider = 'activepieces' | 'node-red' | 'windmill';
 
 type AutomationWorkflowType =
   | 'seller_application.created'
@@ -70,18 +70,24 @@ type AutomationWorkflowPayload = {
   data: Record<string, unknown>;
 };
 
-const n8nWebhookUrlFor = (eventType: AutomationWorkflowType) => {
-  if (eventType === 'seller_application.created') return N8N_SELLER_APPLICATION_WEBHOOK.value();
-  if (eventType === 'support_ticket.created') return N8N_SUPPORT_TICKET_WEBHOOK.value();
-  if (eventType === 'payment.succeeded') return N8N_PAYMENT_SUCCESS_WEBHOOK.value();
-  if (eventType === 'settlement.monthly_snapshot') return N8N_SETTLEMENT_REPORT_WEBHOOK.value();
-  if (eventType === 'api_health.snapshot') return N8N_API_HEALTH_WEBHOOK.value();
-  return N8N_EVENT_BUS_WEBHOOK.value();
+const workflowWebhookUrlFor = (eventType: AutomationWorkflowType) => {
+  if (eventType === 'seller_application.created') return WORKFLOW_SELLER_APPLICATION_WEBHOOK.value();
+  if (eventType === 'support_ticket.created') return WORKFLOW_SUPPORT_TICKET_WEBHOOK.value();
+  if (eventType === 'payment.succeeded') return WORKFLOW_PAYMENT_SUCCESS_WEBHOOK.value();
+  if (eventType === 'settlement.monthly_snapshot') return WORKFLOW_SETTLEMENT_REPORT_WEBHOOK.value();
+  if (eventType === 'api_health.snapshot') return WORKFLOW_API_HEALTH_WEBHOOK.value();
+  return WORKFLOW_EVENT_BUS_WEBHOOK.value();
+};
+
+const workflowProviderFor = (eventType: AutomationWorkflowType): WorkflowProvider => {
+  if (eventType === 'settlement.monthly_snapshot') return 'windmill';
+  if (eventType === 'api_health.snapshot') return 'node-red';
+  return 'activepieces';
 };
 
 const webhookTargetFor = (eventType: AutomationWorkflowType): {provider: WorkflowProvider; url: string} | null => {
-  const n8nUrl = n8nWebhookUrlFor(eventType);
-  if (n8nUrl) return {provider: 'n8n', url: n8nUrl};
+  const workflowUrl = workflowWebhookUrlFor(eventType);
+  if (workflowUrl) return {provider: workflowProviderFor(eventType), url: workflowUrl};
   return null;
 };
 
@@ -98,7 +104,7 @@ const cleanFirestoreValue = (value: unknown): unknown => {
 };
 
 const signatureFor = (body: string) => {
-  const secret = MAKE_WORKFLOW_SIGNING_SECRET.value();
+  const secret = WORKFLOW_SIGNING_SECRET.value();
   if (!secret) return '';
   return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
 };
@@ -121,7 +127,7 @@ const postAutomationWorkflowEvent = async (payload: AutomationWorkflowPayload) =
       resourceId: payload.resourceId,
       source: payload.source,
       status: 'skipped',
-      reason: 'missing_n8n_webhook_url',
+      reason: 'missing_workflow_webhook_url',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     return;
@@ -235,7 +241,7 @@ export const onUserPaymentTransactionCreated = functions
   .firestore.document('users/{userId}/transactions/{transactionId}')
   .onCreate((snapshot, context) => paymentCreatedHandler(snapshot, snapshot.ref.path, context.params.userId));
 
-export const sendMonthlySettlementSnapshotToMake = functions
+export const sendMonthlySettlementSnapshotToWorkflow = functions
   .runWith({secrets: allWorkflowSecrets})
   .pubsub.schedule('0 9 1 * *')
   .timeZone('Asia/Shanghai')
@@ -258,7 +264,7 @@ export const sendMonthlySettlementSnapshotToMake = functions
     return null;
   });
 
-export const sendApiHealthSnapshotToMake = functions
+export const sendApiHealthSnapshotToWorkflow = functions
   .runWith({secrets: allWorkflowSecrets})
   .pubsub.schedule('every 30 minutes')
   .onRun(async () => {

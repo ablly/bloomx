@@ -2,7 +2,7 @@
 
 ## Purpose
 
-定义项目交付闭环：从需求进入规格、实现任务、验证，再沉淀为可归档知识，确保后续开发从「写代码」稳定升级为「按规格交付」。
+定义项目交付闭环：从需求进入规格、实现任务、验证，再沉淀为可归档知识，确保后续开发从“写代码”稳定升级为“按规格交付”。
 
 ## Requirements
 
@@ -41,7 +41,7 @@
 - THEN 实现已检查交互状态、响应式布局、文案质量、视觉一致性和动效性能风险
 
 ### Requirement: 免费自托管作为默认流程自动化路线
-项目 SHALL 将免费/开源自托管平台作为所有新流程自动化、业务事件编排和跨系统通知的默认路线，生产默认平台为 Activepieces 自托管社区版。
+项目 SHALL 将免费、开源、自托管平台作为所有新流程自动化、业务事件编排和跨系统通知的默认路线，生产默认平台为 Activepieces 自托管社区版。
 
 #### Scenario: 新增自动化流程
 - GIVEN 一个新需求需要业务流程编排、Webhook 投递、跨系统通知或运营自动化
@@ -57,17 +57,17 @@
 - OR 可以选择 Windmill 作为脚本型后台任务补位
 - AND 说明为什么不使用 Activepieces
 
-#### Scenario: 历史 Make 资料存在
-- GIVEN 项目中存在 Make.com 文档、脚本或历史记录
+#### Scenario: 历史 n8n 或 Make 资料存在
+- GIVEN 项目中存在 n8n、Make.com 文档、脚本或历史记录
 - WHEN 新增流程自动化方案
-- THEN 不得把 Make 作为默认流程平台
-- AND Make 只能作为历史参考或迁移兼容资料
+- THEN 不得把 n8n 或 Make 作为默认生产平台
+- AND 历史资料只能作为迁移参考或兼容跳转
 
-#### Scenario: 历史 n8n 资料存在
-- GIVEN 项目中存在 n8n Cloud 工作流、文档或访问页
-- WHEN 新增或迁移自动化方案
-- THEN 不得把 n8n Cloud 作为默认生产依赖
-- AND n8n 自托管只能作为既有 n8n 工作流迁移兼容备选
+#### Scenario: 工作流 Secret 命名
+- GIVEN 后端需要投递自动化事件
+- WHEN 配置生产 Secret
+- THEN 使用 `WORKFLOW_*` 命名
+- AND 不新增 `N8N_*` 或 `MAKE_*` 默认生产工作流 Secret
 
 ### Requirement: Stripe 首发并预留 Dodo Payments
 项目 SHALL 将 Stripe 作为首发支付通道，并为 Dodo Payments 预留 Merchant of Record 和全球税务合规备选通道。
@@ -78,12 +78,6 @@
 - THEN 方案说明 Stripe 与 Dodo Payments 的 provider 选择、支付对象、Webhook 事件和测试/生产环境
 - AND 说明服务端密钥管理、Webhook 验签、幂等键、本地账本和管理员对账入口
 
-#### Scenario: 支付状态更新
-- GIVEN Dodo Payments 发送支付或订阅相关 Webhook
-- WHEN 系统处理该事件
-- THEN 系统以服务端账本为准更新订单、订阅或积分状态
-- AND 保存 webhook event 原文摘要、验签结果、处理状态和重放记录
-
 ### Requirement: 管理员后台为生产必需能力
 项目 SHALL 提供管理员后台来支撑审核、支付对账、退款、工作流运行、商家结算、风控和审计。
 
@@ -93,24 +87,15 @@
 - THEN 管理员后台提供可检索、可复核、可审计的操作入口
 - AND 敏感操作记录 actor、时间、原因、前后状态和 requestId
 
-### Requirement: 完成后运行与自审
-项目 SHALL 在每次完成工作后运行相关验证并自审问题，直到当前范围内没有阻塞问题。
-
-#### Scenario: 前端或规格工作完成
-- GIVEN 一段前端、规格、自动化或交付文档工作已经完成
-- WHEN 准备向用户交付
-- THEN 已运行相关验证命令
-- AND 已自审 bug、构建警告、乱码、规格遗漏和剩余风险
-- AND 如果发现阻塞问题，已修复后重新验证
-
-### Requirement: n8n 工作流访问入口
-项目 SHALL 为 n8n 工作流提供用户可访问的查看入口。
+### Requirement: 免费工作流访问入口
+项目 SHALL 为免费自托管工作流提供用户可访问的查看入口。
 
 #### Scenario: 用户查看工作流
-- GIVEN BloomX 已配置 n8n 工作流
+- GIVEN BloomX 已迁移到免费工作流路线
 - WHEN 用户需要查看自动化流程
-- THEN 项目提供工作流访问页面
-- AND 页面包含工作流名称、编辑页入口、Production Webhook、触发源和验证提示
+- THEN 项目提供 `/workflows.html`
+- AND 页面包含平台职责、工作流名称、Secret 名称、触发源和验证提示
+- AND 页面不暴露真实 Webhook URL 或密钥
 
 ### Requirement: 审核通过后推送 GitHub
 项目 SHALL 在当前范围验证和自审通过后，默认将本次工作提交并推送到 GitHub。

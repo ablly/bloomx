@@ -959,7 +959,7 @@ function SettingsPanel({ canRunActions }: { canRunActions: boolean }) {
     { label: '支付 Provider 抽象', status: 'ready', detail: 'Stripe 首发，Dodo Payments 保留 MoR 备选。' },
     { label: 'Webhook 验签与幂等', status: 'required', detail: '所有支付状态必须来自服务端验签事件和本地账本。' },
     { label: '审计日志', status: 'required', detail: '所有敏感动作必须写 audit_logs，禁止只改前端状态。' },
-    { label: '免费工作流平台', status: 'ready', detail: 'Activepieces 自托管为主，Node-RED/Windmill 补位，n8n 仅迁移参考。' },
+    { label: '免费工作流平台', status: 'ready', detail: 'Activepieces 自托管为主，Node-RED/Windmill 补位，不再使用 n8n 默认链路。' },
   ];
 
   return (

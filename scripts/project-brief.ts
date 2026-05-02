@@ -5,7 +5,8 @@ const mode = process.argv[2] ?? 'brief';
 const urls = {
   preview: 'http://127.0.0.1:5173/',
   admin: 'http://127.0.0.1:5173/admin',
-  workflows: 'http://127.0.0.1:5173/n8n-workflows.html',
+  workflows: 'http://127.0.0.1:5173/workflows.html',
+  legacyWorkflows: 'http://127.0.0.1:5173/n8n-workflows.html',
   hub: 'http://127.0.0.1:5173/project-hub.html',
   stripeDocs: 'https://docs.stripe.com/payments/payment-methods/overview',
   dodoDocs: 'https://docs.dodopayments.com/developer-resources/mcp-server',
@@ -14,12 +15,12 @@ const urls = {
 const workflowOptions = [
   {
     name: 'Activepieces 自托管社区版',
-    fit: 'BloomX 默认生产工作流平台；适合审批、Webhook、通知、失败重试和跨系统编排。',
-    note: '需要自建备份、日志、密钥管理、监控和权限边界；n8n Cloud 不作为默认生产依赖。',
+    fit: 'BloomX 默认生产工作流平台；适合商家审核、售后工单、支付回执、事件总线、通知、失败重试和跨系统编排。',
+    note: '免费自托管优先；需要自行维护备份、日志、密钥、监控和权限边界。',
   },
   {
     name: 'Node-RED',
-    fit: '基础设施和轻量事件流补位；适合健康检查、HTTP 转发、内部事件桥接。',
+    fit: '基础设施和轻量事件流补位；适合 API 健康巡检、HTTP 转发、内部事件桥接。',
     note: '不承担核心业务审批；复杂权限、审计和业务看板放回 BloomX 后台。',
   },
   {
@@ -27,16 +28,12 @@ const workflowOptions = [
     fit: '脚本型后台任务补位；适合对账、批处理、数据修复、定时结算草稿。',
     note: '更偏工程/运营后台，不面向普通商家。',
   },
-  {
-    name: 'n8n 自托管迁移兼容',
-    fit: '只用于复用旧模板或临时迁移；不再把 n8n Cloud 当成默认生产方案。',
-    note: '如果后续启用，必须确认许可证、备份、版本锁定和自托管运维成本。',
-  },
 ];
 
 const workflowStandards = [
+  '不再使用 n8n Cloud、Make.com 或其它收费 SaaS 作为默认生产自动化依赖。',
   '所有工作流必须有幂等键、重试策略、超时策略和失败死信记录。',
-  '所有外部调用必须使用密钥管理，不允许把 token、API key 或 webhook secret 写进仓库。',
+  '所有外部调用必须使用 Firebase Secret Manager 或自托管平台密钥管理，不允许把 token、API key 或 webhook secret 写进仓库。',
   '关键流程必须记录 requestId、actor、输入摘要、输出摘要、错误、耗时和重放入口。',
   '支付、结算、退款、商家审核必须有管理员复核入口和审计日志。',
   '测试环境与生产环境必须分离，生产变更必须可回滚。',
@@ -70,6 +67,23 @@ const sellerApiPlan = [
   '正式邮件通道必须接 Postmark/SES/Resend 等事务邮件服务，并完成 SPF、DKIM、DMARC 和自定义 Return-Path。',
 ];
 
+const done = [
+  '生产管理员后台：登录白名单、真实 Firestore 数据、审计表、低风险管理员动作审批状态机。',
+  '商家 API 入驻：Provider Adapter 规划、密钥服务端加密、测试日志、pending_review 审核链路。',
+  '前台交易体验：市场、详情、个人中心、商家后台围绕真实订阅、积分、Key、售后和调用状态重构。',
+  '自动化事件层：Firestore 事件触发器、统一 automationWorkflowEvents 日志、签名 Webhook、免费工作流 Secret 命名。',
+  '项目入口：预览页、项目总览页、免费工作流页、一键简报命令。',
+];
+
+const todo = [
+  '把 Activepieces 自托管实例部署起来，并把 4 条业务流 Webhook 写入 WORKFLOW_* Secret。',
+  '把 Node-RED API 健康巡检流和 Windmill 月结脚本接入真实环境。',
+  '实装 Stripe checkout、webhook、customer portal、积分账本、退款/争议和管理员审核闭环。',
+  '用真实商家 API 完成一次测试通过、管理员审核、上架、订阅、成功调用和失败退款。',
+  '接入正式事务邮件服务，并完成 SPF、DKIM、DMARC 和 Return-Path。',
+  '拆分仍偏大的前端主 chunk，补最小服务层测试。',
+];
+
 function run(command: string): string {
   try {
     return execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -84,7 +98,8 @@ function printLinks() {
   console.log('启动本地预览: npm run dev -- --host 127.0.0.1');
   console.log(`项目预览页: ${urls.preview}`);
   console.log(`管理员后台: ${urls.admin}`);
-  console.log(`工作流访问页: ${urls.workflows}`);
+  console.log(`免费工作流访问页: ${urls.workflows}`);
+  console.log(`旧 n8n 入口兼容跳转: ${urls.legacyWorkflows}`);
   console.log(`项目总览页: ${urls.hub}`);
   console.log(`Stripe 支付方式文档: ${urls.stripeDocs}`);
   console.log(`Dodo Payments MCP 文档: ${urls.dodoDocs}`);
@@ -123,6 +138,10 @@ function printBrief() {
   console.log('');
   printWorkflowOptions();
   console.log('');
+  printList('已经完成', done);
+  console.log('');
+  printList('还没完成', todo);
+  console.log('');
   printList('支付平台规划', paymentPlan);
   console.log('');
   printList('管理员后台进度', adminPlan);
@@ -130,7 +149,7 @@ function printBrief() {
   printList('商家 API 入驻与审核', sellerApiPlan);
   console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
-  console.log('建议下一步: 实装 Stripe checkout/webhook/portal API，并把支付、订单、积分、退款账本闭环接入管理员审计。');
+  console.log('建议下一步: 先部署 Activepieces 自托管工作流和 WORKFLOW_* Secret，再实装 Stripe checkout/webhook/portal API。');
 }
 
 if (mode === 'links') {

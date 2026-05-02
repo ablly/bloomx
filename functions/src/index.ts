@@ -265,8 +265,8 @@ export {
   onSupportTicketCreated,
   onPaymentTransactionCreated,
   onUserPaymentTransactionCreated,
-  sendMonthlySettlementSnapshotToMake,
-  sendApiHealthSnapshotToMake,
+  sendMonthlySettlementSnapshotToWorkflow,
+  sendApiHealthSnapshotToWorkflow,
   onUserProfileCreated,
   onUserProfileDeleted,
   onEmailLogCreated,
@@ -279,4 +279,4 @@ export {
   onApiCallRecordCompleted,
   onSubscriptionCreated,
   onPurchaseCreated,
-} from './makeWorkflows';
+} from './workflowDispatch';

@@ -1,0 +1,65 @@
+{
+  "project": "BloomX",
+  "updatedAt": "2026-05-02",
+  "recommendedProvider": "activepieces",
+  "mode": "free-self-hosted-workflow-stack",
+  "eventLogCollection": "automationWorkflowEvents",
+  "signingSecret": "WORKFLOW_SIGNING_SECRET",
+  "doctorCommand": "npm run workflow:doctor",
+  "workflows": [
+    {
+      "name": "Seller application review",
+      "provider": "activepieces",
+      "eventType": "seller_application.created",
+      "firebaseSecret": "WORKFLOW_SELLER_APPLICATION_WEBHOOK",
+      "targetFlow": "bloomx/seller-application-review",
+      "trigger": "seller_applications/{applicationId}",
+      "purpose": "商家入驻审核、运营通知、人工复核队列"
+    },
+    {
+      "name": "Support ticket routing",
+      "provider": "activepieces",
+      "eventType": "support_ticket.created",
+      "firebaseSecret": "WORKFLOW_SUPPORT_TICKET_WEBHOOK",
+      "targetFlow": "bloomx/support-ticket-routing",
+      "trigger": "supportTickets/{ticketId}",
+      "purpose": "售后工单分流、运营通知、处理 SLA 跟踪"
+    },
+    {
+      "name": "Payment success receipt",
+      "provider": "activepieces",
+      "eventType": "payment.succeeded",
+      "firebaseSecret": "WORKFLOW_PAYMENT_SUCCESS_WEBHOOK",
+      "targetFlow": "bloomx/payment-success-receipt",
+      "trigger": "transactions/{transactionId} and users/{userId}/transactions/{transactionId}",
+      "purpose": "支付成功凭证、财务流水同步、用户通知"
+    },
+    {
+      "name": "Monthly settlement snapshot",
+      "provider": "windmill",
+      "eventType": "settlement.monthly_snapshot",
+      "firebaseSecret": "WORKFLOW_SETTLEMENT_REPORT_WEBHOOK",
+      "targetFlow": "bloomx/monthly-settlement-snapshot",
+      "trigger": "scheduled monthly, Asia/Shanghai",
+      "purpose": "商家月结草稿、批处理、对账导出"
+    },
+    {
+      "name": "API health monitor",
+      "provider": "node-red",
+      "eventType": "api_health.snapshot",
+      "firebaseSecret": "WORKFLOW_API_HEALTH_WEBHOOK",
+      "targetFlow": "bloomx/api-health-monitor",
+      "trigger": "scheduled every 30 minutes",
+      "purpose": "API 健康巡检、失败告警、基础设施事件流"
+    },
+    {
+      "name": "Platform event bus",
+      "provider": "activepieces",
+      "eventType": "secondary platform events",
+      "firebaseSecret": "WORKFLOW_EVENT_BUS_WEBHOOK",
+      "targetFlow": "bloomx/platform-event-bus",
+      "trigger": "users, email_logs, sellers, products, apiOffers, apiCallRecords, subscriptions, purchases",
+      "purpose": "全项目二级事件总线、运营通知、低风险自动化"
+    }
+  ]
+}

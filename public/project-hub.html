@@ -244,7 +244,7 @@
           <div class="links">
             <a href="/">项目预览页</a>
             <a href="/admin">管理员后台</a>
-            <a href="/n8n-workflows.html">工作流访问页</a>
+            <a href="/workflows.html">免费工作流访问页</a>
             <a href="https://docs.stripe.com/payments/payment-methods/overview">Stripe 支付方式文档</a>
             <a href="https://docs.dodopayments.com/developer-resources/mcp-server">Dodo Payments MCP 文档</a>
           </div>
@@ -268,7 +268,7 @@
           <ul>
             <li>OpenSpec + Superpowers 交付规则已落地。</li>
             <li>Taste + Open Design 作为 UI 设计原则。</li>
-            <li>n8n Cloud 不作为默认生产依赖，改为免费自托管路线。</li>
+            <li>已从 n8n 迁移为免费自托管工作流路线：Activepieces、Node-RED、Windmill。</li>
             <li>支付路线改为 Stripe 首发 + Dodo Payments MoR 备选。</li>
             <li>管理员后台已要求登录，默认仅 Owner 邮箱可进入。</li>
             <li>后台不使用 mock 数据；没有真实记录时直接显示空状态或读取失败。</li>
@@ -285,6 +285,7 @@
             <li>把支付、订单、积分、退款和结算账本接入管理员审计。</li>
             <li>把 email_outbox 接入 Postmark/SES/Resend 并完成 SPF、DKIM、DMARC。</li>
             <li>建立 Activepieces 商家入驻审核工作流。</li>
+            <li>把 WORKFLOW_* Secret 写入 Firebase Secret Manager。</li>
             <li>确认 Dodo Payments MoR 启用边界。</li>
           </ul>
         </article>
@@ -332,8 +333,8 @@
               <span>脚本后台任务补位，适合对账、批处理、数据修复和定时结算草稿。</span>
             </div>
             <div class="tile">
-              <strong>n8n 自托管</strong>
-              <span>只作为迁移兼容备选；n8n Cloud 不作为默认生产依赖。</span>
+              <strong>禁用 n8n 默认链路</strong>
+              <span>不再把 n8n 作为 BloomX 默认生产方案；旧链接只跳转到免费工作流总览。</span>
             </div>
           </div>
         </article>

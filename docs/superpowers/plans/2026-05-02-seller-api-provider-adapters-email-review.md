@@ -55,5 +55,5 @@
 - [ ] Run `npm --prefix functions run build`.
 - [ ] Run `npm run build`.
 - [ ] Run `npm run spec:validate:strict`.
-- [ ] Probe `/seller/products/new`, `/admin/products`, `/project-hub.html`, `/n8n-workflows.html`.
+- [ ] Probe `/seller/products/new`, `/admin/products`, `/project-hub.html`, `/workflows.html`.
 - [ ] Scan changed files for hardcoded secrets.
