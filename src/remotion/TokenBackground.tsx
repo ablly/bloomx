@@ -1,4 +1,4 @@
-import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 
 type NodeSpec = {
   x: number;
@@ -172,14 +172,31 @@ export const TokenBackground = () => {
   const progress = frame / durationInFrames;
   const cameraX = interpolate(progress, [0, 1], [0, -86]);
   const cameraY = interpolate(progress, [0, 1], [0, 38]);
+  const imageDrift = Math.sin(frame / 110);
   const sweep = interpolate(frame % 180, [0, 62, 180], [-260, 520, 1580], {
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#050807', overflow: 'hidden' }}>
+      <Img
+        src={staticFile('media/bloomx-generated-hero.png')}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.96,
+          filter: 'contrast(1.08) saturate(1.12) brightness(1.06)',
+          transform: `scale(${1.035 + progress * 0.035}) translate3d(${imageDrift * 14}px, ${Math.cos(frame / 135) * 8}px, 0)`,
+        }}
+      />
+
       <AbsoluteFill
         style={{
+          mixBlendMode: 'screen',
+          opacity: 0.42,
           background:
             'radial-gradient(circle at 78% 22%, rgba(114,242,187,0.28), transparent 30%), radial-gradient(circle at 56% 74%, rgba(142,199,255,0.24), transparent 38%), linear-gradient(112deg, #050807 0%, #0b1817 42%, #080b09 100%)',
         }}
@@ -188,6 +205,7 @@ export const TokenBackground = () => {
       <AbsoluteFill
         style={{
           opacity: 0.36,
+          mixBlendMode: 'screen',
           transform: `scale(${1.08 + progress * 0.08}) translate3d(${cameraX}px, ${cameraY}px, 0) rotate(-3deg)`,
           backgroundImage:
             'linear-gradient(rgba(255,255,255,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)',
@@ -224,6 +242,7 @@ export const TokenBackground = () => {
           height: 1040,
           opacity: 0.32,
           filter: 'blur(18px)',
+          mixBlendMode: 'screen',
           transform: 'rotate(-21deg)',
           background: 'linear-gradient(90deg, transparent, rgba(255,245,210,0.92), rgba(114,242,187,0.46), transparent)',
         }}
@@ -237,6 +256,7 @@ export const TokenBackground = () => {
           width: '100%',
           height: '100%',
           opacity: 0.78,
+          mixBlendMode: 'screen',
           transform: `translate3d(${cameraX * 0.42}px, ${cameraY * 0.28}px, 0)`,
         }}
       >
@@ -293,8 +313,9 @@ export const TokenBackground = () => {
 
       <AbsoluteFill
         style={{
+          pointerEvents: 'none',
           background:
-            'linear-gradient(90deg, rgba(5,8,7,0.42) 0%, rgba(5,8,7,0.16) 38%, rgba(5,8,7,0.02) 100%), linear-gradient(180deg, rgba(5,8,7,0.02) 0%, rgba(5,8,7,0.28) 100%)',
+            'linear-gradient(90deg, rgba(5,8,7,0.52) 0%, rgba(5,8,7,0.18) 38%, rgba(5,8,7,0.02) 100%), linear-gradient(180deg, rgba(5,8,7,0.02) 0%, rgba(5,8,7,0.2) 100%)',
         }}
       />
     </AbsoluteFill>
