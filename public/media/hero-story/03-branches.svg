@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs><linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f2eb"/><stop offset=".62" stop-color="#e8e0d5"/><stop offset="1" stop-color="#f6f1e9"/></linearGradient><radialGradient id="light" cx=".22" cy=".12" r=".8"><stop stop-color="#fffaf3"/><stop offset=".72" stop-color="#fffaf3" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1600" height="900" fill="url(#wall)"/><rect width="1600" height="900" fill="url(#light)"/>
+  <path d="M1275 0h325v900h-325c-58-152-58-746 0-900Z" fill="#d5ccc0" opacity=".5"/>
+  <ellipse cx="805" cy="728" rx="245" ry="48" fill="#9d9285" opacity=".22"/><ellipse cx="805" cy="700" rx="205" ry="41" fill="#ded8cf"/>
+  <g opacity=".55"><rect x="590" y="300" width="270" height="208" rx="24" fill="#fff" opacity=".45" stroke="#fff"/><text x="648" y="360" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="18" fill="#2a2d27">bloomx.io</text><rect x="632" y="394" width="185" height="28" rx="10" fill="#efe9df"/><rect x="632" y="438" width="185" height="28" rx="10" fill="#efe9df"/></g>
+  <path d="M860 405 C930 405 900 285 980 285" stroke="#edf1de" stroke-width="4" fill="none"/><path d="M860 405 C930 405 900 565 980 565" stroke="#edf1de" stroke-width="4" fill="none"/>
+  <circle cx="860" cy="405" r="8" fill="#fff"/><circle cx="980" cy="285" r="8" fill="#fff"/><circle cx="980" cy="565" r="8" fill="#fff"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" fill="#2a2d27">
+    <rect x="980" y="205" width="330" height="160" rx="28" fill="#fff" opacity=".52" stroke="#fff" stroke-width="2"/><text x="1038" y="264" font-size="25">Merchant onboarding</text><circle cx="1054" cy="313" r="32" fill="#e4ead8"/><rect x="1118" y="298" width="106" height="12" rx="6" fill="#c5beb2"/><rect x="1118" y="326" width="82" height="12" rx="6" fill="#d1cabf"/><text x="1237" y="330" font-size="30" fill="#6f7d50">→</text>
+    <rect x="980" y="485" width="330" height="160" rx="28" fill="#fff" opacity=".52" stroke="#fff" stroke-width="2"/><text x="1038" y="544" font-size="25">Subscribe credits</text><circle cx="1054" cy="593" r="32" fill="#e4ead8"/><rect x="1118" y="578" width="106" height="12" rx="6" fill="#c5beb2"/><rect x="1118" y="606" width="82" height="12" rx="6" fill="#d1cabf"/><text x="1237" y="610" font-size="30" fill="#6f7d50">→</text>
+  </g>
+</svg>

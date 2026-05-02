@@ -1,28 +1,28 @@
-# BloomX Quiet Hero Video Visual Identity
+# BloomX Hero Film Design
 
-## Style Prompt
+## Visual Theme
 
-A quiet, deep digital-space film for BloomX. The frame breathes with severe whitespace, a particle-built title, slow star-like drift, minimal floating system-status labels, and a restrained original music-box melody. The atmosphere should feel closer to a private observatory for model API capacity than a loud Web3 promo.
+An Apple-style product film for a model API marketplace. The atmosphere is warm, quiet, architectural, and precise: off-white stone, soft daylight, translucent interface planes, brushed aluminum, and sparse text. The design should feel like a high-end product reveal, not a generic AI SaaS dashboard.
 
 ## Colors
 
-- Canvas: `#050807`
-- Route green: `#69e2a9`
-- Settlement green: `#2f6f5e`
-- Token amber: `#f0bc61`
-- Token bronze: `#d76f37`
-- Reserve blue: `#355c8a`
+- Canvas Warm White: `#F6F2EA`
+- Ink Charcoal: `#20251F`
+- Muted Olive Gray: `rgba(41,48,39,0.58)`
+- Sage Accent: `#8D9F78`
+- Glass Surface: `rgba(255,255,255,0.42)`
+- Hairline Border: `rgba(41,48,39,0.12)`
 
 ## Typography
 
-- Display: Montserrat, chosen because the HyperFrames renderer can embed it deterministically
-- Data: JetBrains Mono, chosen for deterministic numeric rendering
+- Display: SF Pro Display style, weight 600-700, tight tracking.
+- Body: SF Pro Text style, restrained scale and relaxed leading.
+- Mono: SF Mono style for API snippets only.
 
-## What Not To Do
+## Motion
 
-- No purple-blue AI gradient.
-- No neon outer glow as the main visual idea.
-- No invented fake market stats.
-- No emoji or decorative icon pile.
-- No text that depends on forced line breaks.
-- No hard cuts, jumpy status changes, or sharp notification sounds.
+Scroll and timeline both feel like one continuous film strip. Scenes crossfade with subtle camera push, parallax drift, and depth blur. Text appears in different spatial positions and exits softly. Animate only opacity, transform, and filter.
+
+## Never Do
+
+No neon, no purple-blue AI gradients, no crypto imagery, no mascot, no heavy frames, no dashboard card grid, no excessive text, no emojis, no pure black, no custom cursor, no bouncing scroll prompt.

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { bloomxRadix } from '../lib/radixPalette';
 import LanguageSwitcher from './LanguageSwitcher';
-import HeroParticleTitle from './HeroParticleTitle';
+import HeroScrollNarrative from './HeroScrollNarrative';
 import { FadeIn } from './ui';
 
 interface HeroLandingProps {
@@ -32,12 +32,11 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         settings: '设置',
         signOut: '退出',
         eyebrow: '模型 API 能力交易市场',
-        headline: '能力成为资产',
-        subtitle:
-          'BloomX 把商家的模型接口变成可审核的供给，把用户的积分调用变成清晰的交易记录。测试、计价、结算和失败追踪都在同一条可信链路里完成。',
+        headline: 'BloomX',
+        subtitle: '从访问网站到第一次模型调用。',
         primary: '进入 BloomX 控制台',
         secondary: '查看模型供给',
-        rail: '向下滚动查看市场机制',
+        rail: '滚动推进分镜',
       }
     : {
         navFeatures: 'Mechanism',
@@ -51,12 +50,11 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         settings: 'Settings',
         signOut: 'Sign out',
         eyebrow: 'Model API capacity exchange',
-        headline: 'Capacity becomes signal',
-        subtitle:
-          'BloomX turns merchant endpoints into verified supply and user credits into inspectable call records. Testing, pricing, settlement, and failure tracking live on one trusted route.',
+        headline: 'BloomX',
+        subtitle: 'From domain visit to first model call.',
         primary: 'Open BloomX Console',
         secondary: 'View Model Supply',
-        rail: 'Scroll to view the market mechanism',
+        rail: 'Scroll to move the story',
       };
 
   const heroVars = {
@@ -101,7 +99,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
 
   return (
     <>
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#050807]/58 backdrop-blur-2xl">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#293027]/10 bg-[#f6f2ea]/62 backdrop-blur-2xl">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <button
@@ -109,23 +107,23 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               aria-label="BloomX home"
             >
-              <span className="relative grid h-8 w-8 place-items-center rounded-full border border-[var(--hero-coin)]/40 bg-[#f0bc61]/14" style={heroVars}>
-                <span className="h-2.5 w-2.5 rounded-full bg-[var(--hero-coin)]" />
+              <span className="relative grid h-8 w-8 place-items-center rounded-full border border-[#293027]/12 bg-white/46" style={heroVars}>
+                <span className="h-2.5 w-2.5 rounded-full bg-[#8d9f78]" />
               </span>
-              <span className="text-lg font-semibold tracking-tight text-white">BloomX</span>
+              <span className="text-lg font-semibold tracking-tight text-[#20251f]">BloomX</span>
             </button>
 
             <div className="hidden items-center gap-7 text-sm md:flex">
-              <button onClick={() => scrollToSection('features')} className="text-white/68 hover:text-white">
+              <button onClick={() => scrollToSection('features')} className="text-[#293027]/62 hover:text-[#20251f]">
                 {copy.navFeatures}
               </button>
-              <button onClick={() => scrollToSection('models')} className="text-white/68 hover:text-white">
+              <button onClick={() => scrollToSection('models')} className="text-[#293027]/62 hover:text-[#20251f]">
                 {copy.navModels}
               </button>
-              <Link to="/marketplace" className="text-white/68 hover:text-white">
+              <Link to="/marketplace" className="text-[#293027]/62 hover:text-[#20251f]">
                 {copy.navMarket}
               </Link>
-              <button onClick={() => scrollToSection('pricing')} className="text-white/68 hover:text-white">
+              <button onClick={() => scrollToSection('pricing')} className="text-[#293027]/62 hover:text-[#20251f]">
                 {copy.navPricing}
               </button>
             </div>
@@ -137,12 +135,12 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex min-h-11 items-center gap-2 rounded-full border border-white/14 bg-white/[0.07] px-3.5 text-white shadow-none hover:bg-white/[0.12]"
+                    className="flex min-h-11 items-center gap-2 rounded-full border border-[#293027]/12 bg-white/46 px-3.5 text-[#20251f] shadow-none hover:bg-white/64"
                   >
                     {currentUser.photoURL ? (
                       <img src={currentUser.photoURL} alt="Avatar" className="h-6 w-6 rounded-full" />
                     ) : (
-                      <span className="grid h-6 w-6 place-items-center rounded-full bg-[var(--hero-mint-soft)] text-[var(--hero-mint)]" style={heroVars}>
+                      <span className="grid h-6 w-6 place-items-center rounded-full bg-[#8d9f78]/18 text-[#637151]">
                         <User size={14} />
                       </span>
                     )}
@@ -154,27 +152,27 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                   {showUserMenu && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
-                      <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-[#07100f]/95 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl">
-                        <div className="border-b border-white/10 p-4">
-                          <div className="truncate text-sm font-medium text-white">{currentUser.email}</div>
-                          <div className="mt-1 text-xs text-white/50">{roleLabel(userProfile?.role)}</div>
+                      <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-[#293027]/10 bg-[#f6f2ea]/95 shadow-[0_24px_70px_rgba(32,37,31,0.18)] backdrop-blur-xl">
+                        <div className="border-b border-[#293027]/10 p-4">
+                          <div className="truncate text-sm font-medium text-[#20251f]">{currentUser.email}</div>
+                          <div className="mt-1 text-xs text-[#293027]/50">{roleLabel(userProfile?.role)}</div>
                           {userProfile?.credits !== undefined && (
-                            <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--hero-mint)]" style={heroVars}>
+                            <div className="mt-2 flex items-center gap-1.5 text-xs text-[#637151]">
                               <CreditCard size={13} />
                               {userProfile.credits} Credits
                             </div>
                           )}
                         </div>
                         <div className="py-1.5">
-                          <button onClick={handleDashboard} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-white/82 hover:bg-white/6">
+                          <button onClick={handleDashboard} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[#293027]/82 hover:bg-white/44">
                             <User size={16} />
                             {copy.account}
                           </button>
-                          <button onClick={() => { navigate('/dashboard'); setShowUserMenu(false); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-white/82 hover:bg-white/6">
+                          <button onClick={() => { navigate('/dashboard'); setShowUserMenu(false); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[#293027]/82 hover:bg-white/44">
                             <Settings size={16} />
                             {copy.settings}
                           </button>
-                          <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-300 hover:bg-red-500/10">
+                          <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-500/10">
                             <LogOut size={16} />
                             {copy.signOut}
                           </button>
@@ -186,7 +184,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               ) : (
                 <button
                   onClick={onDashboardEnter}
-                  className="min-h-11 rounded-full bg-[#f1fff6] px-4 text-sm font-semibold text-[#07100f] shadow-[inset_0_1px_0_rgba(255,255,255,0.76)] hover:bg-white active:scale-[0.98]"
+                  className="min-h-11 rounded-full bg-[#20251f] px-4 text-sm font-semibold text-[#f6f2ea] shadow-[0_14px_40px_rgba(32,37,31,0.16)] hover:bg-[#293027] active:scale-[0.98]"
                 >
                   {copy.primary}
                 </button>
@@ -198,27 +196,30 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
 
       <section
         data-screen-label="01 Hero"
-        className="relative isolate min-h-[138dvh] px-5 pt-16 sm:px-6 lg:px-10"
+        className="relative isolate min-h-[620dvh] px-5 pt-16 sm:px-6 lg:px-10"
         style={heroVars}
       >
         <div className="sticky top-0 grid min-h-[100dvh] items-center overflow-hidden py-20">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,8,7,0.68),rgba(5,8,7,0.28)_45%,rgba(5,8,7,0.03)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.84),rgba(246,242,234,0.44)_38%,rgba(246,242,234,0.07)_100%)]" />
+          <HeroScrollNarrative />
 
-          <div className="mx-auto grid w-full max-w-7xl items-center">
-            <div className="max-w-4xl">
+          <div className="mx-auto grid w-full max-w-7xl items-center self-start pt-[16dvh]">
+            <div className="max-w-3xl">
               <FadeIn delay={80} direction="up">
-                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[var(--hero-coin)]/28 bg-[#f0bc61]/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[var(--hero-coin)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--hero-mint)]" />
+                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#293027]/12 bg-white/38 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#293027]/58 backdrop-blur-xl">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#8d9f78]" />
                   {copy.eyebrow}
                 </div>
               </FadeIn>
 
               <FadeIn delay={150} direction="up">
-                <HeroParticleTitle lines={[copy.headline]} ariaLabel={copy.headline} />
+                <h1 className="max-w-[12ch] text-6xl font-semibold leading-[0.9] tracking-[-0.075em] text-[#20251f] sm:text-7xl lg:text-8xl">
+                  {copy.headline}
+                </h1>
               </FadeIn>
 
               <FadeIn delay={240} direction="up">
-                <p className="mt-7 max-w-2xl text-base leading-8 text-white/86 [text-shadow:0_2px_18px_rgba(0,0,0,0.55)] sm:text-lg">
+                <p className="mt-7 max-w-md text-base leading-8 text-[#293027]/64 sm:text-lg">
                   {copy.subtitle}
                 </p>
               </FadeIn>
@@ -227,24 +228,23 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={onDashboardEnter}
-                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f1fff6] px-7 text-sm font-semibold text-[#07100f] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:bg-white active:scale-[0.98]"
+                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#20251f] px-7 text-sm font-semibold text-[#f6f2ea] shadow-[0_18px_48px_rgba(32,37,31,0.18)] hover:bg-[#293027] active:scale-[0.98]"
                   >
                     <span>{copy.primary}</span>
                     <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
                   </button>
                   <button
                     onClick={() => scrollToSection('models')}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/28 bg-white/[0.13] px-7 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] hover:bg-white/[0.18] active:scale-[0.98]"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#293027]/14 bg-white/38 px-7 text-sm font-semibold text-[#293027] backdrop-blur-xl hover:bg-white/54 active:scale-[0.98]"
                   >
                     {copy.secondary}
                   </button>
                 </div>
               </FadeIn>
             </div>
-
           </div>
 
-          <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/42 sm:flex">
+          <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.16em] text-[#293027]/42 sm:flex">
             <ArrowDown size={15} />
             {copy.rail}
           </div>

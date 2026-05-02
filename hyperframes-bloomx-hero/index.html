@@ -1,325 +1,117 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BloomX Hero Scroll Film</title>
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
       html,
       body {
         margin: 0;
-        width: 1920px;
-        height: 1080px;
-        overflow: hidden;
-        background: #050807;
-        font-family: "Montserrat", system-ui, sans-serif;
+        width: 100%;
+        height: 100%;
+        background: #f6f2ea;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       }
 
-      #root {
+      [data-composition-id="bloomx-hero-film"] {
         position: relative;
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        color: #edf8f3;
-        background:
-          radial-gradient(circle at 72% 22%, rgba(105, 226, 169, 0.12), rgba(105, 226, 169, 0) 380px),
-          radial-gradient(circle at 24% 76%, rgba(240, 188, 97, 0.1), rgba(240, 188, 97, 0) 480px),
-          linear-gradient(135deg, #050807 0%, #07100f 52%, #09120f 100%);
+        background: #f6f2ea;
       }
 
-      .deep-field {
+      .scene {
         position: absolute;
         inset: 0;
-        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transform: scale(1.04);
+        filter: blur(4px);
       }
 
-      .star {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        border-radius: 999px;
-        background: rgba(236, 255, 244, 0.88);
-        box-shadow: 0 0 12px rgba(167, 243, 208, 0.36);
-      }
-
-      .particle-title {
-        position: absolute;
-        left: 150px;
-        top: 258px;
-        width: 1120px;
-        height: 330px;
-      }
-
-      .particle {
-        position: absolute;
-        width: 3px;
-        height: 3px;
-        border-radius: 999px;
-        background: #effff5;
-        box-shadow: 0 0 18px rgba(167, 243, 208, 0.44);
-      }
-
-      .quiet-copy {
-        position: absolute;
-        left: 154px;
-        top: 640px;
-        width: 610px;
-        color: rgba(229, 246, 238, 0.68);
-        font-size: 30px;
-        line-height: 1.36;
-        font-weight: 350;
-        letter-spacing: 0.01em;
-      }
-
-      .eyebrow {
-        position: absolute;
-        left: 154px;
-        top: 184px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        color: #f0bc61;
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-      }
-
-      .eyebrow::before {
-        content: "";
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: #69e2a9;
-      }
-
-      .status {
-        position: absolute;
-        min-width: 210px;
-        border: 1px solid rgba(167, 243, 208, 0.16);
-        border-radius: 18px;
-        padding: 14px 16px;
-        background: rgba(7, 16, 15, 0.42);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(18px);
-      }
-
-      .status .k {
-        color: rgba(235, 255, 245, 0.5);
-        font-size: 13px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .status .v {
-        margin-top: 8px;
-        color: rgba(245, 255, 249, 0.9);
-        font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 19px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .s1 {
-        right: 130px;
-        top: 104px;
-      }
-
-      .s2 {
-        right: 248px;
-        bottom: 132px;
-      }
-
-      .s3 {
-        left: 132px;
-        bottom: 108px;
-      }
-
-      .orb {
-        position: absolute;
-        right: 184px;
-        top: 260px;
-        width: 540px;
-        height: 540px;
-        border-radius: 999px;
-        border: 1px solid rgba(167, 243, 208, 0.12);
-        background:
-          radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 14%),
-          radial-gradient(circle at 50% 50%, rgba(105, 226, 169, 0.16), rgba(105, 226, 169, 0.03) 45%, rgba(5, 8, 7, 0) 70%);
-      }
-
-      .orbit {
-        position: absolute;
-        inset: 80px;
-        border: 1px solid rgba(240, 188, 97, 0.16);
-        border-radius: 999px;
-        transform: rotate(-18deg) scaleY(0.34);
-      }
-
-      .scanline {
-        position: absolute;
-        inset: 0;
-        opacity: 0.12;
-        background-image:
-          linear-gradient(rgba(255, 255, 255, 0.04) 1px, rgba(255, 255, 255, 0) 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, rgba(255, 255, 255, 0) 1px);
-        background-size: 86px 86px;
-      }
-
-      .shadow-vignette {
+      .wash {
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(90deg, rgba(5, 8, 7, 0.88), rgba(5, 8, 7, 0.48) 46%, rgba(5, 8, 7, 0.2)),
-          radial-gradient(circle at 55% 50%, rgba(5, 8, 7, 0) 20%, rgba(0, 0, 0, 0.42) 100%);
+          linear-gradient(90deg, rgba(246, 242, 234, 0.88), rgba(246, 242, 234, 0.52) 31%, rgba(246, 242, 234, 0.06) 74%),
+          linear-gradient(180deg, rgba(246, 242, 234, 0.02), rgba(246, 242, 234, 0.16) 58%, rgba(246, 242, 234, 0.42));
+      }
+
+      .caption {
+        position: absolute;
+        width: 290px;
+        color: #20251f;
+        opacity: 0;
+      }
+
+      .caption small {
+        display: block;
+        font-size: 16px;
+        font-weight: 650;
+        letter-spacing: 0.24em;
+        color: rgba(41, 48, 39, 0.48);
+      }
+
+      .caption strong {
+        display: block;
+        margin-top: 14px;
+        font-size: 54px;
+        font-weight: 650;
+        letter-spacing: -0.055em;
+        line-height: 0.96;
+      }
+
+      .caption span {
+        display: block;
+        margin-top: 12px;
+        font-size: 22px;
+        line-height: 1.5;
+        color: rgba(41, 48, 39, 0.58);
       }
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="18"
-      data-width="1920"
-      data-height="1080"
-    >
-      <div class="deep-field" data-layout-allow-overflow>
-        <div class="scanline"></div>
-        <div class="orb">
-          <div class="orbit"></div>
-          <div class="orbit"></div>
-        </div>
-        <div class="eyebrow">BloomX quiet market space</div>
-        <div id="particle-title" class="particle-title" aria-label="Capacity becomes signal"></div>
-        <p class="quiet-copy">A slow interface film for model API capacity: tested supply, restrained motion, traceable value, and a market that breathes.</p>
-        <div class="status s1">
-          <div class="k">system status</div>
-          <div class="v">route calm</div>
-        </div>
-        <div class="status s2">
-          <div class="k">settlement field</div>
-          <div class="v">stable</div>
-        </div>
-        <div class="status s3">
-          <div class="k">audio layer</div>
-          <div class="v">music box</div>
-        </div>
-        <div class="shadow-vignette"></div>
-      </div>
-      <audio
-        id="melody"
-        data-start="0"
-        data-duration="18"
-        data-track-index="2"
-        src="assets/bloomx-music-box.wav"
-        data-volume="0.42"
-      ></audio>
+    <div data-composition-id="bloomx-hero-film" data-start="0" data-duration="12" data-width="1920" data-height="1080" data-track-index="0">
+      <img class="scene scene-1" src="../public/media/hero-story/01-domain.svg" />
+      <img class="scene scene-2" src="../public/media/hero-story/02-marketplace.svg" />
+      <img class="scene scene-3" src="../public/media/hero-story/03-branches.svg" />
+      <img class="scene scene-4" src="../public/media/hero-story/04-key.svg" />
+      <img class="scene scene-5" src="../public/media/hero-story/05-request.svg" />
+      <img class="scene scene-6" src="../public/media/hero-story/06-complete.svg" />
+      <div class="wash"></div>
+
+      <div class="caption caption-1" style="left:118px; top:230px"><small>01</small><strong>访问</strong><span>输入 bloomx.io</span></div>
+      <div class="caption caption-2" style="left:1220px; top:240px"><small>02</small><strong>市场</strong><span>选择模型供给</span></div>
+      <div class="caption caption-3" style="left:160px; top:694px"><small>03</small><strong>分流</strong><span>商家入驻或用户订阅</span></div>
+      <div class="caption caption-4" style="left:1210px; top:690px"><small>04</small><strong>密钥</strong><span>创建项目 API Key</span></div>
+      <div class="caption caption-5" style="left:455px; top:160px"><small>05</small><strong>调用</strong><span>发起模型 API 请求</span></div>
+      <div class="caption caption-6" style="left:1260px; top:170px"><small>06</small><strong>完成</strong><span>用量与结算入账</span></div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const scenes = gsap.utils.toArray(".scene");
+        const captions = gsap.utils.toArray(".caption");
+
+        scenes.forEach((scene, index) => {
+          const start = index * 1.85;
+          tl.fromTo(scene, { opacity: 0, scale: 1.035, x: 42, filter: "blur(7px)" }, { opacity: 1, scale: 1.07, x: 0, filter: "blur(0px)", duration: 0.7, ease: "power2.out" }, start);
+          tl.to(scene, { opacity: index === scenes.length - 1 ? 1 : 0, scale: 1.095, x: -38, filter: "blur(7px)", duration: 0.75, ease: "power2.inOut" }, start + 1.25);
+        });
+
+        captions.forEach((caption, index) => {
+          const start = index * 1.85 + 0.22;
+          tl.fromTo(caption, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, start);
+          tl.to(caption, { opacity: 0, y: -16, duration: 0.38, ease: "power2.in" }, start + 1.05);
+        });
+
+        window.__timelines["bloomx-hero-film"] = tl;
+      </script>
     </div>
-
-    <script>
-      window.__timelines = window.__timelines || {};
-
-      const title = document.getElementById("particle-title");
-      const starLayer = document.querySelector(".deep-field");
-      const textMap = [
-        "111100011110001111000111100001111000011110",
-        "100000010001001000100100010010000100100010",
-        "100000010001001000100100010010000100100010",
-        "111000011110001111000111100001111000011110",
-        "100000010100001000100100010010000100100000",
-        "100000010010001000100100010010000100100000",
-        "111100010001001000100111100001111000011110",
-      ];
-
-      const particles = [];
-      const cell = 20;
-      const gap = 2;
-      const offsetX = 8;
-      const offsetY = 28;
-
-      for (let row = 0; row < textMap.length; row += 1) {
-        for (let col = 0; col < textMap[row].length; col += 1) {
-          if (textMap[row][col] !== "1") continue;
-          for (let dot = 0; dot < 3; dot += 1) {
-            const element = document.createElement("span");
-            element.className = "particle";
-            const phase = (row * 37 + col * 19 + dot * 11) * 0.017;
-            const targetX = offsetX + col * gap * cell + Math.sin(phase * 8) * 4 + dot * 3;
-            const targetY = offsetY + row * cell + Math.cos(phase * 7) * 5 + dot * 2;
-            const startX = targetX + Math.sin(phase * 17) * 180 + 90;
-            const startY = targetY + Math.cos(phase * 13) * 130 - 40;
-            element.style.left = `${targetX}px`;
-            element.style.top = `${targetY}px`;
-            title.appendChild(element);
-            particles.push({ element, phase, targetX, targetY, startX, startY });
-          }
-        }
-      }
-
-      for (let index = 0; index < 96; index += 1) {
-        const star = document.createElement("span");
-        star.className = "star";
-        const x = 80 + ((Math.sin(index * 8.17) * 0.5 + 0.5) * 1760);
-        const y = 40 + ((Math.sin(index * 5.91 + 2.2) * 0.5 + 0.5) * 980);
-        star.style.left = `${x}px`;
-        star.style.top = `${y}px`;
-        star.style.opacity = `${0.16 + (Math.sin(index * 3.7) * 0.5 + 0.5) * 0.5}`;
-        starLayer.appendChild(star);
-      }
-
-      const tl = gsap.timeline({ paused: true });
-      const slowRepeat = Math.ceil(18 / 6) - 1;
-
-      tl.from(".eyebrow", { opacity: 0, y: 18, duration: 1.15, ease: "sine.out" }, 0.25);
-      tl.from(".quiet-copy", { opacity: 0, y: 26, duration: 1.55, ease: "power1.out" }, 1.2);
-      tl.from(".status", { opacity: 0, y: 20, scale: 0.98, duration: 1.45, stagger: 0.38, ease: "sine.out" }, 2.15);
-      tl.from(".orb", { opacity: 0, scale: 0.9, duration: 2.4, ease: "power1.out" }, 0.8);
-      tl.to(".orb", { rotation: 7, duration: 17.2, ease: "none" }, 0.8);
-      tl.to(".orbit", { rotation: 360, duration: 12, repeat: 1, ease: "none" }, 1.0);
-      tl.fromTo(
-        ".particle",
-        {
-          x: (index) => particles[index].startX - particles[index].targetX,
-          y: (index) => particles[index].startY - particles[index].targetY,
-          opacity: 0,
-          scale: 0.45,
-        },
-        {
-          x: 0,
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 3.1,
-          stagger: { each: 0.002, from: "random" },
-          ease: "power2.out",
-        },
-        0.55,
-      );
-      tl.to(
-        ".particle",
-        {
-          x: (index) => Math.sin(particles[index].phase * 97) * 14,
-          y: (index) => Math.cos(particles[index].phase * 83) * 10,
-          opacity: 0.78,
-          duration: 5.4,
-          repeat: slowRepeat,
-          yoyo: true,
-          ease: "sine.inOut",
-        },
-        4.2,
-      );
-      tl.to(".star", { y: -54, opacity: 0.38, duration: 9, repeat: 1, yoyo: true, ease: "sine.inOut" }, 0.8);
-      tl.to(".status.s1", { x: -18, y: 10, duration: 6.2, repeat: 1, yoyo: true, ease: "sine.inOut" }, 4.0);
-      tl.to(".status.s2", { x: 14, y: -14, duration: 7.0, repeat: 1, yoyo: true, ease: "sine.inOut" }, 3.4);
-      tl.to(".status.s3", { x: 18, y: 9, duration: 6.8, repeat: 1, yoyo: true, ease: "sine.inOut" }, 4.6);
-      tl.to("#root", { backgroundColor: "#030504", duration: 1.4, ease: "power1.in" }, 16.4);
-      tl.to([".particle", ".quiet-copy", ".eyebrow", ".status", ".orb"], { opacity: 0, duration: 1.0, ease: "sine.in" }, 16.8);
-
-      window.__timelines["main"] = tl;
-    </script>
   </body>
 </html>

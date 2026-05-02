@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs><linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f2eb"/><stop offset=".62" stop-color="#e8e0d5"/><stop offset="1" stop-color="#f6f1e9"/></linearGradient><radialGradient id="light" cx=".22" cy=".12" r=".8"><stop stop-color="#fffaf3"/><stop offset=".72" stop-color="#fffaf3" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1600" height="900" fill="url(#wall)"/><rect width="1600" height="900" fill="url(#light)"/>
+  <path d="M1275 0h325v900h-325c-58-152-58-746 0-900Z" fill="#d5ccc0" opacity=".48"/>
+  <ellipse cx="805" cy="728" rx="245" ry="48" fill="#9d9285" opacity=".22"/><ellipse cx="805" cy="700" rx="205" ry="41" fill="#ded8cf"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" fill="#2a2d27">
+    <rect x="455" y="300" width="355" height="225" rx="30" fill="#fff" opacity=".58" stroke="#fff" stroke-width="2"/><text x="505" y="350" font-size="25">API request</text><rect x="500" y="380" width="260" height="92" rx="16" fill="#fbf8f3" opacity=".75"/><text x="526" y="422" font-family="SFMono-Regular,Consolas,monospace" font-size="18">POST /v1/chat/completions</text><text x="526" y="452" font-family="SFMono-Regular,Consolas,monospace" font-size="18">model: gpt-5.5</text>
+    <path d="M810 410H935" stroke="#fff" stroke-width="4"/><circle cx="810" cy="410" r="7" fill="#fff"/><circle cx="935" cy="410" r="7" fill="#fff"/>
+    <rect x="935" y="250" width="340" height="280" rx="30" fill="#fff" opacity=".58" stroke="#fff" stroke-width="2"/><text x="982" y="305" font-size="27" fill="#557040">200 OK</text><rect x="982" y="330" width="245" height="142" rx="16" fill="#fbf8f3" opacity=".75"/><text x="1010" y="372" font-family="SFMono-Regular,Consolas,monospace" font-size="17">"object": "chat.completion"</text><text x="1010" y="402" font-family="SFMono-Regular,Consolas,monospace" font-size="17">"tokens": 30</text><text x="1010" y="432" font-family="SFMono-Regular,Consolas,monospace" font-size="17">"status": "recorded"</text>
+    <path d="M765 525C765 610 890 575 900 635" stroke="#fff" stroke-width="3" fill="none"/><circle cx="765" cy="525" r="7" fill="#fff"/><circle cx="900" cy="635" r="7" fill="#fff"/>
+    <rect x="890" y="600" width="170" height="72" rx="20" fill="#fff" opacity=".58" stroke="#fff"/><text x="940" y="645" font-size="20">usage recorded</text>
+    <path d="M1060 636h125" stroke="#fff" stroke-width="3" stroke-dasharray="6 8"/><circle cx="1185" cy="636" r="7" fill="#fff"/>
+    <rect x="1185" y="605" width="184" height="72" rx="20" fill="#fff" opacity=".58" stroke="#fff"/><text x="1235" y="650" font-size="20">settlement ready</text>
+  </g>
+</svg>
