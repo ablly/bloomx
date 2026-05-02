@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { bloomxRadix } from '../lib/radixPalette';
 import LanguageSwitcher from './LanguageSwitcher';
 import HeroParticleTitle from './HeroParticleTitle';
-import HeroWorkerShowcase from './HeroWorkerShowcase';
 import { FadeIn } from './ui';
 
 interface HeroLandingProps {
@@ -205,7 +204,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         <div className="sticky top-0 grid min-h-[100dvh] items-center overflow-hidden py-20">
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,8,7,0.68),rgba(5,8,7,0.28)_45%,rgba(5,8,7,0.03)_100%)]" />
 
-          <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(390px,0.68fr)]">
+          <div className="mx-auto grid w-full max-w-7xl items-center">
             <div className="max-w-4xl">
               <FadeIn delay={80} direction="up">
                 <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[var(--hero-coin)]/28 bg-[#f0bc61]/8 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[var(--hero-coin)]">
@@ -243,7 +242,6 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               </FadeIn>
             </div>
 
-            <HeroWorkerShowcase />
           </div>
 
           <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/42 sm:flex">

@@ -6,10 +6,10 @@ export const RemotionRoot = () => {
     <Composition
       id="BloomXHero"
       component={WorkerLoop}
-      durationInFrames={270}
+      durationInFrames={360}
       fps={30}
-      width={1280}
-      height={720}
+      width={1920}
+      height={1080}
     />
   );
 };
