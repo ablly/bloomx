@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #050807;
+        font-family: Outfit, Satoshi, "SF Pro Display", system-ui, sans-serif;
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        color: #f1f7f4;
+        background:
+          radial-gradient(circle at 76% 18%, rgba(240, 188, 97, 0.22), transparent 430px),
+          radial-gradient(circle at 12% 78%, rgba(105, 226, 169, 0.14), transparent 520px),
+          linear-gradient(135deg, #050807 0%, #07100f 46%, #0d1310 100%);
+      }
+
+      #visual-bed {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.16;
+        mix-blend-mode: soft-light;
+        background-image:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 84px 84px;
+      }
+
+      .route {
+        position: absolute;
+        inset: 120px 120px 100px;
+        border: 1px solid rgba(167, 243, 208, 0.12);
+        border-radius: 48px;
+        transform: perspective(1200px) rotateX(62deg) rotateZ(-18deg);
+        transform-origin: center;
+        box-shadow: inset 0 0 90px rgba(105, 226, 169, 0.06);
+      }
+
+      .route::before,
+      .route::after {
+        content: "";
+        position: absolute;
+        inset: 120px;
+        border: 1px dashed rgba(240, 188, 97, 0.24);
+        border-radius: 999px;
+      }
+
+      .route::after {
+        inset: 250px 340px;
+        border-color: rgba(53, 92, 138, 0.3);
+      }
+
+      .coin {
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        border-radius: 999px;
+        transform-style: preserve-3d;
+        background:
+          radial-gradient(circle at 34% 22%, #fff7d6 0 7%, #f0bc61 22%, #9b6635 58%, #392613 100%);
+        border: 2px solid rgba(255, 244, 211, 0.62);
+        box-shadow:
+          inset -22px -20px 42px rgba(52, 32, 8, 0.55),
+          inset 16px 14px 32px rgba(255, 255, 255, 0.18),
+          0 34px 90px rgba(0, 0, 0, 0.44);
+      }
+
+      .coin::before {
+        content: "BX";
+        position: absolute;
+        inset: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 248, 220, 0.38);
+        color: rgba(7, 16, 15, 0.7);
+        font-size: 48px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .coin.one {
+        left: 1210px;
+        top: 210px;
+        scale: 1.4;
+      }
+
+      .coin.two {
+        left: 910px;
+        top: 625px;
+        scale: 0.78;
+      }
+
+      .coin.three {
+        left: 1460px;
+        top: 690px;
+        scale: 0.52;
+      }
+
+      .node {
+        position: absolute;
+        width: 132px;
+        height: 132px;
+        border-radius: 34px;
+        border: 1px solid rgba(167, 243, 208, 0.26);
+        background:
+          linear-gradient(145deg, rgba(167, 243, 208, 0.15), rgba(255, 255, 255, 0.03)),
+          rgba(7, 16, 15, 0.7);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.15),
+          0 26px 80px rgba(0, 0, 0, 0.34);
+      }
+
+      .node::after {
+        content: "";
+        position: absolute;
+        inset: 22px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(105, 226, 169, 0.9), rgba(240, 188, 97, 0.48));
+        opacity: 0.7;
+      }
+
+      .node.alpha {
+        left: 590px;
+        top: 260px;
+      }
+
+      .node.beta {
+        left: 1110px;
+        top: 510px;
+      }
+
+      .node.gamma {
+        left: 1485px;
+        top: 315px;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 130px 150px;
+        gap: 26px;
+        opacity: 0;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        border: 1px solid rgba(240, 188, 97, 0.26);
+        border-radius: 999px;
+        padding: 12px 18px;
+        color: #f0bc61;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(240, 188, 97, 0.06);
+      }
+
+      .headline {
+        max-width: 820px;
+        margin: 0;
+        color: #f7fff9;
+        font-size: 96px;
+        line-height: 0.94;
+        letter-spacing: -0.045em;
+        font-weight: 750;
+      }
+
+      .copy {
+        max-width: 700px;
+        margin: 0;
+        color: rgba(231, 246, 240, 0.72);
+        font-size: 30px;
+        line-height: 1.28;
+      }
+
+      .ledger {
+        display: grid;
+        grid-template-columns: 260px 260px 260px;
+        gap: 14px;
+        margin-top: 22px;
+        font-family: "SF Mono", Monaco, Consolas, monospace;
+      }
+
+      .ledger span {
+        border-top: 1px solid rgba(167, 243, 208, 0.22);
+        padding-top: 14px;
+        color: rgba(231, 246, 240, 0.6);
+        font-size: 18px;
+      }
+
+      .transition-wipe {
+        position: absolute;
+        inset: -10%;
+        background:
+          linear-gradient(110deg, rgba(5, 8, 7, 0.96), rgba(47, 111, 94, 0.94) 42%, rgba(240, 188, 97, 0.82));
+        z-index: 20;
+      }
+
+      .vignette {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(5, 8, 7, 0.88), rgba(5, 8, 7, 0.34) 48%, rgba(5, 8, 7, 0.08)),
+          radial-gradient(circle at 50% 50%, transparent 22%, rgba(0, 0, 0, 0.38) 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="14"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="visual-bed" class="clip" data-start="0" data-duration="14" data-track-index="0" data-layout-allow-overflow>
+        <div class="grain"></div>
+        <div class="route"></div>
+        <div class="coin one"></div>
+        <div class="coin two"></div>
+        <div class="coin three"></div>
+        <div class="node alpha"></div>
+        <div class="node beta"></div>
+        <div class="node gamma"></div>
+        <section class="scene scene-one">
+          <div class="eyebrow">BloomX market capacity</div>
+          <h1 class="headline">Model APIs become priced capacity.</h1>
+          <p class="copy">Merchant supply is tested before it enters the market, then shaped into a tradable route.</p>
+          <div class="ledger">
+            <span>submit API</span>
+            <span>test route</span>
+            <span>list capacity</span>
+          </div>
+        </section>
+        <section class="scene scene-two">
+          <div class="eyebrow">Scroll through the exchange</div>
+          <h2 class="headline">Demand pulls the token through verified routes.</h2>
+          <p class="copy">Calls move across merchant endpoints, pricing rules, credits, and after-sales records.</p>
+        </section>
+        <section class="scene scene-three">
+          <div class="eyebrow">Settlement loop</div>
+          <h2 class="headline">Successful calls return value to merchants.</h2>
+          <p class="copy">Failed calls leave a record and refund the buyer, keeping trust inside the marketplace.</p>
+        </section>
+        <section class="scene scene-four">
+          <div class="eyebrow">Operational calm</div>
+          <h2 class="headline">A market cockpit for AI API capacity.</h2>
+          <p class="copy">The homepage uses this film as a scroll-controlled background, not a passive decoration.</p>
+        </section>
+        <div class="vignette"></div>
+        <div class="transition-wipe"></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      const tl = gsap.timeline({ paused: true });
+      const coinSpinDuration = 3.2;
+      const spinRepeats = Math.ceil(14 / coinSpinDuration) - 1;
+
+      tl.set(".transition-wipe", { yPercent: 110, rotation: -4 }, 0);
+      tl.set(".scene-one", { opacity: 1 }, 0);
+      tl.from(".scene-one .eyebrow", { y: 26, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.2);
+      tl.from(".scene-one .headline", { x: -44, opacity: 0, duration: 0.8, ease: "expo.out" }, 0.35);
+      tl.from(".scene-one .copy", { y: 34, opacity: 0, duration: 0.55, ease: "power2.out" }, 0.75);
+      tl.from(".scene-one .ledger span", { y: 18, opacity: 0, duration: 0.42, stagger: 0.12, ease: "sine.out" }, 1.05);
+
+      tl.from(".route", { scale: 0.82, opacity: 0, duration: 1.0, ease: "power4.out" }, 0.15);
+      tl.from(".node", { y: 55, opacity: 0, rotation: -10, duration: 0.72, stagger: 0.14, ease: "back.out(1.4)" }, 0.42);
+      tl.from(".coin", { y: 150, scale: 0.62, opacity: 0, duration: 0.86, stagger: 0.18, ease: "power3.out" }, 0.62);
+      tl.to(".coin", { rotationY: 360, rotationZ: 18, duration: coinSpinDuration, repeat: spinRepeats, ease: "none" }, 1.1);
+      tl.to(".route", { rotationZ: -10, duration: 13.2, ease: "none" }, 0.4);
+      tl.to(".node.alpha", { x: -90, y: 26, duration: 13, ease: "none" }, 0.6);
+      tl.to(".node.beta", { x: 70, y: -20, duration: 13, ease: "none" }, 0.6);
+      tl.to(".node.gamma", { x: -60, y: 40, duration: 13, ease: "none" }, 0.6);
+
+      tl.to(".transition-wipe", { yPercent: -220, duration: 0.9, ease: "power3.inOut" }, 3.65);
+      tl.set(".scene-one", { opacity: 0 }, 4.1);
+      tl.set(".scene-two", { opacity: 1 }, 4.1);
+      tl.from(".scene-two .eyebrow", { x: -34, opacity: 0, duration: 0.48, ease: "power2.out" }, 4.25);
+      tl.from(".scene-two .headline", { scale: 0.94, opacity: 0, duration: 0.72, ease: "expo.out" }, 4.42);
+      tl.from(".scene-two .copy", { x: 42, opacity: 0, duration: 0.5, ease: "sine.out" }, 4.82);
+      tl.set(".transition-wipe", { yPercent: 110 }, 4.8);
+
+      tl.to(".transition-wipe", { yPercent: -220, duration: 0.9, ease: "power3.inOut" }, 7.25);
+      tl.set(".scene-two", { opacity: 0 }, 7.7);
+      tl.set(".scene-three", { opacity: 1 }, 7.7);
+      tl.from(".scene-three .eyebrow", { y: -24, opacity: 0, duration: 0.46, ease: "power4.out" }, 7.86);
+      tl.from(".scene-three .headline", { x: -54, opacity: 0, duration: 0.7, ease: "expo.out" }, 8.02);
+      tl.from(".scene-three .copy", { y: 28, opacity: 0, duration: 0.52, ease: "power2.out" }, 8.42);
+      tl.set(".transition-wipe", { yPercent: 110 }, 8.4);
+
+      tl.to(".transition-wipe", { yPercent: -220, duration: 0.9, ease: "power3.inOut" }, 10.8);
+      tl.set(".scene-three", { opacity: 0 }, 11.25);
+      tl.set(".scene-four", { opacity: 1 }, 11.25);
+      tl.from(".scene-four .eyebrow", { y: 24, opacity: 0, duration: 0.44, ease: "sine.out" }, 11.42);
+      tl.from(".scene-four .headline", { y: 44, opacity: 0, duration: 0.72, ease: "expo.out" }, 11.58);
+      tl.from(".scene-four .copy", { y: 28, opacity: 0, duration: 0.48, ease: "power2.out" }, 11.95);
+      tl.set(".transition-wipe", { yPercent: 110 }, 12.0);
+      tl.to(".scene-four", { opacity: 0, y: -18, duration: 0.7, ease: "power2.in" }, 13.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

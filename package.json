@@ -14,6 +14,8 @@
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "deploy:cloudflare": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-cloudflare-pages.ps1",
     "workflow:doctor": "tsx scripts/workflow-doctor.ts",
+    "hero:video:check": "npm --prefix hyperframes-bloomx-hero run check",
+    "hero:video:render": "npm --prefix hyperframes-bloomx-hero run render -- -o ../public/media/bloomx-hyperframes-hero.mp4 --fps 30 --quality standard .",
     "brief": "tsx scripts/project-brief.ts",
     "links": "tsx scripts/project-brief.ts links",
     "workflow-options": "tsx scripts/project-brief.ts workflows",
@@ -37,6 +39,7 @@
     "@types/express": "^5.0.6",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.0",
     "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.27",
     "firebase-admin": "^13.8.0",
@@ -49,6 +52,7 @@
     "vite": "^7.3.2"
   },
   "dependencies": {
+    "@radix-ui/colors": "^3.0.0",
     "@remotion/cli": "^4.0.454",
     "clsx": "^2.1.1",
     "cors": "^2.8.6",
@@ -64,6 +68,7 @@
     "react-dom": "^19.2.4",
     "react-i18next": "^17.0.1",
     "react-router-dom": "^7.13.2",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.184.0"
   }
 }

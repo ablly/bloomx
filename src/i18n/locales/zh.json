@@ -10,7 +10,7 @@
   "hero": {
     "title": "让闲置 AI API 能力",
     "titleHighlight": "进入可交易市场。",
-    "subtitle": "BloomX 是面向商家和开发者的模型 API 交易平台：商家上架经过测试的模型接口，用户用积分订阅并调用合适的商家模型。",
+    "subtitle": "BloomX 面向商家和开发者：商家上架经过测试的模型接口，用户用积分订阅并调用合适的商家模型。",
     "ctaPrimary": "进入 BloomX 控制台",
     "ctaSecondary": "查看模型供给",
     "feature1": "商家上架",

@@ -1,68 +1,64 @@
-# BloomX 设计系统
+# BloomX Design System
 
-## 产品定位
+## Product Context
 
-BloomX 是一个大模型 API 能力交易市场。商家提交自己的模型端点、价格、密钥、售后规则和结算信息；平台先测试 API 再允许上架；用户购买积分或订阅后调用；成功调用形成商家收入，失败调用保留记录用于退款和售后。
+BloomX is a marketplace for large-model API capacity. Merchants submit model APIs, BloomX tests them before listing, users buy credits or subscriptions, successful calls create merchant revenue, and failed calls are refunded with an after-sales record.
 
-整体界面应该像一个可信的交易场所，而不是普通 AI 产品官网。
+The interface should feel like a trustworthy trading venue for model capacity, not a generic AI product landing page.
 
-## 视觉方向
+## Visual Direction
 
-- 关键词：可信交易、技术流动、清晰结算、低噪声控制台。
-- 基础氛围：深色非纯黑，以墨绿和低饱和金融质感为主。
-- 核心色板：
-  - 墨黑：`#050807`
-  - 深绿：`#07100f`
-  - 结算绿：`#2f6f5e`
-  - 信号薄荷绿：`#69e2a9`
-  - 暖代币色：`#d76f37`
-  - 流动金币色：`#f0bc61`
-  - 冷蓝储备色：`#355c8a`
-- 避免：大面积紫蓝 AI 渐变、无意义发光、看不清的浅色输入框、虚假指标、emoji 装饰、不能表达交易状态的装饰卡片。
+- Keywords: trusted exchange, liquid technical flow, clear settlement, quiet control room.
+- Mood: dark off-black canvas, mineral green, restrained bronze, warm coin material, cold reserve blue.
+- Hero direction: scroll-driven monetary exploration. The user feels like they are piloting through model capacity as it is minted, routed, priced, called, and settled.
+- 3D direction: real WebGL meshes with physical materials, metalness, roughness, rim light, and depth of field cues. Video is a background layer; interaction and product content stay legible above it.
 
-## 字体
+## Color System
 
-- UI 字体栈：`Outfit`、`Satoshi`、`SF Pro Display`、系统无衬线字体。
-- 数字、诊断信息、调用记录可以使用等宽字体，帮助扫描。
-- Dashboard 和商家工作台应信息密度稳定，但不能拥挤。
-- 落地页可以使用更大的展示字体，但移动端必须保持可读。
+Use Radix UI Colors as the implementation source for neutral and accent ramps:
 
-## 布局原则
+- Base: `slateDark`
+- Trust / route: `mintDark`
+- Coin / settlement: `amberDark`
+- Metal / ledger: `bronzeDark`
 
-- 首页和关键营销区域使用非对称布局，避免普通居中大标题套路。
-- 页面分区使用全宽区域或克制面板，避免卡片套卡片。
-- 数据实体可以使用卡片：商家、API 商品、订阅、调用记录、结算记录。
-- 运营工具优先服务扫描、比较和重复操作，不做装饰性叙事。
+Project aliases:
 
-## 组件规则
+- Canvas: `#050807`
+- Surface: `#07100f`
+- Settlement green: `#2f6f5e`
+- Signal mint: `#69e2a9`
+- Token bronze: `#d76f37`
+- Flow coin: `#f0bc61`
+- Reserve blue: `#355c8a`
 
-- 输入框使用深色或透明玻璃背景，文字高对比，placeholder 低对比但可读。
-- 表单 label 放在输入框上方，辅助信息和错误信息放在输入框下方。
-- 按钮必须覆盖 hover、active、disabled、loading 状态。
-- 主操作使用浅色表面配深色文字，或使用克制的薄荷绿、金币色强调。
-- 次操作使用低噪声边框和半透明表面。
-- 危险操作使用克制红色文字或描边。
-- 图标使用项目已安装的图标体系，只表达动作，不堆砌装饰。
+Avoid large purple-blue gradients, neon glow, generic AI shine, unreadable low-contrast text, decorative metrics, emoji, and cards that do not carry real product meaning.
 
-## 交互规则
+## Typography
 
-- 商家 API 上架前必须先完成连通性和兼容性测试。
-- 用户调用前必须拥有有效权益、足够积分和平台 API Key。
-- API 失败必须给用户明确提示，并保留可追踪记录供售后核查。
-- 中文语言环境必须显示有效中文；英文语言环境必须显示有效英文。不允许出现乱码。
+- Display / landing: Outfit, Satoshi, SF Pro Display, system sans-serif fallback.
+- Operational data: SF Mono, Monaco, Consolas, monospace.
+- Do not use Inter, Roboto, Arial, serif typography, or oversized shouting headlines.
 
-## 动效与媒体
+## Layout Rules
 
-- 动效必须服务产品隐喻：能力从商家供给流向平台路由，再进入买家调用和结算。
-- 动画优先使用 transform 和 opacity，不动画布局属性。
-- 必须尊重 `prefers-reduced-motion`。
-- WebGL、canvas、视频只作为背景和空间提示，不能遮挡表单、按钮和数据表。
-- 持续动效必须有清理逻辑，不应每帧触发 React 重新渲染。
+- Homepage hero uses asymmetric composition: copy and actions on the left, depth/video field on the right and behind.
+- Full-page sections are bands or open layouts. Use cards only for product entities such as merchants, model products, subscriptions, calls, and settlement records.
+- Mobile collapses to a single column with the video/3D background softened and controls kept reachable.
+- Hero sections use `min-h-[100dvh]`, not `h-screen`.
 
-## Taste + Open Design 门禁
+## Motion Rules
 
-每个 UI 改动必须通过：
+- Motion must explain the product loop: merchant capacity flows into platform routing, then buyer calls, then settlement returns to merchants.
+- Animate only transform and opacity in UI.
+- WebGL, canvas, and video must clean up listeners and animation frames.
+- Respect `prefers-reduced-motion`.
+- Scroll storytelling should be progressive and inspectable, not a hidden hijack.
 
-- Taste 门禁：不使用泛 AI 视觉、不编造数据、不过度卡片化、不留下不可读状态。
-- Open Design 门禁：记录设计上下文、提供 artifact 或预览路径、说明组件假设、完成简短自评。
-- 交付门禁：运行构建或针对性验证，并说明剩余视觉或交互风险。
+## Taste + Open Design Gate
+
+Every UI change must pass:
+
+- Taste: no generic AI visuals, no invented decorative data, no excessive carding, no unreadable states.
+- Open Design: record context, expose assumptions, keep artifacts previewable, and summarize remaining risks.
+- Delivery: run build or targeted validation and explain what remains unverified.

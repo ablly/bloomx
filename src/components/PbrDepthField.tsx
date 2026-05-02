@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
-
-type ThreeModule = Record<string, any>;
+import * as THREE from 'three';
 
 type PbrAsset = {
   group: any;
@@ -35,8 +34,8 @@ function setCanvasSize(canvas: HTMLCanvasElement, renderer: any) {
 
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(width, height, false);
-  canvas.width = Math.floor(width * pixelRatio);
-  canvas.height = Math.floor(height * pixelRatio);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
 }
 
 function startFallbackCanvas(canvas: HTMLCanvasElement) {
@@ -134,16 +133,15 @@ export default function PbrDepthField() {
     let disposed = false;
     let cleanup: () => void = () => undefined;
 
-    const start = async () => {
+    const start = () => {
       try {
-        const threeUrl = 'https://esm.sh/three@0.162.0?bundle';
-        const THREE = (await import(/* @vite-ignore */ threeUrl)) as ThreeModule;
         if (disposed) return;
 
         const renderer = new THREE.WebGLRenderer({
           canvas,
           alpha: true,
           antialias: true,
+          preserveDrawingBuffer: true,
           powerPreference: 'high-performance',
         });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -332,7 +330,7 @@ export default function PbrDepthField() {
       }
     };
 
-    void start();
+    start();
 
     return () => {
       disposed = true;
