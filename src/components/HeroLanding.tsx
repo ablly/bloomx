@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { bloomxRadix } from '../lib/radixPalette';
 import LanguageSwitcher from './LanguageSwitcher';
+import HeroParticleTitle from './HeroParticleTitle';
 import { FadeIn } from './ui';
 
 interface HeroLandingProps {
@@ -47,9 +48,9 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         settings: '设置',
         signOut: '退出',
         eyebrow: '模型 API 能力交易市场',
-        headline: '让模型 API 像资产一样被测试、计价、调用、结算。',
+        headline: '能力成为资产',
         subtitle:
-          'BloomX 把商家的模型接口变成可审核的供给，把用户的积分调用变成清晰的交易记录。滚动页面，就像沿着一枚能力货币穿过市场。 ',
+          'BloomX 把商家的模型接口变成可审核的供给，把用户的积分调用变成清晰的交易记录。滚动页面，就像沿着一枚能力货币穿过市场。',
         primary: '进入 BloomX 控制台',
         secondary: '查看模型供给',
         rail: '向下滚动探索交易路径',
@@ -70,7 +71,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         settings: 'Settings',
         signOut: 'Sign out',
         eyebrow: 'Model API capacity exchange',
-        headline: 'Model APIs tested, priced, called, and settled like tradable capacity.',
+        headline: 'Capacity becomes signal',
         subtitle:
           'BloomX turns merchant endpoints into verified supply and user credits into inspectable call records. Scroll as if you are guiding one capacity token through the market.',
         primary: 'Open BloomX Console',
@@ -237,9 +238,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               </FadeIn>
 
               <FadeIn delay={150} direction="up">
-                <h1 className="max-w-[15ch] text-[clamp(3rem,7vw,6.8rem)] font-[760] leading-[0.92] tracking-tight text-white">
-                  {copy.headline}
-                </h1>
+                <HeroParticleTitle lines={[copy.headline]} ariaLabel={copy.headline} />
               </FadeIn>
 
               <FadeIn delay={240} direction="up">

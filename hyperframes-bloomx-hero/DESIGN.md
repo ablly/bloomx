@@ -1,8 +1,8 @@
-# BloomX Hero Video Visual Identity
+# BloomX Quiet Hero Video Visual Identity
 
 ## Style Prompt
 
-A cinematic financial-Web3 marketplace film for BloomX. Dark off-black exchange space, mineral green routing light, restrained bronze and amber coin material, real dimensional shadows, and slow scrollable camera movement. The film should feel like merchant model API capacity being minted into a tradable asset, routed through verified rails, called by buyers, and settled back to merchants.
+A quiet, deep digital-space film for BloomX. The frame breathes with severe whitespace, a particle-built title, slow star-like drift, minimal floating system-status labels, and a restrained original music-box melody. The atmosphere should feel closer to a private observatory for model API capacity than a loud Web3 promo.
 
 ## Colors
 
@@ -15,8 +15,8 @@ A cinematic financial-Web3 marketplace film for BloomX. Dark off-black exchange 
 
 ## Typography
 
-- Display: Outfit, Satoshi, SF Pro Display
-- Data: SF Mono, Monaco, Consolas
+- Display: Montserrat, chosen because the HyperFrames renderer can embed it deterministically
+- Data: JetBrains Mono, chosen for deterministic numeric rendering
 
 ## What Not To Do
 
@@ -25,3 +25,4 @@ A cinematic financial-Web3 marketplace film for BloomX. Dark off-black exchange 
 - No invented fake market stats.
 - No emoji or decorative icon pile.
 - No text that depends on forced line breaks.
+- No hard cuts, jumpy status changes, or sharp notification sounds.

@@ -79,14 +79,14 @@ function triggerSoftMelody(state: AudioState, xRatio: number, force = false) {
       filter.Q.setValueAtTime(0.3, start);
 
       gain.gain.setValueAtTime(0.0001, start + index * 0.145);
-      gain.gain.exponentialRampToValueAtTime(0.04, start + index * 0.145 + 0.035);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.145 + 0.72);
+      gain.gain.exponentialRampToValueAtTime(0.018, start + index * 0.145 + 0.045);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.145 + 1.05);
 
       oscillator.connect(filter);
       filter.connect(gain);
       gain.connect(context.destination);
       oscillator.start(start + index * 0.145);
-      oscillator.stop(start + index * 0.145 + 0.78);
+      oscillator.stop(start + index * 0.145 + 1.12);
     });
   };
 
@@ -163,8 +163,8 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
       particlesRef.current = picked.map((target, index) => {
         const old = previous[index];
         return {
-          x: old?.x ?? width * (0.18 + Math.random() * 0.74),
-          y: old?.y ?? height * (0.08 + Math.random() * 0.78),
+          x: old?.x ?? width * (0.18 + (Math.sin(index * 12.9898) * 0.5 + 0.5) * 0.74),
+          y: old?.y ?? height * (0.08 + (Math.sin(index * 78.233 + 1.7) * 0.5 + 0.5) * 0.78),
           tx: target.x,
           ty: target.y,
           vx: old?.vx ?? 0,
@@ -198,7 +198,7 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
         particle.vy += dy * 0.018;
 
         if (pointer.active && distance < radius) {
-          const force = (1 - distance / radius) * 2.35;
+          const force = (1 - distance / radius) * 1.75;
           particle.vx += (pointerDx / Math.max(distance, 1)) * force;
           particle.vy += (pointerDy / Math.max(distance, 1)) * force;
         }
