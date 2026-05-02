@@ -202,7 +202,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         style={heroVars}
       >
         <div className="sticky top-0 grid min-h-[100dvh] items-center overflow-hidden py-20">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,8,7,0.88),rgba(5,8,7,0.5)_45%,rgba(5,8,7,0.08)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,8,7,0.68),rgba(5,8,7,0.28)_45%,rgba(5,8,7,0.03)_100%)]" />
 
           <div className="mx-auto w-full max-w-7xl">
             <div className="max-w-4xl">

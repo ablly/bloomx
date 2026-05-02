@@ -102,7 +102,7 @@ const BackgroundVideo = () => {
     >
       <video
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-cover opacity-[0.72] brightness-[1.08] contrast-[1.08] saturate-[0.92] will-change-transform"
+        className="absolute inset-0 h-full w-full object-cover opacity-[0.94] brightness-[1.22] contrast-[1.16] saturate-[1.08] will-change-transform"
         style={{
           transform:
             'scale(calc(1.02 + var(--bg-ease) * 0.08)) translate3d(calc(var(--bg-scroll) * -2vw), calc(var(--bg-scroll) * -4vh), 0)',
@@ -115,7 +115,7 @@ const BackgroundVideo = () => {
       </video>
 
       <div
-        className="absolute inset-0 opacity-80 will-change-transform"
+        className="absolute inset-0 opacity-70 will-change-transform"
         style={{
           transform: 'translate3d(calc(var(--bg-scroll) * -2vw), calc(var(--bg-scroll) * 1.5vh), 0)',
           background:
@@ -123,8 +123,8 @@ const BackgroundVideo = () => {
         }}
       />
 
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,8,7,0.82),rgba(5,8,7,0.48)_44%,rgba(5,8,7,0.14)_100%),linear-gradient(180deg,rgba(5,8,7,0.05),rgba(5,8,7,0.38)_78%,rgba(5,8,7,0.74))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(246,214,167,0.09),transparent_34rem)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,8,7,0.62),rgba(5,8,7,0.25)_44%,rgba(5,8,7,0.04)_100%),linear-gradient(180deg,rgba(5,8,7,0.02),rgba(5,8,7,0.2)_78%,rgba(5,8,7,0.5))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(246,214,167,0.13),transparent_34rem)]" />
     </div>
   );
 };
