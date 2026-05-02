@@ -1,15 +1,15 @@
 import { Composition } from 'remotion';
-import { TokenBackground } from './TokenBackground';
+import { WorkerLoop } from './WorkerLoop';
 
 export const RemotionRoot = () => {
   return (
     <Composition
       id="BloomXHero"
-      component={TokenBackground}
-      durationInFrames={360}
+      component={WorkerLoop}
+      durationInFrames={270}
       fps={30}
-      width={1920}
-      height={1080}
+      width={1280}
+      height={720}
     />
   );
 };

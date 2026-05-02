@@ -26,7 +26,7 @@ interface HeroParticleTitleProps {
   ariaLabel: string;
 }
 
-const particleLimit = 3400;
+const particleLimit = 1800;
 const remotionEase = (value: number) => 1 - Math.pow(1 - value, 4);
 
 function shuffleTargets<T>(items: T[]) {
@@ -115,12 +115,14 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
 
     let animationFrame = 0;
     let startedAt = performance.now();
+    let lastDrawAt = 0;
+    let isVisible = true;
 
     const rebuildParticles = () => {
       const rect = wrap.getBoundingClientRect();
       const width = Math.max(320, Math.floor(rect.width));
       const height = Math.max(190, Math.floor(rect.height));
-      const ratio = Math.min(2, window.devicePixelRatio || 1);
+      const ratio = Math.min(1.35, window.devicePixelRatio || 1);
       canvas.width = Math.floor(width * ratio);
       canvas.height = Math.floor(height * ratio);
       canvas.style.width = `${width}px`;
@@ -175,6 +177,10 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
     };
 
     const draw = (now: number) => {
+      animationFrame = requestAnimationFrame(draw);
+      if (!isVisible || now - lastDrawAt < 33) return;
+      lastDrawAt = now;
+
       const elapsed = (now - startedAt) / 1000;
       const frame = elapsed * 30;
       const entrance = remotionEase(Math.min(1, frame / 52));
@@ -219,11 +225,17 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
       }
 
       ctx.globalCompositeOperation = 'source-over';
-      animationFrame = requestAnimationFrame(draw);
     };
 
     const resizeObserver = new ResizeObserver(rebuildParticles);
     resizeObserver.observe(wrap);
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry?.isIntersecting ?? true;
+      },
+      { threshold: 0.08 },
+    );
+    intersectionObserver.observe(wrap);
     void document.fonts?.ready.then(rebuildParticles);
     rebuildParticles();
 
@@ -271,6 +283,7 @@ export default function HeroParticleTitle({ lines, ariaLabel }: HeroParticleTitl
     return () => {
       cancelAnimationFrame(animationFrame);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       wrap.removeEventListener('pointerenter', handlePointerEnter);
       wrap.removeEventListener('pointerover', handlePointerEnter);
       wrap.removeEventListener('mouseover', handlePointerEnter);
