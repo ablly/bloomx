@@ -1,18 +1,43 @@
-// ModelCatalog - Apple-inspired minimal table
-import { CheckCircle2, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Clock3, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+type ModelStatus = 'recommended' | 'reviewing' | 'market';
+
 const ModelCatalog = () => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
+    const isZh = i18n.language?.startsWith('zh');
     
     const models = [
-        { id: 'gpt-5.1', provider: 'OpenAI', input: '$1.25 / 1M', output: '$10.00 / 1M', status: 'Optimal' },
-        { id: 'claude-sonnet-4.5', provider: 'Anthropic', input: '$3.00 / 1M', output: '$15.00 / 1M', status: 'Optimal' },
-        { id: 'claude-haiku-4.5', provider: 'Anthropic', input: '$1.00 / 1M', output: '$5.00 / 1M', status: 'High Traffic' },
-        { id: 'gemini-2.5-pro', provider: 'Google', input: '$1.25 / 1M', output: '$10.00 / 1M', status: 'Optimal' },
-        { id: 'gemini-2.5-flash-lite', provider: 'Google', input: '$0.10 / 1M', output: '$0.40 / 1M', status: 'High Traffic' },
-        { id: 'deepseek-chat / deepseek-reasoner', provider: 'DeepSeek', input: '$0.028+ / 1M', output: 'market', status: 'High Traffic' },
+        { id: 'gpt-5.5', provider: 'OpenAI', pricing: 'merchant', status: 'recommended' as ModelStatus },
+        { id: 'claude-opus-4.6', provider: 'Anthropic', pricing: 'merchant', status: 'reviewing' as ModelStatus },
+        { id: 'claude-opus-4.7', provider: 'Anthropic', pricing: 'merchant', status: 'reviewing' as ModelStatus },
+        { id: 'deepseek-v4', provider: 'DeepSeek', pricing: 'market', status: 'market' as ModelStatus },
+        { id: 'kimi-k2.6', provider: 'Moonshot AI', pricing: 'market', status: 'market' as ModelStatus },
     ];
+
+    const pricingLabel = (pricing: string) => {
+        if (pricing === 'merchant') return isZh ? '商家报价' : 'Merchant quote';
+        return isZh ? '市场报价' : 'Market quote';
+    };
+
+    const statusMeta = (status: ModelStatus) => {
+        if (status === 'recommended') {
+            return {
+                label: isZh ? '推荐接入' : 'Recommended',
+                icon: <CheckCircle2 size={16} className="text-emerald-300" />,
+            };
+        }
+        if (status === 'reviewing') {
+            return {
+                label: isZh ? '待验证' : 'Pending review',
+                icon: <Clock3 size={16} className="text-sky-300" />,
+            };
+        }
+        return {
+            label: isZh ? '市场报价' : 'Market pricing',
+            icon: <TrendingUp size={16} className="text-amber-300" />,
+        };
+    };
 
     return (
         <section id="models" className="relative py-32 px-6">
@@ -42,36 +67,37 @@ const ModelCatalog = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {models.map((model, index) => (
-                                    <tr 
-                                        key={model.id} 
-                                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors duration-300 animate-fade-in"
-                                        style={{animationDelay: `${index * 0.05}s`}}
-                                    >
-                                        <td className="px-8 py-5">
-                                            <div className="font-mono text-sm text-white">{model.id}</div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="text-sm text-white/70">{model.provider}</div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="font-mono text-sm text-white/70">{model.input}</div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="font-mono text-sm text-white/70">{model.output}</div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="inline-flex items-center gap-2 text-sm text-white/70">
-                                                {model.status === 'Optimal' ? (
-                                                    <CheckCircle2 size={16} className="text-green-400" />
-                                                ) : (
-                                                    <TrendingUp size={16} className="text-amber-400" />
-                                                )}
-                                                {model.status === 'Optimal' ? t('models.statusOptimal') : t('models.statusHighTraffic')}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {models.map((model, index) => {
+                                    const status = statusMeta(model.status);
+                                    const price = pricingLabel(model.pricing);
+
+                                    return (
+                                        <tr
+                                            key={model.id}
+                                            className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors duration-300 animate-fade-in"
+                                            style={{ animationDelay: `${index * 0.05}s` }}
+                                        >
+                                            <td className="px-8 py-5">
+                                                <div className="font-mono text-sm text-white">{model.id}</div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="text-sm text-white/70">{model.provider}</div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="font-mono text-sm text-white/70">{price}</div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="font-mono text-sm text-white/70">{price}</div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="inline-flex items-center gap-2 text-sm text-white/70">
+                                                    {status.icon}
+                                                    {status.label}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
