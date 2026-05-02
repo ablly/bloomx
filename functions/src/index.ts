@@ -260,3 +260,23 @@ export const onUserDelete = functions.auth.user().onDelete(async (user) => {
 export { invokeMerchantModel } from './platformProxy';
 export { runAdminAction } from './adminActions';
 export { fetchSellerApiModels, submitSellerApiProduct, testSellerApiModels } from './sellerApiOnboarding';
+export {
+  onSellerApplicationCreated,
+  onSupportTicketCreated,
+  onPaymentTransactionCreated,
+  onUserPaymentTransactionCreated,
+  sendMonthlySettlementSnapshotToMake,
+  sendApiHealthSnapshotToMake,
+  onUserProfileCreated,
+  onUserProfileDeleted,
+  onEmailLogCreated,
+  onSellerProfileCreated,
+  onApiOfferCreated,
+  onApiOfferStatusChanged,
+  onSellerProductCreated,
+  onProductCreated,
+  onMerchantApiTestLogCreated,
+  onApiCallRecordCompleted,
+  onSubscriptionCreated,
+  onPurchaseCreated,
+} from './makeWorkflows';

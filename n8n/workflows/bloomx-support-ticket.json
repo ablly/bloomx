@@ -1,0 +1,79 @@
+{
+  "name": "BloomX - Support ticket triage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bloomx/support-ticket",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "bloomx-support-webhook",
+      "name": "BloomX Support Ticket Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "issue-type",
+              "name": "issueType",
+              "value": "={{ $json.data.issueType || 'other' }}",
+              "type": "string"
+            },
+            {
+              "id": "priority",
+              "name": "priority",
+              "value": "={{ $json.data.priority || 'normal' }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $json.data.message || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "user-email",
+              "name": "userEmail",
+              "value": "={{ $json.data.userEmail || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "normalize-support-ticket",
+      "name": "Normalize support ticket",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "BloomX Support Ticket Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize support ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

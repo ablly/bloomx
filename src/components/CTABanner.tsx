@@ -40,7 +40,12 @@ const CTABanner = ({ onDashboardEnter }: CTABannerProps) => {
                     </ShimmerButton>
 
                     <button
-                        onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                        onClick={() => {
+                            const target = document.getElementById('pricing');
+                            if (!target) return;
+                            const top = target.getBoundingClientRect().top + window.scrollY - 88;
+                            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+                        }}
                         className="px-8 py-4 rounded-full glass-apple text-white text-base font-medium hover:bg-white/5 transition-all duration-400 btn-apple"
                     >
                         {t('cta.secondaryButton')}

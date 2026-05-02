@@ -1,69 +1,185 @@
-# BloomX Make.com 自动化工作流规划
+# BloomX Make.com MCP 与自动化工作流
 
-> 当前项目里还没有可直接操作 Make.com 的已授权连接器，所以我先给出可以照着点击配置的生产工作流。你把 Make 场景的 Webhook URL 或 Make API Token 给我后，我可以继续把前端/后端对接到这些真实场景。
+更新时间：2026-04-28
+
+## 当前状态
+
+BloomX 项目侧已经补上 Make 工作流网关。Cloud Functions 会在关键业务事件发生时，把标准 JSON 事件推送到 Make.com 的 Custom Webhook，并在 Firestore 的 `makeWorkflowEvents` 集合记录投递状态。
+
+我已经验证过你提供的 Make MCP 地址可以连接，但当前 Make MCP 工具箱暴露的工具数量是 0。也就是说：MCP 连接本身可用，下一步需要在 Make 的 MCP 工具箱里点击“+ 添加”，把下面 5 个场景发布成工具。Make 暴露工具后，可以用项目里的 doctor 命令再次检查。
+
+## MCP 自检
+
+本地不要把密钥写进仓库，运行时临时设置环境变量即可：
+
+```powershell
+$env:MAKE_MCP_URL="https://eu1.make.com/mcp/server/994c9fcc-9318-48ee-9860-38c585e9ed9f"
+$env:MAKE_MCP_KEY="<your-make-mcp-key>"
+npm run make:mcp:doctor
+```
+
+期望看到 5 个工具：
+
+- `bloomx_seller_application`
+- `bloomx_support_ticket`
+- `bloomx_payment_success`
+- `bloomx_monthly_settlement`
+- `bloomx_api_health`
+
+如果输出显示连接成功但工具数量为 0，请回到 Make 的 MCP 工具箱，给 BloomX 添加场景工具。完整工具流清单在 `make/toolflows.bloomx.json`。
+
+## 需要在 Make 创建的 5 个场景
+
+| 场景 | MCP 工具名 | Make Webhook 名称 | Firebase Secret |
+| --- | --- | --- | --- |
+| 商家入驻审核 | `bloomx_seller_application` | `bloomx_seller_application` | `MAKE_SELLER_APPLICATION_WEBHOOK` |
+| 售后工单 | `bloomx_support_ticket` | `bloomx_support_ticket` | `MAKE_SUPPORT_TICKET_WEBHOOK` |
+| 支付成功 / 积分充值 | `bloomx_payment_success` | `bloomx_payment_success` | `MAKE_PAYMENT_SUCCESS_WEBHOOK` |
+| 商家月结报表 | `bloomx_monthly_settlement` | `bloomx_monthly_settlement` | `MAKE_SETTLEMENT_REPORT_WEBHOOK` |
+| API 健康巡检 | `bloomx_api_health` | `bloomx_api_health` | `MAKE_API_HEALTH_WEBHOOK` |
+
+## 部署 Secret
+
+```bash
+firebase functions:secrets:set MAKE_WORKFLOW_SIGNING_SECRET
+firebase functions:secrets:set MAKE_SELLER_APPLICATION_WEBHOOK
+firebase functions:secrets:set MAKE_SUPPORT_TICKET_WEBHOOK
+firebase functions:secrets:set MAKE_PAYMENT_SUCCESS_WEBHOOK
+firebase functions:secrets:set MAKE_SETTLEMENT_REPORT_WEBHOOK
+firebase functions:secrets:set MAKE_API_HEALTH_WEBHOOK
+```
+
+`MAKE_WORKFLOW_SIGNING_SECRET` 是 BloomX 和 Make 之间的共享签名密钥。Make 收到请求后可以校验 `X-BloomX-Signature`：
+
+```text
+sha256=<HMAC_SHA256(JSON body)>
+```
+
+## 事件负载
+
+每个 Make Webhook 都会收到统一格式：
+
+```json
+{
+  "id": "makeWorkflowEvents document id",
+  "eventType": "seller_application.created",
+  "resourceId": "business document id",
+  "source": "Firestore path or scheduler name",
+  "occurredAt": "2026-04-28T00:00:00.000Z",
+  "data": {}
+}
+```
+
+请求头：
+
+```text
+Content-Type: application/json
+X-BloomX-Event-Type: <eventType>
+X-BloomX-Event-Id: <makeWorkflowEvents id>
+X-BloomX-Signature: sha256=<signature>
+```
 
 ## 场景 1：商家入驻审核
 
-目标：商家提交资料后，自动通知审核人，并把审核结果写回 Firebase。
+触发器：`seller_applications/{applicationId}` 创建。
 
-操作步骤：
-1. 打开 [Make.com 场景页](https://www.make.com/en/scenarios)，点击右上角 `Create a new scenario`。
-2. 添加模块 `Webhooks` -> `Custom webhook` -> `Add`，命名为 `bloomx_seller_application`。
-3. 复制生成的 Webhook URL。
-4. 后续把这个 URL 配到 BloomX 后端或 Cloudflare 环境变量 `MAKE_SELLER_APPLICATION_WEBHOOK`。
-5. 添加模块 `Google Sheets` 或 `Notion`，保存商家名称、邮箱、供应商、预计容量、UID。
-6. 添加模块 `Gmail`，发邮件给审核人，标题建议：`BloomX 商家入驻待审核 - {{sellerName}}`。
-7. 审核通过后，由管理员在 Firebase 中把 `sellerProfiles/{uid}.status` 更新为 `verified`。
+Make 模块建议：
 
-## 场景 2：商家 API 健康度巡检
+1. `Webhooks / Custom webhook` 接收 `seller_application.created`。
+2. `Google Sheets` 或 `Notion` 写入审核队列。
+3. `Gmail` 通知审核人，标题可用 `BloomX 商家入驻待审核 - {{data.name}}`。
+4. 审核人在 BloomX 管理员审核台通过或拒绝申请。
 
-目标：定时检查已上架 API，如果失败率过高，通知平台并下架。
+## 场景 2：售后工单
 
-操作步骤：
-1. 新建场景，首个模块选择 `Scheduler`。
-2. 频率建议：每 30 分钟一次。
-3. 添加 `HTTP` -> `Make a request`，请求 BloomX 后端巡检接口。
-4. 后端读取 `apiOffers`，对 `status=listed` 的商品调用测试函数。
-5. 如果失败，Make 分支发送 Gmail/Slack 通知，并调用后端接口把 `apiOffers/{offerId}.healthStatus` 写为 `failed`。
-6. 连续失败超过阈值时，将 `status` 改为 `draft`，避免用户继续订阅不可用 API。
+触发器：`supportTickets/{ticketId}` 创建。
 
-## 场景 3：用户充值与发票
+Make 模块建议：
 
-目标：真实支付成功后，给用户加积分，并发送账单凭证。
+1. 接收 `support_ticket.created`。
+2. 在 `Notion` 或 `Google Sheets` 创建工单记录。
+3. 根据 `data.issueType` 和 `data.priority` 路由给不同处理人。
+4. 邮件通知平台运营。
 
-操作步骤：
-1. 支付平台先建议从 Stripe 开始。
-2. Make 场景首个模块选择 `Webhooks` -> `Custom webhook`，命名为 `bloomx_payment_success`。
-3. Stripe 支付成功后把金额、用户 UID、订单号推送到该 Webhook。
-4. Make 调用 BloomX 后端接口：增加 `users/{uid}.credits_balance`。
-5. 写入 `transactions`：金额、积分、支付渠道、状态、时间。
-6. 使用 Gmail 给用户发送充值成功邮件。
+## 场景 3：支付成功 / 积分充值
+
+触发器：
+
+- `transactions/{transactionId}` 创建。
+- `users/{userId}/transactions/{transactionId}` 创建。
+
+只有 `status` 为 `succeeded`、`success`、`completed` 或 `paid` 的交易会推送。
+
+Make 模块建议：
+
+1. 接收 `payment.succeeded`。
+2. 写入财务流水表。
+3. 给用户发送充值成功或付款凭证。
+4. 可选：同步到会计系统。
 
 ## 场景 4：商家月结报表
 
-目标：每月生成商家收入报表，支持月结或手动结账。
+触发器：每月 1 日 09:00，`Asia/Shanghai`。
 
-操作步骤：
-1. 新建场景，首个模块选择 `Scheduler`。
-2. 运行时间建议：每月 1 日 09:00。
-3. 添加 `HTTP` 模块，请求 BloomX 后端结算汇总接口。
-4. 后端聚合 `apiOfferStats` 和 `apiCallRecords`，生成商家收入、成功调用、失败调用、退款金额。
-5. Make 把结果写入 Google Sheets 或 Notion。
-6. Make 用 Gmail 发给商家和平台财务。
-7. 平台确认后写入 `settlements`，状态从 `pending` 到 `paid`。
+Cloud Functions 汇总：
 
-## 场景 5：售后工单
+- `apiOfferStats` 最近最多 500 条。
+- `settlements` 中 `status=pending` 最近最多 500 条。
 
-目标：用户遇到 API 跑不通、重复扣费、输出质量异常时，自动生成售后工单。
+Make 模块建议：
 
-操作步骤：
-1. 新建 `Custom webhook`，命名为 `bloomx_support_ticket`。
-2. 前端售后按钮提交：用户 UID、订阅 ID、调用记录 ID、问题类型、说明。
-3. Make 写入 Notion/Google Sheets 工单库。
-4. Make 发送邮件给平台运营。
-5. 后端同步写入 Firebase `supportTickets`，状态为 `open`。
+1. 接收 `settlement.monthly_snapshot`。
+2. 写入 Google Sheets 月结表。
+3. 给商家和平台财务发送邮件。
+4. 财务确认后，把 `settlements/{id}.status` 更新为 `paid`。
 
-## 我下一步需要你给我的内容
-- Make 场景生成的 Webhook URL。
-- 你希望售后工单进入哪里：Notion、Google Sheets、Gmail 还是 Slack。
-- 如果要我直接通过 Make API 创建场景，需要你提供 Make API Token，并确认组织区域是 `eu1.make.com`。
+## 场景 5：API 健康巡检
+
+触发器：每 30 分钟。
+
+Cloud Functions 推送：
+
+- `apiOffers` 中 `status=listed` 的商品。
+- `apiCallRecords` 中 `status=failed` 的失败调用记录。
+
+Make 模块建议：
+
+1. 接收 `api_health.snapshot`。
+2. 用 Make Router 按失败数量或失败率分支。
+3. Gmail/Slack 通知平台运营。
+4. 对连续失败的商家 API，后续可进入人工审核或下架流程。
+
+## 已新增的 Cloud Functions
+
+- `onSellerApplicationCreated`
+- `onSupportTicketCreated`
+- `onPaymentTransactionCreated`
+- `onUserPaymentTransactionCreated`
+- `sendMonthlySettlementSnapshotToMake`
+- `sendApiHealthSnapshotToMake`
+
+## 验证方式
+
+1. 在 Make 中创建 5 个 Custom Webhook。
+2. 在 MCP 工具箱里把 5 个场景添加为工具。
+3. 把 5 个 Webhook URL 写入 Firebase Secret Manager。
+4. 部署 Functions：
+
+```bash
+npm --prefix functions run build
+firebase deploy --only functions
+```
+
+5. 提交一条商家申请或售后工单。
+6. 检查 Firestore 的 `makeWorkflowEvents`：
+   - `delivered` 表示 Make 已接收。
+   - `failed` 表示 Make 返回非 2xx 或网络失败。
+   - `skipped` 表示对应 Webhook URL 还没有配置。
+
+7. 运行 MCP doctor：
+
+```bash
+npm run make:mcp:doctor
+```
+
+当 5 个工具都出现后，BloomX 的 Make MCP 工具流就配置完整。

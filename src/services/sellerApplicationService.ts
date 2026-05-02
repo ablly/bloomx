@@ -15,6 +15,7 @@ import { db } from '../lib/firebase';
 export interface SellerApplication {
     id: string;
     uid: string;
+    user_id: string;
     name: string;
     email: string;
     provider: 'openai' | 'anthropic' | 'google' | 'mixed';
@@ -41,6 +42,7 @@ export async function createSellerApplication(
     
     const docRef = await addDoc(colRef, {
         uid: input.uid,
+        user_id: input.uid,
         name: input.name,
         email: input.email,
         provider: input.provider,
@@ -54,6 +56,7 @@ export async function createSellerApplication(
     return {
         id: docRef.id,
         uid: input.uid,
+        user_id: input.uid,
         name: input.name,
         email: input.email,
         provider: input.provider,
@@ -68,14 +71,18 @@ export async function createSellerApplication(
 // ─── Get User's Applications ────────────────────────────────────
 export async function getUserApplications(uid: string): Promise<SellerApplication[]> {
     const colRef = collection(db, 'seller_applications');
-    const q = query(colRef, where('uid', '==', uid), orderBy('createdAt', 'desc'));
-    
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => {
+    const [newSnap, legacySnap] = await Promise.all([
+        getDocs(query(colRef, where('user_id', '==', uid), orderBy('createdAt', 'desc'))),
+        getDocs(query(colRef, where('uid', '==', uid), orderBy('createdAt', 'desc'))),
+    ]);
+    const docs = [...newSnap.docs, ...legacySnap.docs.filter((item) => !newSnap.docs.some((next) => next.id === item.id))];
+
+    return docs.map((d) => {
         const data = d.data();
         return {
             id: d.id,
-            uid: data.uid,
+            uid: data.uid || data.user_id,
+            user_id: data.user_id || data.uid,
             name: data.name,
             email: data.email,
             provider: data.provider,
@@ -98,7 +105,8 @@ export async function getApplicationById(appId: string): Promise<SellerApplicati
     const data = snap.data();
     return {
         id: snap.id,
-        uid: data.uid,
+        uid: data.uid || data.user_id,
+        user_id: data.user_id || data.uid,
         name: data.name,
         email: data.email,
         provider: data.provider,

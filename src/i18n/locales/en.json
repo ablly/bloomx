@@ -38,8 +38,8 @@
     }
   },
   "howItWorks": {
-    "title": "How it works",
-    "subtitle": "Merchant supply, user subscription, and platform settlement in one loop.",
+    "title": "How to use BloomX",
+    "subtitle": "Merchant supply, user subscription, and platform settlement in one clear loop.",
     "step1": {
       "title": "Merchants submit APIs",
       "description": "Add model name, URL, key, price, and description. BloomX runs a real connection test first."
@@ -85,7 +85,7 @@
   },
   "models": {
     "title": "Mainstream model supply.",
-    "subtitle": "Representative model directions BloomX can route. Actual sellable models come from Firebase listings that pass merchant API tests.",
+    "subtitle": "Representative model directions BloomX can route. Actual sellable models come from listings that pass merchant API tests.",
     "tableHeaders": {
       "model": "Model",
       "provider": "Provider",

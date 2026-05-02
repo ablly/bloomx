@@ -1,0 +1,73 @@
+{
+  "name": "BloomX - Monthly settlement snapshot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bloomx/monthly-settlement",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "bloomx-settlement-webhook",
+      "name": "BloomX Monthly Settlement Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "period",
+              "name": "period",
+              "value": "={{ $json.data.period || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "pending-count",
+              "name": "pendingSettlementCount",
+              "value": "={{ ($json.data.pendingSettlements || []).length }}",
+              "type": "number"
+            },
+            {
+              "id": "offer-stat-count",
+              "name": "offerStatCount",
+              "value": "={{ ($json.data.offerStats || []).length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "normalize-monthly-settlement",
+      "name": "Normalize monthly settlement",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "BloomX Monthly Settlement Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize monthly settlement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

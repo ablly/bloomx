@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Star, TrendingUp, Shield, ArrowRight } from 'lucide-react';
+import { ArrowRight, Filter, Search, Shield, Star, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { getActiveProducts } from '../services/productService';
 import { getSellerById } from '../services/sellerService';
 import type { Product, Seller } from '../types/marketplace';
@@ -10,29 +11,67 @@ interface ProductWithSeller extends Product {
   seller?: Seller;
 }
 
+const copy = {
+  zh: {
+    title: '模型 API 市场',
+    subtitle: '发现已通过连通性测试的商家模型，按积分订阅、按调用结算。',
+    search: '搜索模型、商家或用途...',
+    allModels: '全部模型',
+    verified: '已验证',
+    noProducts: '没有找到匹配的 API',
+    noProductsDesc: '换一个关键词或清空模型筛选再试试。',
+    loading: '正在加载市场供给...',
+    startPrice: '起价',
+    reviews: '评价',
+    sales: '销量',
+    details: '查看详情',
+    supply: '商家供给',
+    health: '测试通过',
+    loadMore: '加载更多',
+  },
+  en: {
+    title: 'Model API marketplace',
+    subtitle: 'Discover merchant models that passed connection tests. Subscribe with credits and settle by call.',
+    search: 'Search models, merchants, or use cases...',
+    allModels: 'All models',
+    verified: 'Verified',
+    noProducts: 'No matching APIs found',
+    noProductsDesc: 'Try another keyword or clear the model filter.',
+    loading: 'Loading marketplace supply...',
+    startPrice: 'Starts at',
+    reviews: 'reviews',
+    sales: 'sales',
+    details: 'View details',
+    supply: 'Merchant supply',
+    health: 'Test passed',
+    loadMore: 'Load more',
+  },
+} as const;
+
 const Marketplace = () => {
+  const { i18n } = useTranslation();
+  const zh = i18n.language?.startsWith('zh');
+  const c = zh ? copy.zh : copy.en;
   const [products, setProducts] = useState<ProductWithSeller[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedModel, setSelectedModel] = useState<string>('all');
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
   }, []);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
       const productsData = await getActiveProducts(20);
-      
-      // Load seller info for each product
       const productsWithSellers = await Promise.all(
         productsData.map(async (product) => {
           const seller = await getSellerById(product.seller_id);
           return { ...product, seller: seller || undefined };
-        })
+        }),
       );
-      
+
       setProducts(productsWithSellers);
     } catch (error) {
       console.error('Failed to load products:', error);
@@ -41,168 +80,144 @@ const Marketplace = () => {
     }
   };
 
-  // Get unique models from all products
-  const allModels = Array.from(
-    new Set(products.flatMap(p => p.models))
-  );
+  const allModels = useMemo(() => Array.from(new Set(products.flatMap((product) => product.models))).sort(), [products]);
 
-  // Filter products
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = products.filter((product) => {
+    const normalizedQuery = searchQuery.toLowerCase();
+    const matchesSearch =
+      product.name.toLowerCase().includes(normalizedQuery) ||
+      product.description.toLowerCase().includes(normalizedQuery) ||
+      product.seller?.name.toLowerCase().includes(normalizedQuery);
     const matchesModel = selectedModel === 'all' || product.models.includes(selectedModel);
     return matchesSearch && matchesModel;
   });
 
   return (
-    <div className="min-h-screen bg-black text-white py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
+    <div className="min-h-screen bg-[#070b0d] px-4 py-8 text-white sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
         <FadeIn direction="up" delay={0.1}>
-          <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-7xl font-sans tracking-tight mb-6">
-              API <span className="font-serif italic text-white/80">Marketplace</span>
-            </h1>
-            <p className="text-xl text-white/60 max-w-2xl mx-auto">
-              发现并购买来自全球卖家的高质量 AI API 接入
-            </p>
-          </div>
+          <header className="mb-10 border-b border-white/10 pb-8">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#2f6f5e]/40 bg-[#2f6f5e]/12 px-3 py-1 text-xs font-medium text-[#9be2c8]">
+              <Shield size={14} />
+              {c.supply}
+            </div>
+            <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+              <div>
+                <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">{c.title}</h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-white/58">{c.subtitle}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-white/10 bg-white/[0.045] p-4">
+                  <div className="text-xs uppercase tracking-widest text-white/42">{c.supply}</div>
+                  <div className="mt-2 text-3xl font-semibold">{products.length}</div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.045] p-4">
+                  <div className="text-xs uppercase tracking-widest text-white/42">{c.health}</div>
+                  <div className="mt-2 text-3xl font-semibold">{products.filter((product) => product.is_verified).length}</div>
+                </div>
+              </div>
+            </div>
+          </header>
         </FadeIn>
 
-        {/* Search and Filter */}
         <FadeIn direction="up" delay={0.2}>
-          <div className="flex flex-col md:flex-row gap-4 mb-12">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+          <div className="mb-8 grid gap-3 md:grid-cols-[1fr_260px]">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/38" size={20} />
               <input
                 type="text"
-                placeholder="搜索 API 产品..."
+                placeholder={c.search}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="min-h-12 w-full rounded-lg border border-white/10 bg-[#0b1213] pl-12 pr-4 text-white placeholder:text-white/34 transition focus:border-[#d76f37]/60 focus:outline-none"
               />
             </div>
 
-            {/* Model Filter */}
             <div className="relative">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-white/38" size={20} />
               <select
                 value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="bg-white/5 border border-white/10 rounded-xl pl-12 pr-8 py-3 text-white focus:outline-none focus:border-white/30 transition-colors appearance-none cursor-pointer min-w-[200px]"
+                onChange={(event) => setSelectedModel(event.target.value)}
+                className="min-h-12 w-full cursor-pointer appearance-none rounded-lg border border-white/10 bg-[#0b1213] pl-12 pr-8 text-white transition focus:border-[#d76f37]/60 focus:outline-none"
               >
-                <option value="all" className="bg-neutral-900">所有模型</option>
-                {allModels.map(model => (
-                  <option key={model} value={model} className="bg-neutral-900">{model}</option>
+                <option value="all" className="bg-[#0b1213]">{c.allModels}</option>
+                {allModels.map((model) => (
+                  <option key={model} value={model} className="bg-[#0b1213]">{model}</option>
                 ))}
               </select>
             </div>
           </div>
         </FadeIn>
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+          <div className="grid place-items-center rounded-xl border border-white/10 bg-white/[0.035] py-20 text-white/58">
+            {c.loading}
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && filteredProducts.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+          <div className="rounded-xl border border-white/10 bg-white/[0.035] py-20 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-white/[0.05]">
               <Search size={32} className="text-white/30" />
             </div>
-            <h3 className="text-xl font-medium text-white mb-2">未找到产品</h3>
-            <p className="text-white/50">尝试调整搜索条件或筛选器</p>
+            <h2 className="text-xl font-semibold">{c.noProducts}</h2>
+            <p className="mt-2 text-sm text-white/50">{c.noProductsDesc}</p>
           </div>
         )}
 
-        {/* Products Grid */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filteredProducts.map((product, index) => (
-              <FadeIn key={product.id} direction="up" delay={0.1 * (index % 6)}>
+              <FadeIn key={product.id} direction="up" delay={0.06 * (index % 6)}>
                 <TiltCard className="h-full">
-                  <Link to={`/product/${product.id}`}>
-                    <div className="liquid-glass rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 h-full flex flex-col group">
-                      
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-violet-400 transition-colors">
-                            {product.name}
-                          </h3>
-                          {product.seller && (
-                            <p className="text-sm text-white/50">
-                              by {product.seller.name}
-                            </p>
-                          )}
+                  <Link to={`/product/${product.id}`} className="block h-full">
+                    <article className="flex h-full flex-col rounded-xl border border-white/10 bg-[#0b1213]/88 p-5 transition hover:border-[#d76f37]/45">
+                      <div className="mb-4 flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <h2 className="truncate text-lg font-semibold transition group-hover:text-[#f2b36d]">{product.name}</h2>
+                          {product.seller && <p className="mt-1 truncate text-sm text-white/48">by {product.seller.name}</p>}
                         </div>
                         {product.is_verified && (
-                          <div className="flex items-center gap-1 bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-xs">
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#2f6f5e]/16 px-2 py-1 text-xs text-[#9be2c8]">
                             <Shield size={12} />
-                            <span>已验证</span>
-                          </div>
+                            {c.verified}
+                          </span>
                         )}
                       </div>
 
-                      {/* Description */}
-                      <p className="text-sm text-white/60 mb-4 line-clamp-2 flex-1">
-                        {product.description}
-                      </p>
+                      <p className="mb-5 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-white/58">{product.description}</p>
 
-                      {/* Models */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {product.models.slice(0, 3).map(model => (
-                          <span
-                            key={model}
-                            className="text-xs bg-white/5 text-white/70 px-2 py-1 rounded-lg border border-white/10"
-                          >
-                            {model}
-                          </span>
+                      <div className="mb-5 flex flex-wrap gap-2">
+                        {product.models.slice(0, 3).map((model) => (
+                          <span key={model} className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-xs text-white/68">{model}</span>
                         ))}
-                        {product.models.length > 3 && (
-                          <span className="text-xs text-white/40 px-2 py-1">
-                            +{product.models.length - 3} more
-                          </span>
-                        )}
+                        {product.models.length > 3 && <span className="px-2 py-1 text-xs text-white/36">+{product.models.length - 3}</span>}
                       </div>
 
-                      {/* Stats */}
-                      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                        <div className="flex items-center gap-4">
-                          {/* Rating */}
-                          <div className="flex items-center gap-1">
-                            <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                            <span className="text-sm text-white/80">{product.rating.toFixed(1)}</span>
-                            <span className="text-xs text-white/40">({product.review_count})</span>
+                      <div className="mt-auto border-t border-white/10 pt-4">
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-4">
+                            <span className="inline-flex items-center gap-1 text-sm text-white/76">
+                              <Star size={14} className="fill-[#f2b36d] text-[#f2b36d]" />
+                              {product.rating.toFixed(1)}
+                              <span className="text-xs text-white/38">({product.review_count})</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-sm text-white/76">
+                              <TrendingUp size={14} className="text-[#9be2c8]" />
+                              {product.total_sales}
+                            </span>
                           </div>
-                          
-                          {/* Sales */}
-                          <div className="flex items-center gap-1">
-                            <TrendingUp size={14} className="text-green-400" />
-                            <span className="text-sm text-white/80">{product.total_sales}</span>
+                          <div className="text-right">
+                            <div className="text-[11px] uppercase tracking-widest text-white/35">{c.startPrice}</div>
+                            <div className="font-mono text-sm text-white/90">{product.pricing.input_per_1k.toFixed(3)}/1K</div>
                           </div>
                         </div>
-
-                        {/* Price */}
-                        <div className="text-right">
-                          <div className="text-xs text-white/40">起价</div>
-                          <div className="text-sm font-mono text-white/90">
-                            ${product.pricing.input_per_1k.toFixed(3)}/1K
-                          </div>
+                        <div className="flex min-h-10 items-center justify-end gap-2 rounded-lg border border-white/10 px-3 text-sm text-white/72">
+                          {c.details}
+                          <ArrowRight size={16} />
                         </div>
                       </div>
-
-                      {/* View Details */}
-                      <div className="mt-4 flex items-center justify-end text-violet-400 text-sm group-hover:gap-2 transition-all">
-                        <span>查看详情</span>
-                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
+                    </article>
                   </Link>
                 </TiltCard>
               </FadeIn>
@@ -210,15 +225,13 @@ const Marketplace = () => {
           </div>
         )}
 
-        {/* Load More */}
-        {!loading && filteredProducts.length > 0 && filteredProducts.length >= 20 && (
-          <div className="text-center mt-12">
-            <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl transition-colors duration-200 border border-white/10">
-              加载更多
+        {!loading && filteredProducts.length >= 20 && (
+          <div className="mt-10 text-center">
+            <button className="min-h-11 rounded-lg border border-white/10 px-6 text-sm text-white/72 hover:border-[#d76f37]/50 hover:text-white">
+              {c.loadMore}
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

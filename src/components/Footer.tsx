@@ -5,7 +5,10 @@ const Footer = () => {
     const { t } = useTranslation();
     
     const scrollTo = (id: string) => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        const target = document.getElementById(id);
+        if (!target) return;
+        const top = target.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     };
 
     return (
@@ -65,7 +68,7 @@ const Footer = () => {
 
                 {/* Bottom bar */}
                 <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/5 text-xs text-white/30">
-                    <p>© 2026 BloomX Infrastructure. {t('footer.allRightsReserved')}</p>
+                    <p>Copyright 2026 BloomX Infrastructure. {t('footer.allRightsReserved')}</p>
                     <div className="flex items-center gap-4 mt-4 md:mt-0">
                         <span className="flex items-center gap-2">
                             Status: <span className="text-green-400">All Systems Operational</span>

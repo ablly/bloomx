@@ -1,0 +1,71 @@
+{
+  "project": "BloomX",
+  "updatedAt": "2026-04-29",
+  "recommendedProvider": "n8n",
+  "mode": "n8n-webhook-first, MCP-optional",
+  "eventLogCollection": "automationWorkflowEvents",
+  "signingSecret": "MAKE_WORKFLOW_SIGNING_SECRET",
+  "doctorCommand": "npm run n8n:doctor",
+  "workflows": [
+    {
+      "name": "BloomX - Seller application review",
+      "workflowId": "WE9Iws9S43ETPRtk",
+      "template": "n8n/workflows/bloomx-seller-application.json",
+      "eventType": "seller_application.created",
+      "firebaseSecret": "N8N_SELLER_APPLICATION_WEBHOOK",
+      "webhookPath": "bloomx/seller-application",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "seller_applications/{applicationId}"
+    },
+    {
+      "name": "BloomX - Support ticket triage",
+      "workflowId": "9vnpmUael8mGlHbY",
+      "template": "n8n/workflows/bloomx-support-ticket.json",
+      "eventType": "support_ticket.created",
+      "firebaseSecret": "N8N_SUPPORT_TICKET_WEBHOOK",
+      "webhookPath": "bloomx/support-ticket",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "supportTickets/{ticketId}"
+    },
+    {
+      "name": "BloomX - Payment success receipt",
+      "workflowId": "MWSzkpDrdKgHXl9d",
+      "template": "n8n/workflows/bloomx-payment-success.json",
+      "eventType": "payment.succeeded",
+      "firebaseSecret": "N8N_PAYMENT_SUCCESS_WEBHOOK",
+      "webhookPath": "bloomx/payment-success",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "transactions/{transactionId} and users/{userId}/transactions/{transactionId}"
+    },
+    {
+      "name": "BloomX - Monthly settlement snapshot",
+      "workflowId": "gx2qLC7znhKWyv6v",
+      "template": "n8n/workflows/bloomx-monthly-settlement.json",
+      "eventType": "settlement.monthly_snapshot",
+      "firebaseSecret": "N8N_SETTLEMENT_REPORT_WEBHOOK",
+      "webhookPath": "bloomx/monthly-settlement",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "scheduled monthly, Asia/Shanghai"
+    },
+    {
+      "name": "BloomX - API health monitor",
+      "workflowId": "VSteT3SW4ATR2vEk",
+      "template": "n8n/workflows/bloomx-api-health.json",
+      "eventType": "api_health.snapshot",
+      "firebaseSecret": "N8N_API_HEALTH_WEBHOOK",
+      "webhookPath": "bloomx/api-health",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "scheduled every 30 minutes"
+    },
+    {
+      "name": "BloomX - Event bus",
+      "workflowId": "RUKS05m8KFQsDYSP",
+      "template": "created-via-n8n-mcp",
+      "eventType": "secondary platform events",
+      "firebaseSecret": "N8N_EVENT_BUS_WEBHOOK",
+      "webhookPath": "bloomx/event-bus",
+      "productionUrlSecretOnly": true,
+      "firestoreTrigger": "users, email_logs, sellers, products, apiOffers, apiCallRecords, subscriptions, purchases"
+    }
+  ]
+}
