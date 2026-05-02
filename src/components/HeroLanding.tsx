@@ -99,7 +99,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
 
   return (
     <>
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#293027]/10 bg-[#f6f2ea]/62 backdrop-blur-2xl">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#293027]/12 bg-[#f6f2ea]/78 backdrop-blur-2xl">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <button
@@ -107,23 +107,23 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               aria-label="BloomX home"
             >
-              <span className="relative grid h-8 w-8 place-items-center rounded-full border border-[#293027]/12 bg-white/46" style={heroVars}>
+              <span className="relative grid h-8 w-8 place-items-center rounded-full border border-[#293027]/12 bg-white/50" style={heroVars}>
                 <span className="h-2.5 w-2.5 rounded-full bg-[#8d9f78]" />
               </span>
-              <span className="text-lg font-semibold tracking-tight text-[#20251f]">BloomX</span>
+              <span className="text-lg font-semibold tracking-tight text-[#171c16]">BloomX</span>
             </button>
 
             <div className="hidden items-center gap-7 text-sm md:flex">
-              <button onClick={() => scrollToSection('features')} className="text-[#293027]/62 hover:text-[#20251f]">
+              <button onClick={() => scrollToSection('features')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navFeatures}
               </button>
-              <button onClick={() => scrollToSection('models')} className="text-[#293027]/62 hover:text-[#20251f]">
+              <button onClick={() => scrollToSection('models')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navModels}
               </button>
-              <Link to="/marketplace" className="text-[#293027]/62 hover:text-[#20251f]">
+              <Link to="/marketplace" className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navMarket}
               </Link>
-              <button onClick={() => scrollToSection('pricing')} className="text-[#293027]/62 hover:text-[#20251f]">
+              <button onClick={() => scrollToSection('pricing')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navPricing}
               </button>
             </div>
@@ -135,7 +135,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex min-h-11 items-center gap-2 rounded-full border border-[#293027]/12 bg-white/46 px-3.5 text-[#20251f] shadow-none hover:bg-white/64"
+                    className="flex min-h-11 items-center gap-2 rounded-full border border-[#293027]/14 bg-[#f6f2ea]/72 px-3.5 text-[#171c16] shadow-[0_10px_35px_rgba(32,37,31,0.08)] hover:bg-[#f6f2ea]/90"
                   >
                     {currentUser.photoURL ? (
                       <img src={currentUser.photoURL} alt="Avatar" className="h-6 w-6 rounded-full" />
@@ -155,7 +155,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                       <div className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-[#293027]/10 bg-[#f6f2ea]/95 shadow-[0_24px_70px_rgba(32,37,31,0.18)] backdrop-blur-xl">
                         <div className="border-b border-[#293027]/10 p-4">
                           <div className="truncate text-sm font-medium text-[#20251f]">{currentUser.email}</div>
-                          <div className="mt-1 text-xs text-[#293027]/50">{roleLabel(userProfile?.role)}</div>
+                          <div className="mt-1 text-xs text-[#293027]/64">{roleLabel(userProfile?.role)}</div>
                           {userProfile?.credits !== undefined && (
                             <div className="mt-2 flex items-center gap-1.5 text-xs text-[#637151]">
                               <CreditCard size={13} />
@@ -168,7 +168,13 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                             <User size={16} />
                             {copy.account}
                           </button>
-                          <button onClick={() => { navigate('/dashboard'); setShowUserMenu(false); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[#293027]/82 hover:bg-white/44">
+                          <button
+                            onClick={() => {
+                              navigate('/dashboard');
+                              setShowUserMenu(false);
+                            }}
+                            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[#293027]/82 hover:bg-white/44"
+                          >
                             <Settings size={16} />
                             {copy.settings}
                           </button>
@@ -184,7 +190,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               ) : (
                 <button
                   onClick={onDashboardEnter}
-                  className="min-h-11 rounded-full bg-[#20251f] px-4 text-sm font-semibold text-[#f6f2ea] shadow-[0_14px_40px_rgba(32,37,31,0.16)] hover:bg-[#293027] active:scale-[0.98]"
+                  className="min-h-11 rounded-full bg-[#171c16] px-4 text-sm font-semibold text-[#f6f2ea] shadow-[0_14px_40px_rgba(32,37,31,0.16)] hover:bg-[#293027] active:scale-[0.98]"
                 >
                   {copy.primary}
                 </button>
@@ -200,26 +206,26 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         style={heroVars}
       >
         <div className="sticky top-0 grid min-h-[100dvh] items-center overflow-hidden py-20">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.84),rgba(246,242,234,0.44)_38%,rgba(246,242,234,0.07)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.82),rgba(246,242,234,0.42)_38%,rgba(246,242,234,0.05)_100%)]" />
           <HeroScrollNarrative />
 
           <div className="mx-auto grid w-full max-w-7xl items-center self-start pt-[16dvh]">
             <div className="max-w-3xl">
               <FadeIn delay={80} direction="up">
-                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#293027]/12 bg-white/38 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#293027]/58 backdrop-blur-xl">
+                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#293027]/14 bg-[#f6f2ea]/72 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#293027]/72 shadow-[0_16px_44px_rgba(32,37,31,0.08)] backdrop-blur-xl">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#8d9f78]" />
                   {copy.eyebrow}
                 </div>
               </FadeIn>
 
               <FadeIn delay={150} direction="up">
-                <h1 className="max-w-[12ch] text-6xl font-semibold leading-[0.9] tracking-[-0.075em] text-[#20251f] sm:text-7xl lg:text-8xl">
+                <h1 className="max-w-[12ch] text-6xl font-semibold leading-[0.9] tracking-[-0.075em] text-[#111610] [text-shadow:0_2px_36px_rgba(246,242,234,0.92)] sm:text-7xl lg:text-8xl">
                   {copy.headline}
                 </h1>
               </FadeIn>
 
               <FadeIn delay={240} direction="up">
-                <p className="mt-7 max-w-md text-base leading-8 text-[#293027]/64 sm:text-lg">
+                <p className="mt-7 max-w-md text-base font-medium leading-8 text-[#293027]/80 [text-shadow:0_1px_24px_rgba(246,242,234,0.94)] sm:text-lg">
                   {copy.subtitle}
                 </p>
               </FadeIn>
@@ -228,14 +234,14 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                   <button
                     onClick={onDashboardEnter}
-                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#20251f] px-7 text-sm font-semibold text-[#f6f2ea] shadow-[0_18px_48px_rgba(32,37,31,0.18)] hover:bg-[#293027] active:scale-[0.98]"
+                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#171c16] px-7 text-sm font-semibold text-[#f6f2ea] shadow-[0_18px_48px_rgba(32,37,31,0.18)] hover:bg-[#293027] active:scale-[0.98]"
                   >
                     <span>{copy.primary}</span>
                     <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
                   </button>
                   <button
                     onClick={() => scrollToSection('models')}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#293027]/14 bg-white/38 px-7 text-sm font-semibold text-[#293027] backdrop-blur-xl hover:bg-white/54 active:scale-[0.98]"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#293027]/16 bg-[#f6f2ea]/76 px-7 text-sm font-semibold text-[#1f241e] shadow-[0_16px_44px_rgba(32,37,31,0.08)] backdrop-blur-xl hover:bg-[#f6f2ea]/94 active:scale-[0.98]"
                   >
                     {copy.secondary}
                   </button>
@@ -244,7 +250,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.16em] text-[#293027]/42 sm:flex">
+          <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-[#f6f2ea]/58 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#293027]/60 backdrop-blur-xl sm:flex">
             <ArrowDown size={15} />
             {copy.rail}
           </div>

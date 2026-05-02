@@ -6,11 +6,11 @@ export const storyScrollRange = 5.2;
 
 const chapters = [
   { id: '01', title: '访问', detail: '输入 bloomx.io', pos: 'left-[7vw] top-[24vh]' },
-  { id: '02', title: '市场', detail: '选择模型供给', pos: 'right-[9vw] top-[24vh]' },
+  { id: '02', title: '市场', detail: '选择可调用模型', pos: 'right-[9vw] top-[24vh]' },
   { id: '03', title: '分流', detail: '商家入驻或用户订阅', pos: 'left-[12vw] bottom-[25vh]' },
   { id: '04', title: '密钥', detail: '创建项目 API Key', pos: 'right-[12vw] bottom-[28vh]' },
   { id: '05', title: '调用', detail: '发起模型 API 请求', pos: 'left-[28vw] top-[18vh]' },
-  { id: '06', title: '完成', detail: '用量与结算入账', pos: 'right-[8vw] top-[20vh]' },
+  { id: '06', title: '完成', detail: '用量记录与结算入账', pos: 'right-[8vw] top-[20vh]' },
 ];
 
 const getStoryProgress = () => {
@@ -70,23 +70,24 @@ const HeroScrollNarrative = () => {
               opacity,
               transform: `translate3d(0, ${lift}px, 0)`,
               transition: 'opacity 120ms linear',
+              textShadow: '0 1px 22px rgba(246,242,234,0.92)',
             }}
           >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#293027]/48">{chapter.id}</div>
-            <div className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#20251f]">{chapter.title}</div>
-            <div className="mt-3 text-sm leading-6 text-[#293027]/58">{chapter.detail}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#293027]/62">{chapter.id}</div>
+            <div className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#171c16]">{chapter.title}</div>
+            <div className="mt-3 text-sm font-medium leading-6 text-[#293027]/72">{chapter.detail}</div>
           </div>
         );
       })}
 
-      <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/40 px-3 py-2 backdrop-blur-xl">
+      <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[#293027]/10 bg-[#f6f2ea]/72 px-3 py-2 shadow-[0_18px_55px_rgba(32,37,31,0.1)] backdrop-blur-xl">
         {chapters.map((chapter, index) => (
           <span
             key={chapter.id}
             className="h-1.5 rounded-full transition-all duration-200"
             style={{
               width: index === active ? 28 : 6,
-              background: index === active ? '#293027' : 'rgba(41,48,39,0.22)',
+              background: index === active ? '#20251f' : 'rgba(41,48,39,0.24)',
             }}
           />
         ))}

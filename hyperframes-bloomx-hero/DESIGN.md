@@ -1,28 +1,28 @@
-# BloomX Hero Film Design
+# BloomX Hero Film 设计说明
 
-## Visual Theme
+## 视觉主题
 
-An Apple-style product film for a model API marketplace. The atmosphere is warm, quiet, architectural, and precise: off-white stone, soft daylight, translucent interface planes, brushed aluminum, and sparse text. The design should feel like a high-end product reveal, not a generic AI SaaS dashboard.
+BloomX 的 Hero 背景是一条安静的产品叙事影片：用户从浏览器访问 bloomx.io，进入模型市场，商家入驻或用户订阅积分，创建 API Key，发起模型调用，最终记录用量并完成结算。整体应像苹果产品短片一样克制、明亮、精确，而不是常见的“AI SaaS 看板”。
 
-## Colors
+## 颜色
 
-- Canvas Warm White: `#F6F2EA`
-- Ink Charcoal: `#20251F`
-- Muted Olive Gray: `rgba(41,48,39,0.58)`
-- Sage Accent: `#8D9F78`
-- Glass Surface: `rgba(255,255,255,0.42)`
-- Hairline Border: `rgba(41,48,39,0.12)`
+- 温白画布：`#F6F2EA`
+- 深墨文字：`#20251F`
+- 橄榄灰辅助文字：`rgba(41,48,39,0.78)`
+- 鼠尾草绿强调：`#8D9F78`
+- 半透明玻璃：`rgba(255,255,255,0.42)`
+- 细线边界：`rgba(41,48,39,0.12)`
 
-## Typography
+## 字体
 
-- Display: SF Pro Display style, weight 600-700, tight tracking.
-- Body: SF Pro Text style, restrained scale and relaxed leading.
-- Mono: SF Mono style for API snippets only.
+- 展示文字：接近 SF Pro Display 的紧凑无衬线，字重 600-700。
+- 正文：接近 SF Pro Text，字号克制，行高舒展。
+- 代码：仅 API 片段使用等宽字体。
 
-## Motion
+## 动效
 
-Scroll and timeline both feel like one continuous film strip. Scenes crossfade with subtle camera push, parallax drift, and depth blur. Text appears in different spatial positions and exits softly. Animate only opacity, transform, and filter.
+滚动和时间轴都要像一条连续胶片。场景之间使用柔和交叉淡入，叠加轻微镜头推进和视差漂移。文字只在关键节点出现，位置跟随分镜变化；动画只使用透明度和 transform，避免滚动时动态模糊造成掉帧。
 
-## Never Do
+## 不做
 
-No neon, no purple-blue AI gradients, no crypto imagery, no mascot, no heavy frames, no dashboard card grid, no excessive text, no emojis, no pure black, no custom cursor, no bouncing scroll prompt.
+不要霓虹光效，不要紫蓝 AI 渐变，不要加密货币视觉，不要吉祥物，不要厚重边框，不要 Dashboard 卡片堆叠，不要大段说明文字，不要 emoji，不要纯黑背景，不要自定义鼠标，不要跳动式滚动提示。

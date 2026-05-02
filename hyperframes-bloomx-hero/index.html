@@ -29,23 +29,23 @@
         height: 100%;
         object-fit: cover;
         opacity: 0;
-        transform: scale(1.04);
-        filter: blur(4px);
+        transform: scale(1.015);
       }
 
       .wash {
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(90deg, rgba(246, 242, 234, 0.88), rgba(246, 242, 234, 0.52) 31%, rgba(246, 242, 234, 0.06) 74%),
-          linear-gradient(180deg, rgba(246, 242, 234, 0.02), rgba(246, 242, 234, 0.16) 58%, rgba(246, 242, 234, 0.42));
+          linear-gradient(90deg, rgba(246, 242, 234, 0.92), rgba(246, 242, 234, 0.68) 30%, rgba(246, 242, 234, 0.12) 68%, rgba(246, 242, 234, 0.02) 100%),
+          linear-gradient(180deg, rgba(246, 242, 234, 0.02), rgba(246, 242, 234, 0.18) 58%, rgba(31, 35, 30, 0.34));
       }
 
       .caption {
         position: absolute;
-        width: 290px;
-        color: #20251f;
+        width: 300px;
+        color: #171c16;
         opacity: 0;
+        text-shadow: 0 1px 24px rgba(246, 242, 234, 0.94);
       }
 
       .caption small {
@@ -53,7 +53,7 @@
         font-size: 16px;
         font-weight: 650;
         letter-spacing: 0.24em;
-        color: rgba(41, 48, 39, 0.48);
+        color: rgba(41, 48, 39, 0.64);
       }
 
       .caption strong {
@@ -69,27 +69,28 @@
         display: block;
         margin-top: 12px;
         font-size: 22px;
+        font-weight: 500;
         line-height: 1.5;
-        color: rgba(41, 48, 39, 0.58);
+        color: rgba(41, 48, 39, 0.78);
       }
     </style>
   </head>
   <body>
     <div data-composition-id="bloomx-hero-film" data-start="0" data-duration="12" data-width="1920" data-height="1080" data-track-index="0">
-      <img class="scene scene-1" src="../public/media/hero-story/01-domain.svg" />
-      <img class="scene scene-2" src="../public/media/hero-story/02-marketplace.svg" />
-      <img class="scene scene-3" src="../public/media/hero-story/03-branches.svg" />
-      <img class="scene scene-4" src="../public/media/hero-story/04-key.svg" />
-      <img class="scene scene-5" src="../public/media/hero-story/05-request.svg" />
-      <img class="scene scene-6" src="../public/media/hero-story/06-complete.svg" />
+      <img class="scene scene-1" src="../public/media/hero-story/01-domain.png" />
+      <img class="scene scene-2" src="../public/media/hero-story/02-marketplace.png" />
+      <img class="scene scene-3" src="../public/media/hero-story/03-branches.png" />
+      <img class="scene scene-4" src="../public/media/hero-story/04-key.png" />
+      <img class="scene scene-5" src="../public/media/hero-story/05-request.png" />
+      <img class="scene scene-6" src="../public/media/hero-story/06-complete.png" />
       <div class="wash"></div>
 
       <div class="caption caption-1" style="left:118px; top:230px"><small>01</small><strong>访问</strong><span>输入 bloomx.io</span></div>
-      <div class="caption caption-2" style="left:1220px; top:240px"><small>02</small><strong>市场</strong><span>选择模型供给</span></div>
+      <div class="caption caption-2" style="left:1220px; top:240px"><small>02</small><strong>市场</strong><span>选择可调用模型</span></div>
       <div class="caption caption-3" style="left:160px; top:694px"><small>03</small><strong>分流</strong><span>商家入驻或用户订阅</span></div>
       <div class="caption caption-4" style="left:1210px; top:690px"><small>04</small><strong>密钥</strong><span>创建项目 API Key</span></div>
       <div class="caption caption-5" style="left:455px; top:160px"><small>05</small><strong>调用</strong><span>发起模型 API 请求</span></div>
-      <div class="caption caption-6" style="left:1260px; top:170px"><small>06</small><strong>完成</strong><span>用量与结算入账</span></div>
+      <div class="caption caption-6" style="left:1260px; top:170px"><small>06</small><strong>完成</strong><span>用量记录与结算入账</span></div>
 
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
       <script>
@@ -100,14 +101,14 @@
 
         scenes.forEach((scene, index) => {
           const start = index * 1.85;
-          tl.fromTo(scene, { opacity: 0, scale: 1.035, x: 42, filter: "blur(7px)" }, { opacity: 1, scale: 1.07, x: 0, filter: "blur(0px)", duration: 0.7, ease: "power2.out" }, start);
-          tl.to(scene, { opacity: index === scenes.length - 1 ? 1 : 0, scale: 1.095, x: -38, filter: "blur(7px)", duration: 0.75, ease: "power2.inOut" }, start + 1.25);
+          tl.fromTo(scene, { opacity: 0, scale: 1.015, x: 34 }, { opacity: 1, scale: 1.035, x: 0, duration: 0.78, ease: "power2.out" }, start);
+          tl.to(scene, { opacity: index === scenes.length - 1 ? 1 : 0, scale: 1.055, x: -30, duration: 0.78, ease: "power2.inOut" }, start + 1.22);
         });
 
         captions.forEach((caption, index) => {
           const start = index * 1.85 + 0.22;
-          tl.fromTo(caption, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, start);
-          tl.to(caption, { opacity: 0, y: -16, duration: 0.38, ease: "power2.in" }, start + 1.05);
+          tl.fromTo(caption, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.46, ease: "power3.out" }, start);
+          tl.to(caption, { opacity: 0, y: -14, duration: 0.4, ease: "power2.in" }, start + 1.06);
         });
 
         window.__timelines["bloomx-hero-film"] = tl;
