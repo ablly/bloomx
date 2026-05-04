@@ -62,6 +62,11 @@
     "getStarted": "Get Started",
     "mostPopular": "Recommended",
     "perTopUp": "/ top-up",
+    "checkout": {
+      "processing": "Creating checkout",
+      "signInRequired": "Please sign in before buying a credit package.",
+      "genericError": "Failed to create Stripe checkout. Please try again later."
+    },
     "starter": {
       "name": "Starter",
       "desc": "For personal tests and small workloads",
@@ -71,9 +76,9 @@
       "feature2": "Email support",
       "feature3": "Failed-call refunds"
     },
-    "scale": {
-      "name": "Scale",
-      "desc": "For production apps and teams",
+    "creator": {
+      "name": "Creator",
+      "desc": "For production pilots and teams",
       "price": "$100",
       "credits": "12,000 Platform Credits",
       "bonus": "20% bonus",
@@ -81,6 +86,17 @@
       "feature2": "Higher call limits",
       "feature3": "Support tickets",
       "feature4": "Usage analytics"
+    },
+    "pro": {
+      "name": "Pro",
+      "desc": "For stable production traffic and frequent calls",
+      "price": "$500",
+      "credits": "60,000 Platform Credits",
+      "bonus": "20% bonus",
+      "feature1": "Production priority queue",
+      "feature2": "Higher concurrency limits",
+      "feature3": "Refund and dispute review",
+      "feature4": "Ledger and export reports"
     }
   },
   "models": {

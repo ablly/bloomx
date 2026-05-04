@@ -38,22 +38,6 @@ const providerConfigs: Record<PaymentProvider, PaymentProviderConfig> = {
       alipay: true,
       wechatPay: true,
       subscriptions: true,
-      merchantOfRecord: false,
-    },
-  },
-  dodo: {
-    provider: 'dodo',
-    environment: import.meta.env.MODE === 'production' ? 'production' : 'test',
-    enabled: import.meta.env.VITE_ENABLE_DODO_PAYMENTS === 'true',
-    displayName: 'Dodo Payments',
-    secretRef: 'DODO_PAYMENTS_API_KEY',
-    webhookSecretRef: 'DODO_PAYMENTS_WEBHOOK_KEY',
-    capabilities: {
-      cards: true,
-      alipay: false,
-      wechatPay: true,
-      subscriptions: true,
-      merchantOfRecord: true,
     },
   },
 };
@@ -106,7 +90,6 @@ function createNotImplementedAdapter(provider: PaymentProvider): PaymentProvider
 
 const adapters: Record<PaymentProvider, PaymentProviderAdapter> = {
   stripe: createNotImplementedAdapter('stripe'),
-  dodo: createNotImplementedAdapter('dodo'),
 };
 
 export function getPaymentProviderConfig(provider: PaymentProvider): PaymentProviderConfig {
@@ -122,7 +105,7 @@ export function getPaymentProviderAdapter(provider: PaymentProvider): PaymentPro
 }
 
 export function chooseDefaultPaymentProvider(required: Partial<PaymentProviderCapability> = {}): PaymentProvider {
-  const candidates: PaymentProvider[] = ['stripe', 'dodo'];
+  const candidates: PaymentProvider[] = ['stripe'];
   const matchesRequiredCapabilities = (provider: PaymentProvider) => {
     const capabilities = providerConfigs[provider].capabilities;
     return Object.entries(required).every(([key, value]) => capabilities[key as keyof PaymentProviderCapability] === value);

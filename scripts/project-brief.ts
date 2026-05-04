@@ -9,7 +9,6 @@ const urls = {
   legacyWorkflows: 'http://127.0.0.1:5173/n8n-workflows.html',
   hub: 'http://127.0.0.1:5173/project-hub.html',
   stripeDocs: 'https://docs.stripe.com/payments/payment-methods/overview',
-  dodoDocs: 'https://docs.dodopayments.com/developer-resources/mcp-server',
 };
 
 const workflowOptions = [
@@ -40,12 +39,12 @@ const workflowStandards = [
 ];
 
 const paymentPlan = [
-  '支付路线：Stripe 首发，Dodo Payments 保留 Merchant of Record 备选。',
-  'Stripe 首发覆盖 Visa、Mastercard、Alipay 和 WeChat Pay；使用 Checkout Sessions、Billing、Customer Portal 和 Connect Accounts v2。',
+  '支付路线：当前只使用 Stripe，Dodo Payments 不再作为默认或备选支付 provider。',
+  'Stripe 覆盖 Visa、Mastercard、Alipay 和 WeChat Pay；使用 Checkout Sessions、Webhook、Billing 和 Customer Portal。',
   '前端只拿 checkout/portal 链接，不接触 secret key，不直接创建支付对象。',
   '订单、积分、订阅和退款状态以服务端账本和已验签 Webhook 为准，不能只凭 success_url 改状态。',
-  'Dodo Payments 后续用于 MoR、全球税务、VAT/GST、争议和跨境销售合规的备选路线。',
-  '上线前必须完成 Webhook raw body 验签、幂等处理、测试模式、退款/争议、对账页和管理员审计。',
+  'Stripe Price ID 由服务端白名单读取，前端只能提交 STARTER、CREATOR、PRO 套餐标识。',
+  '上线前必须完成 Firebase Secret、Webhook raw body 验签、幂等处理、测试模式、退款/争议、对账页和管理员审计。',
 ];
 
 const adminPlan = [
@@ -56,7 +55,7 @@ const adminPlan = [
   '后台不使用 mock 数据：运营总览、表格、审计和风险项只读取真实 Firestore 集合；空状态会直接显示没有真实记录。',
   '服务端管理员动作 API 已升级为审批状态机：普通动作写入 pending_approval，审计页可审批执行或拒绝。',
   '当前只开放低风险真实执行：冻结/解冻用户、角色/积分带参数审批、提交复核、Webhook/工作流重放排队和审计摘要；支付、退款、结算和配置类动作继续锁定到专用生产 API。',
-  '下一步实装 Stripe checkout、webhook、portal 和账本闭环，然后再开放支付相关后台动作。',
+  '下一步实装 Stripe customer portal、退款/争议专用 API 和支付相关后台审批动作。',
 ];
 
 const sellerApiPlan = [
@@ -71,6 +70,7 @@ const done = [
   '生产管理员后台：登录白名单、真实 Firestore 数据、审计表、低风险管理员动作审批状态机。',
   '商家 API 入驻：Provider Adapter 规划、密钥服务端加密、测试日志、pending_review 审核链路。',
   '前台交易体验：市场、详情、个人中心、商家后台围绕真实订阅、积分、Key、售后和调用状态重构。',
+  'Stripe 支付入口：服务端 Checkout、Webhook 验签、payment_transactions、webhook_events 和 credit_ledger 幂等入账骨架。',
   '自动化事件层：Firestore 事件触发器、统一 automationWorkflowEvents 日志、签名 Webhook、免费工作流 Secret 命名。',
   '项目入口：预览页、项目总览页、免费工作流页、一键简报命令。',
 ];
@@ -78,7 +78,7 @@ const done = [
 const todo = [
   '把 Activepieces 自托管实例部署起来，并把 4 条业务流 Webhook 写入 WORKFLOW_* Secret。',
   '把 Node-RED API 健康巡检流和 Windmill 月结脚本接入真实环境。',
-  '实装 Stripe checkout、webhook、customer portal、积分账本、退款/争议和管理员审核闭环。',
+  '补齐 Stripe customer portal、退款/争议专用 API、支付对账页和管理员审核闭环。',
   '用真实商家 API 完成一次测试通过、管理员审核、上架、订阅、成功调用和失败退款。',
   '接入正式事务邮件服务，并完成 SPF、DKIM、DMARC 和 Return-Path。',
   '拆分仍偏大的前端主 chunk，补最小服务层测试。',
@@ -102,7 +102,6 @@ function printLinks() {
   console.log(`旧 n8n 入口兼容跳转: ${urls.legacyWorkflows}`);
   console.log(`项目总览页: ${urls.hub}`);
   console.log(`Stripe 支付方式文档: ${urls.stripeDocs}`);
-  console.log(`Dodo Payments MCP 文档: ${urls.dodoDocs}`);
 }
 
 function printList(title: string, items: string[]) {
@@ -148,8 +147,8 @@ function printBrief() {
   console.log('');
   printList('商家 API 入驻与审核', sellerApiPlan);
   console.log('');
-  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe 首发支付、Dodo Payments MoR 备选、完成后运行验证和自审，通过后推送 GitHub。');
-  console.log('建议下一步: 先部署 Activepieces 自托管工作流和 WORKFLOW_* Secret，再实装 Stripe checkout/webhook/portal API。');
+  console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe-only 支付、完成后运行验证和自审，通过后推送 GitHub。');
+  console.log('建议下一步: 先部署 Activepieces 自托管工作流和 WORKFLOW_* Secret，再补齐 Stripe customer portal、退款/争议 API。');
 }
 
 if (mode === 'links') {

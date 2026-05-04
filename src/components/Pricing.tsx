@@ -1,14 +1,20 @@
 // Pricing - Apple-inspired minimal pricing cards
 import { Check, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { createStripeCheckout, type CreditPlanId } from '../services/checkoutService';
 import { FadeIn, ShimmerButton } from './ui';
 
 const Pricing = () => {
     const { t } = useTranslation();
+    const { currentUser, loading: authLoading } = useAuth();
+    const [checkoutPlan, setCheckoutPlan] = useState<CreditPlanId | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
     
     const plans = [
         {
-            key: 'starter',
+            key: 'starter' as CreditPlanId,
             name: t('pricing.starter.name'),
             desc: t('pricing.starter.desc'),
             price: t('pricing.starter.price'),
@@ -20,21 +26,55 @@ const Pricing = () => {
             ],
         },
         {
-            key: 'scale',
-            name: t('pricing.scale.name'),
-            desc: t('pricing.scale.desc'),
-            price: t('pricing.scale.price'),
-            credits: t('pricing.scale.credits'),
-            bonus: t('pricing.scale.bonus'),
+            key: 'creator' as CreditPlanId,
+            name: t('pricing.creator.name'),
+            desc: t('pricing.creator.desc'),
+            price: t('pricing.creator.price'),
+            credits: t('pricing.creator.credits'),
+            bonus: t('pricing.creator.bonus'),
             featured: true,
             features: [
-                t('pricing.scale.feature1'),
-                t('pricing.scale.feature2'),
-                t('pricing.scale.feature3'),
-                t('pricing.scale.feature4'),
+                t('pricing.creator.feature1'),
+                t('pricing.creator.feature2'),
+                t('pricing.creator.feature3'),
+                t('pricing.creator.feature4'),
+            ],
+        },
+        {
+            key: 'pro' as CreditPlanId,
+            name: t('pricing.pro.name'),
+            desc: t('pricing.pro.desc'),
+            price: t('pricing.pro.price'),
+            credits: t('pricing.pro.credits'),
+            bonus: t('pricing.pro.bonus'),
+            features: [
+                t('pricing.pro.feature1'),
+                t('pricing.pro.feature2'),
+                t('pricing.pro.feature3'),
+                t('pricing.pro.feature4'),
             ],
         },
     ];
+
+    const handleCheckout = async (planId: CreditPlanId) => {
+        setCheckoutError(null);
+
+        if (authLoading) return;
+
+        if (!currentUser) {
+            setCheckoutError(t('pricing.checkout.signInRequired'));
+            return;
+        }
+
+        setCheckoutPlan(planId);
+        try {
+            const checkout = await createStripeCheckout(planId);
+            window.location.assign(checkout.checkoutUrl);
+        } catch (error) {
+            setCheckoutError(error instanceof Error ? error.message : t('pricing.checkout.genericError'));
+            setCheckoutPlan(null);
+        }
+    };
 
     return (
         <section id="pricing" className="relative py-32 px-6">
@@ -51,7 +91,7 @@ const Pricing = () => {
                 </div>
 
                 {/* Pricing cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                     {plans.map((plan, index) => (
                         <FadeIn key={plan.key} delay={index * 150} direction="up">
                             <div 
@@ -93,14 +133,19 @@ const Pricing = () => {
                             </ul>
 
                             <ShimmerButton 
+                                type="button"
+                                disabled={checkoutPlan !== null || authLoading}
+                                onClick={() => void handleCheckout(plan.key)}
                                 className={`w-full py-4 rounded-full font-medium transition-all duration-400 btn-apple flex items-center justify-center gap-2 ${
                                     plan.featured
                                         ? 'bg-white text-black hover:bg-white/90'
                                         : 'glass-apple text-white hover:bg-white/5'
-                                }`}
+                                } disabled:cursor-wait disabled:opacity-60`}
                                 shimmerColor={plan.featured ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'}
                             >
-                                <span>{t('pricing.getStarted')}</span>
+                                <span>
+                                    {checkoutPlan === plan.key ? t('pricing.checkout.processing') : t('pricing.getStarted')}
+                                </span>
                                 {plan.featured && <ArrowRight size={18} />}
                             </ShimmerButton>
                         </div>
@@ -108,6 +153,11 @@ const Pricing = () => {
                     ))}
                 </div>
 
+                {checkoutError && (
+                    <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-[#e07d6b]/25 bg-[#e07d6b]/10 px-5 py-4 text-center text-sm text-[#f0a091]">
+                        {checkoutError}
+                    </div>
+                )}
             </div>
         </section>
     );

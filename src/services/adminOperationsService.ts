@@ -106,7 +106,7 @@ const datasetConfigs: Array<Omit<AdminDataset, 'rows' | 'statusCounts' | 'error'
     key: 'payments',
     collectionName: 'payment_transactions',
     label: '支付交易',
-    description: 'Stripe/Dodo 交易、checkout、支付失败和争议。',
+    description: 'Stripe Checkout 交易、支付失败、退款和争议。',
   },
   {
     key: 'ledger',

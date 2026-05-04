@@ -1,4 +1,4 @@
-export type PaymentProvider = 'stripe' | 'dodo';
+export type PaymentProvider = 'stripe';
 
 export type PaymentEnvironment = 'test' | 'production';
 
@@ -38,7 +38,6 @@ export interface PaymentProviderCapability {
   alipay: boolean;
   wechatPay: boolean;
   subscriptions: boolean;
-  merchantOfRecord: boolean;
 }
 
 export interface PaymentProviderConfig {

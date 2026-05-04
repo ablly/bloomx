@@ -62,6 +62,11 @@
     "getStarted": "开始使用",
     "mostPopular": "推荐",
     "perTopUp": "/ 充值",
+    "checkout": {
+      "processing": "正在创建结账",
+      "signInRequired": "请先登录后再购买积分套餐。",
+      "genericError": "创建 Stripe 结账失败，请稍后重试。"
+    },
     "starter": {
       "name": "入门版",
       "desc": "适合个人测试和小规模调用",
@@ -71,9 +76,9 @@
       "feature2": "邮件支持",
       "feature3": "调用失败退款"
     },
-    "scale": {
-      "name": "扩展版",
-      "desc": "适合生产应用和团队使用",
+    "creator": {
+      "name": "创作者版",
+      "desc": "适合生产应用和团队试运行",
       "price": "$100",
       "credits": "12,000 平台积分",
       "bonus": "20% 奖励",
@@ -81,6 +86,17 @@
       "feature2": "更高调用限额",
       "feature3": "售后工单",
       "feature4": "用量分析"
+    },
+    "pro": {
+      "name": "专业版",
+      "desc": "适合稳定生产流量和高频调用",
+      "price": "$500",
+      "credits": "60,000 平台积分",
+      "bonus": "20% 奖励",
+      "feature1": "生产优先级队列",
+      "feature2": "更高并发额度",
+      "feature3": "退款与争议复核",
+      "feature4": "账本和导出报表"
     }
   },
   "models": {
