@@ -395,6 +395,12 @@ article,
   transform: translateY(0) scale(1);
 }
 
+#story-home .taste-reveal {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
 .motion-panel,
 .motion-card {
   animation: panel-reveal 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -406,6 +412,15 @@ article,
 
 .number-pop {
   animation: number-pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bloomx-story-particle {
+  transform: translate3d(0, 18px, 0) scale(0.7);
+  box-shadow: 0 0 18px rgba(217, 247, 235, 0.42);
+  animation-name: bloomx-particle-rise;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
 }
 
 @keyframes panel-reveal {
@@ -444,6 +459,25 @@ article,
     opacity: 1;
     filter: blur(0);
     transform: translateY(0);
+  }
+}
+
+@keyframes bloomx-particle-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(0.68);
+  }
+  24% {
+    opacity: var(--particle-opacity, 0.28);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  76% {
+    opacity: var(--particle-opacity, 0.18);
+    transform: translate3d(10px, -18px, 0) scale(0.92);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(18px, -34px, 0) scale(0.68);
   }
 }
 
@@ -489,5 +523,11 @@ body.taste-enhanced[data-story-route="marketplace"] .taste-reveal.is-visible {
   .taste-reveal {
     opacity: 1;
     transform: none;
+  }
+
+  .bloomx-story-particle {
+    animation: none !important;
+    opacity: 0.12 !important;
+    transform: none !important;
   }
 }

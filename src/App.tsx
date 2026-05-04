@@ -2,13 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense, useState } from 'react';
 import BackgroundVideo from './components/BackgroundVideo';
 import HeroLanding from './components/HeroLanding';
-import Features from './components/Features';
-import HowItWorks from './components/HowItWorks';
-import ModelCatalog from './components/ModelCatalog';
-import Pricing from './components/Pricing';
-import Testimonials from './components/Testimonials';
-import SellerApplyForm from './components/SellerApplyForm';
-import CTABanner from './components/CTABanner';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './contexts/AuthContext';
@@ -46,13 +39,6 @@ function LandingPage() {
     return (
         <>
             <HeroLanding onDashboardEnter={handleDashboardEnter} />
-            <Features />
-            <HowItWorks />
-            <ModelCatalog />
-            <Pricing />
-            <Testimonials />
-            <SellerApplyForm />
-            <CTABanner onDashboardEnter={handleDashboardEnter} />
             <Footer />
             <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
         </>
@@ -79,7 +65,7 @@ function App() {
 
     return (
         <BrowserRouter>
-            <div className="relative min-h-screen bg-[#050807] font-sans scroll-smooth overflow-x-hidden">
+            <div className="relative min-h-screen bg-[#050807] font-sans scroll-smooth [overflow-x:clip]">
                 <BackgroundVideo />
 
                 <div className="relative z-10">

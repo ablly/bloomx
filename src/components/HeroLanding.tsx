@@ -1,12 +1,11 @@
 import { type CSSProperties, useEffect, useState } from 'react';
-import { ArrowDown, ArrowRight, CreditCard, LogOut, Settings, User } from 'lucide-react';
+import { CreditCard, LogOut, Settings, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { bloomxRadix } from '../lib/radixPalette';
 import LanguageSwitcher from './LanguageSwitcher';
-import HeroScrollNarrative from './HeroScrollNarrative';
-import { FadeIn } from './ui';
+import HeroScrollNarrative, { storySceneTargets, storyScrollRange } from './HeroScrollNarrative';
 
 interface HeroLandingProps {
   onDashboardEnter?: () => void;
@@ -31,12 +30,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         account: '账户中心',
         settings: '设置',
         signOut: '退出',
-        eyebrow: '模型 API 能力交易市场',
-        headline: 'BloomX',
-        subtitle: '从访问网站到第一次模型调用。',
         primary: '进入 BloomX 控制台',
-        secondary: '查看模型供给',
-        rail: '滚动推进分镜',
       }
     : {
         navFeatures: 'Mechanism',
@@ -49,12 +43,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         account: 'Account center',
         settings: 'Settings',
         signOut: 'Sign out',
-        eyebrow: 'Model API capacity exchange',
-        headline: 'BloomX',
-        subtitle: 'From domain visit to first model call.',
         primary: 'Open BloomX Console',
-        secondary: 'View Model Supply',
-        rail: 'Scroll to move the story',
       };
 
   const heroVars = {
@@ -84,11 +73,14 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
     setShowUserMenu(false);
   };
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
+  const scrollToScene = (id: keyof typeof storySceneTargets) => {
+    const element = document.getElementById('story-home');
     if (!element) return;
-    const top = element.getBoundingClientRect().top + window.scrollY - 88;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    const start = element.getBoundingClientRect().top + window.scrollY;
+    const range = window.innerHeight * storyScrollRange;
+    const last = Math.max(Object.keys(storySceneTargets).length - 1, 1);
+    const ratio = storySceneTargets[id] / last;
+    window.scrollTo({ top: Math.max(0, start + range * ratio), behavior: 'smooth' });
   };
 
   const roleLabel = (role?: string) => {
@@ -114,16 +106,16 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
             </button>
 
             <div className="hidden items-center gap-7 text-sm md:flex">
-              <button onClick={() => scrollToSection('features')} className="text-[#293027]/72 hover:text-[#171c16]">
+              <button onClick={() => scrollToScene('features')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navFeatures}
               </button>
-              <button onClick={() => scrollToSection('models')} className="text-[#293027]/72 hover:text-[#171c16]">
+              <button onClick={() => scrollToScene('models')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navModels}
               </button>
               <Link to="/marketplace" className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navMarket}
               </Link>
-              <button onClick={() => scrollToSection('pricing')} className="text-[#293027]/72 hover:text-[#171c16]">
+              <button onClick={() => scrollToScene('pricing')} className="text-[#293027]/72 hover:text-[#171c16]">
                 {copy.navPricing}
               </button>
             </div>
@@ -190,7 +182,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
               ) : (
                 <button
                   onClick={onDashboardEnter}
-                  className="min-h-11 rounded-full bg-[#171c16] px-4 text-sm font-semibold text-[#f6f2ea] shadow-[0_14px_40px_rgba(32,37,31,0.16)] hover:bg-[#293027] active:scale-[0.98]"
+                  className="hidden min-h-11 rounded-full bg-[#171c16] px-4 text-sm font-semibold text-[#f6f2ea] shadow-[0_14px_40px_rgba(32,37,31,0.16)] hover:bg-[#293027] active:scale-[0.98] sm:inline-flex sm:items-center"
                 >
                   {copy.primary}
                 </button>
@@ -201,59 +193,14 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
       </nav>
 
       <section
+        id="story-home"
         data-screen-label="01 Hero"
-        className="relative isolate min-h-[620dvh] px-5 pt-16 sm:px-6 lg:px-10"
+        className="relative isolate min-h-[880dvh] px-5 pt-16 sm:px-6 lg:px-10"
         style={heroVars}
       >
-        <div className="sticky top-0 grid min-h-[100dvh] items-center overflow-hidden py-20">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.82),rgba(246,242,234,0.42)_38%,rgba(246,242,234,0.05)_100%)]" />
-          <HeroScrollNarrative />
-
-          <div className="mx-auto grid w-full max-w-7xl items-center self-start pt-[16dvh]">
-            <div className="max-w-3xl">
-              <FadeIn delay={80} direction="up">
-                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#293027]/14 bg-[#f6f2ea]/72 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#293027]/72 shadow-[0_16px_44px_rgba(32,37,31,0.08)] backdrop-blur-xl">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#8d9f78]" />
-                  {copy.eyebrow}
-                </div>
-              </FadeIn>
-
-              <FadeIn delay={150} direction="up">
-                <h1 className="max-w-[12ch] text-6xl font-semibold leading-[0.9] tracking-[-0.075em] text-[#111610] [text-shadow:0_2px_36px_rgba(246,242,234,0.92)] sm:text-7xl lg:text-8xl">
-                  {copy.headline}
-                </h1>
-              </FadeIn>
-
-              <FadeIn delay={240} direction="up">
-                <p className="mt-7 max-w-md text-base font-medium leading-8 text-[#293027]/80 [text-shadow:0_1px_24px_rgba(246,242,234,0.94)] sm:text-lg">
-                  {copy.subtitle}
-                </p>
-              </FadeIn>
-
-              <FadeIn delay={330} direction="up">
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    onClick={onDashboardEnter}
-                    className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#171c16] px-7 text-sm font-semibold text-[#f6f2ea] shadow-[0_18px_48px_rgba(32,37,31,0.18)] hover:bg-[#293027] active:scale-[0.98]"
-                  >
-                    <span>{copy.primary}</span>
-                    <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('models')}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#293027]/16 bg-[#f6f2ea]/76 px-7 text-sm font-semibold text-[#1f241e] shadow-[0_16px_44px_rgba(32,37,31,0.08)] backdrop-blur-xl hover:bg-[#f6f2ea]/94 active:scale-[0.98]"
-                  >
-                    {copy.secondary}
-                  </button>
-                </div>
-              </FadeIn>
-            </div>
-          </div>
-
-          <div className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-[#f6f2ea]/58 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#293027]/60 backdrop-blur-xl sm:flex">
-            <ArrowDown size={15} />
-            {copy.rail}
-          </div>
+        <div className="sticky top-0 relative z-10 h-[100dvh] min-h-[100dvh] overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,rgba(6,12,10,0.18),rgba(4,10,9,0.72)_54%,rgba(4,8,7,0.92)_100%)]" />
+          <HeroScrollNarrative onDashboardEnter={onDashboardEnter} />
         </div>
       </section>
     </>

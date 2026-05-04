@@ -75,6 +75,7 @@ export default function ExperienceLayer() {
           "main > *, section, article, form, [class*='card' i], [class*='product' i], [class*='market' i], [class*='model' i]",
         ),
       )
+        .filter((node) => !node.closest('#story-home'))
         .filter((node) => node.offsetHeight > 48)
         .slice(0, 24);
 
