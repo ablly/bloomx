@@ -9,6 +9,10 @@ export interface CreateCheckoutResponse {
   providerSessionId: string;
 }
 
+export interface CreatePortalResponse {
+  portalUrl: string;
+}
+
 const functions = getFunctions(app);
 
 function newIdempotencyKey(planId: CreditPlanId): string {
@@ -38,4 +42,18 @@ export async function createStripeCheckout(planId: CreditPlanId): Promise<Create
     transactionId: data.transactionId,
     providerSessionId: data.providerSessionId,
   };
+}
+
+export async function createStripePortalSession(): Promise<CreatePortalResponse> {
+  const createPortalSession = httpsCallable(functions, 'createStripePortalSession');
+  const result = await createPortalSession({
+    returnUrl: `${window.location.origin}/dashboard`,
+  });
+
+  const data = result.data as Partial<CreatePortalResponse>;
+  if (!data.portalUrl) {
+    throw new Error('服务端没有返回可用的 Stripe 账单管理地址');
+  }
+
+  return { portalUrl: data.portalUrl };
 }

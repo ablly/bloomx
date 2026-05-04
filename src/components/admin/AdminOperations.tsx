@@ -113,8 +113,8 @@ const sections: SectionConfig[] = [
     label: '支付交易',
     shortLabel: '支付',
     icon: CreditCard,
-    description: 'Stripe Checkout 交易、订阅、退款、争议和账本状态。',
-    action: '打开支付详情',
+    description: 'Stripe Checkout、Portal、退款请求、争议和账本状态。',
+    action: '提交支付复核',
   },
   {
     key: 'ledger',
@@ -129,7 +129,7 @@ const sections: SectionConfig[] = [
     label: '退款复核',
     shortLabel: '退款',
     icon: RefreshCcw,
-    description: '退款申请、批准、拒绝、失败和争议处理。',
+    description: 'Stripe 退款申请、服务端执行、Webhook 回执和争议复核。',
     action: '复核退款',
   },
   {
@@ -956,8 +956,8 @@ function SettingsPanel({ canRunActions }: { canRunActions: boolean }) {
   const providers = listPaymentProviderConfigs();
   const gates = [
     { label: '管理员 custom claims', status: 'required', detail: '生产必须由服务端写入 admin/operator/finance/reviewer 权限。' },
-    { label: 'Stripe-only 支付通道', status: 'ready', detail: '当前只使用 Stripe Checkout、Webhook、退款和争议处理；不启用 Dodo Payments。' },
-    { label: 'Webhook 验签与幂等', status: 'required', detail: '所有支付状态必须来自服务端验签事件和本地账本。' },
+    { label: 'Stripe-only 支付通道', status: 'ready', detail: '当前只使用 Stripe Checkout、Customer Portal、Webhook 和服务端退款请求；不启用 Dodo Payments。' },
+    { label: 'Webhook 验签与幂等', status: 'required', detail: '支付、退款和争议状态必须来自服务端验签事件、本地账本和审计记录。' },
     { label: '审计日志', status: 'required', detail: '所有敏感动作必须写 audit_logs，禁止只改前端状态。' },
     { label: '免费工作流平台', status: 'ready', detail: 'Activepieces 自托管为主，Node-RED/Windmill 补位，不再使用 n8n 默认链路。' },
   ];

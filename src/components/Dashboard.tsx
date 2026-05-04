@@ -29,6 +29,7 @@ import {
   updateApiKeyName,
   type ApiKey,
 } from '../services/apiKeyService';
+import { createStripePortalSession } from '../services/checkoutService';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -110,6 +111,11 @@ const copy = {
     billingTitle: '积分账单',
     billingDesc: '充值后的积分会进入账户余额，用于调用已订阅模型。',
     checkoutPrepared: '结账入口已准备好，接入支付后即可正式使用。',
+    manageBilling: '管理 Stripe 账单',
+    managingBilling: '正在打开账单',
+    portalDesc: '查看 Stripe 账单、付款方式和收据。退款和争议仍需管理员复核。',
+    portalNotReady: '还没有可管理的 Stripe 账单，请先完成一次积分购买。',
+    portalFailed: 'Stripe 账单入口打开失败，请稍后重试。',
     settingsTitle: '账户资料',
     settingsDesc: '管理邮箱、账户类型和通知偏好。',
     savePrepared: '资料保存入口已准备好。',
@@ -183,6 +189,11 @@ const copy = {
     billingTitle: 'Credit billing',
     billingDesc: 'Top-ups add credits to your balance for subscribed model calls.',
     checkoutPrepared: 'Checkout is prepared and can be enabled after payment provider connection.',
+    manageBilling: 'Manage Stripe billing',
+    managingBilling: 'Opening billing',
+    portalDesc: 'Review Stripe invoices, payment methods, and receipts. Refunds and disputes still require admin review.',
+    portalNotReady: 'No manageable Stripe billing record yet. Complete one credit purchase first.',
+    portalFailed: 'Failed to open Stripe billing. Please try again later.',
     settingsTitle: 'Account details',
     settingsDesc: 'Manage email, account type, and notification preferences.',
     savePrepared: 'Profile saving is prepared.',
@@ -226,6 +237,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const [pendingDeleteKey, setPendingDeleteKey] = useState<ApiKey | null>(null);
   const [showCreateKey, setShowCreateKey] = useState(false);
   const [editingNames, setEditingNames] = useState<Record<string, string>>({});
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   const navItems = useMemo(
     () => [
@@ -356,6 +368,26 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       showNotice({ type: 'success', message: c.copied });
     } catch {
       showNotice({ type: 'error', message: c.copyFailed });
+    }
+  };
+
+  const handleOpenStripePortal = async () => {
+    if (!currentUser) {
+      showNotice({ type: 'error', message: zh ? '请先登录后再管理账单。' : 'Please sign in before managing billing.' });
+      return;
+    }
+
+    setOpeningPortal(true);
+    try {
+      const portal = await createStripePortalSession();
+      window.location.assign(portal.portalUrl);
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : c.portalFailed;
+      showNotice({
+        type: 'error',
+        message: /customer|账单记录|failed-precondition/i.test(message) ? c.portalNotReady : message,
+      });
+      setOpeningPortal(false);
     }
   };
 
@@ -666,6 +698,19 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                   <button onClick={() => showNotice({ type: 'info', message: c.checkoutPrepared })} className="mt-5 min-h-12 w-full rounded-lg bg-white font-semibold text-[#070b0d] hover:bg-white/88">
                     {zh ? '前往结账' : 'Proceed to checkout'}
                   </button>
+                  <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
+                    <div className="mb-3 flex items-start gap-3">
+                      <ReceiptText size={18} className="mt-0.5 text-[#d76f37]" />
+                      <p className="text-sm leading-6 text-white/58">{c.portalDesc}</p>
+                    </div>
+                    <button
+                      onClick={() => void handleOpenStripePortal()}
+                      disabled={openingPortal}
+                      className="min-h-11 w-full rounded-lg border border-white/10 px-4 text-sm font-semibold text-white/78 transition hover:border-[#d76f37]/50 hover:text-white disabled:cursor-wait disabled:opacity-55"
+                    >
+                      {openingPortal ? c.managingBilling : c.manageBilling}
+                    </button>
+                  </div>
                 </section>
               </div>
             )}

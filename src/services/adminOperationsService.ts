@@ -106,7 +106,7 @@ const datasetConfigs: Array<Omit<AdminDataset, 'rows' | 'statusCounts' | 'error'
     key: 'payments',
     collectionName: 'payment_transactions',
     label: '支付交易',
-    description: 'Stripe Checkout 交易、支付失败、退款和争议。',
+    description: 'Stripe Checkout、Customer Portal、退款请求、支付失败和争议。',
   },
   {
     key: 'ledger',
@@ -118,7 +118,7 @@ const datasetConfigs: Array<Omit<AdminDataset, 'rows' | 'statusCounts' | 'error'
     key: 'refunds',
     collectionName: 'refunds',
     label: '退款',
-    description: '退款申请、复核、执行、失败和争议联动。',
+    description: 'Stripe 退款申请、服务端执行、Webhook 回执、失败和争议联动。',
   },
   {
     key: 'workflows',
@@ -360,7 +360,7 @@ function buildRisks(datasets: Record<AdminSectionKey, AdminDataset>): AdminRiskI
   if (webhookRows === 0 || ledgerRows === 0) {
     risks.push({
       title: '支付闭环证据不足',
-      detail: 'Webhook 事件和积分账本还没有形成可核验链路，支付上线前不能只依赖前端状态。',
+      detail: '支付、退款、争议和积分账本必须形成可核验链路，支付上线前不能只依赖前端状态。',
       severity: 'medium',
     });
   }
