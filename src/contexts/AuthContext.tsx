@@ -3,7 +3,7 @@ import {
     type User,
     onAuthStateChanged,
 } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { authService, type AuthResult } from '../services/authService';
 
@@ -68,6 +68,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const applyProfileData = async (uid: string, data: Record<string, any>) => {
+        const credits = Number(data.credits_balance ?? data.credits ?? 0);
+
+        if (data.credits_balance === undefined && data.credits !== undefined) {
+            await updateDoc(doc(db, 'users', uid), {
+                credits_balance: credits,
+                updatedAt: serverTimestamp(),
+            });
+        }
+
+        setUserProfile({
+            uid: data.uid || uid,
+            email: data.email,
+            role: data.role || 'buyer',
+            credits,
+            createdAt: data.createdAt?.toDate?.() || null,
+        });
+    };
+
     // Listen to auth state
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, async (user) => {
@@ -85,6 +104,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         return unsub;
     }, []);
+
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const ref = doc(db, 'users', currentUser.uid);
+        return onSnapshot(ref, (snap) => {
+            if (!snap.exists()) return;
+            void applyProfileData(currentUser.uid, snap.data());
+        }, (error) => {
+            console.error('Failed to subscribe profile:', error);
+        });
+    }, [currentUser?.uid]);
 
     // ─── Auth Methods ─────────────────────────────────────────────
     const login = async (email: string, password: string): Promise<AuthResult> => {

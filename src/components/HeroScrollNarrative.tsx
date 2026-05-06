@@ -2,11 +2,9 @@ import { ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { subscribeActiveProducts } from '../services/productService';
 import type { Product } from '../types/marketplace';
-
-type CreditPlanId = 'starter' | 'creator' | 'pro';
+import type { CreditPlanId } from '../services/checkoutService';
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -25,6 +23,7 @@ export const storySceneTargets = {
 
 interface HeroScrollNarrativeProps {
   onDashboardEnter?: () => void;
+  onCreditCheckout?: (planId: CreditPlanId) => Promise<void> | void;
 }
 
 type SceneKind = 'hero' | 'features' | 'how' | 'models' | 'pricing' | 'voices' | 'apply' | 'cta';
@@ -87,10 +86,9 @@ const getStoryProgress = () => {
   return clamp01((window.scrollY - start) / range);
 };
 
-const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => {
+const HeroScrollNarrative = ({ onDashboardEnter, onCreditCheckout }: HeroScrollNarrativeProps) => {
   const { i18n, t } = useTranslation();
   const isZh = i18n.language?.startsWith('zh');
-  const { currentUser, loading: authLoading } = useAuth();
   const [progress, setProgress] = useState(0);
   const [liveProducts, setLiveProducts] = useState<Product[]>([]);
   const [modelLoading, setModelLoading] = useState(true);
@@ -344,15 +342,17 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
   );
 
   const handleCheckout = async (planId: CreditPlanId) => {
-    if (authLoading) return;
     setCheckoutPlan(planId);
+    setCheckoutError(null);
 
-    if (!currentUser) {
-      setCheckoutError(isZh ? '已选择套餐。请先点击右上角进入控制台登录，登录后在控制台完成支付。' : 'Plan selected. Open the console, sign in, then complete payment.');
-      return;
+    try {
+      await onCreditCheckout?.(planId);
+      setCheckoutError(isZh ? '正在打开 Stripe 支付窗口。支付成功后积分会自动入账。' : 'Opening Stripe Checkout. Credits will be added after payment succeeds.');
+      setCheckoutPlan(null);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : isZh ? 'Stripe 支付入口打开失败，请稍后重试。' : 'Failed to open Stripe Checkout. Please try again.');
+      setCheckoutPlan(null);
     }
-
-    setCheckoutError(isZh ? '已选择套餐。请进入控制台的积分购买入口完成 Stripe 支付。' : 'Plan selected. Use the console credit purchase entry to complete Stripe payment.');
   };
 
   const activeSceneIndex = Math.min(scenes.length - 1, Math.round(progress * (scenes.length - 1)));
@@ -468,10 +468,10 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
             <button
               type="button"
               onClick={() => void handleCheckout(plan.id)}
-              disabled={authLoading}
+              disabled={checkoutPlan === plan.id}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#111610] px-5 text-sm font-semibold text-[#f6f2ea] transition hover:bg-[#283025] disabled:cursor-not-allowed disabled:opacity-58"
             >
-              {checkoutPlan === plan.id ? (isZh ? '已选择' : 'Selected') : isZh ? '购买' : 'Buy'}
+              {checkoutPlan === plan.id ? (isZh ? '打开中' : 'Opening') : isZh ? '购买' : 'Buy'}
             </button>
           </div>
         ))}
@@ -480,11 +480,9 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
       {checkoutError && (
         <div className="mt-3 flex flex-col gap-3 border-l border-[#637151]/38 pl-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium leading-6 text-[#293027]/76">{checkoutError}</p>
-          {currentUser && (
-            <Link to="/dashboard" className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-[#293027]/16 px-4 text-sm font-semibold text-[#171c16] hover:bg-[#f6f2ea]/54">
-              {isZh ? '进入控制台' : 'Open console'}
-            </Link>
-          )}
+          <Link to="/dashboard" className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-[#293027]/16 px-4 text-sm font-semibold text-[#171c16] hover:bg-[#f6f2ea]/54">
+            {isZh ? '查看积分' : 'View credits'}
+          </Link>
         </div>
       )}
     </div>

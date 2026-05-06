@@ -5,6 +5,13 @@ import HeroLanding from './components/HeroLanding';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './contexts/AuthContext';
+import {
+    closeStripeCheckoutWindow,
+    createStripeCheckout,
+    navigateStripeCheckoutWindow,
+    openStripeCheckoutWindow,
+    type CreditPlanId,
+} from './services/checkoutService';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Marketplace = lazy(() => import('./components/Marketplace'));
@@ -25,8 +32,9 @@ function RouteFallback() {
 }
 
 function LandingPage() {
-    const { currentUser } = useAuth();
+    const { currentUser, loading: authLoading } = useAuth();
     const [authOpen, setAuthOpen] = useState(false);
+    const [pendingCreditPlan, setPendingCreditPlan] = useState<CreditPlanId | null>(null);
 
     const handleDashboardEnter = () => {
         if (currentUser) {
@@ -36,11 +44,46 @@ function LandingPage() {
         }
     };
 
+    const openCreditCheckout = async (planId: CreditPlanId) => {
+        if (authLoading) {
+            throw new Error('正在确认登录状态，请稍后再试。');
+        }
+
+        if (!currentUser) {
+            setPendingCreditPlan(planId);
+            setAuthOpen(true);
+            throw new Error('请先登录。登录成功后会自动继续打开 Stripe 支付窗口。');
+        }
+
+        const checkoutWindow = openStripeCheckoutWindow(planId);
+        try {
+            const checkout = await createStripeCheckout(planId);
+            navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
+        } catch (error) {
+            closeStripeCheckoutWindow(checkoutWindow);
+            throw error;
+        }
+    };
+
+    const continuePendingCheckout = async () => {
+        if (!pendingCreditPlan) return;
+        const planId = pendingCreditPlan;
+        setPendingCreditPlan(null);
+        const checkoutWindow = openStripeCheckoutWindow(planId);
+        try {
+            const checkout = await createStripeCheckout(planId);
+            navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
+        } catch (error) {
+            closeStripeCheckoutWindow(checkoutWindow);
+            console.error('Failed to continue Stripe checkout:', error);
+        }
+    };
+
     return (
         <>
-            <HeroLanding onDashboardEnter={handleDashboardEnter} />
+            <HeroLanding onDashboardEnter={handleDashboardEnter} onCreditCheckout={openCreditCheckout} />
             <Footer />
-            <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+            <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} onAuthSuccess={() => void continuePendingCheckout()} />
         </>
     );
 }

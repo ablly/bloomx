@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthSuccess?: () => void | Promise<void>;
 }
 
 const authCopy = {
@@ -56,7 +57,7 @@ const authCopy = {
 const inputClassName =
   'w-full rounded-xl bg-[#071514]/92 border border-emerald-200/25 text-white placeholder:text-white/36 caret-emerald-200 focus:outline-none focus:border-emerald-200/65 focus:ring-2 focus:ring-emerald-200/15 text-sm transition shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]';
 
-const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
+const AuthModal = ({ isOpen, onClose, onAuthSuccess }: AuthModalProps) => {
   const { login, register, loginWithGoogle, loginAnonymously, resetPassword } = useAuth();
   const { t, i18n } = useTranslation();
   const language = i18n.language?.startsWith('zh') ? 'zh' : 'en';
@@ -129,6 +130,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       setPassword('');
       setVerificationCode('');
       setSuccess('');
+      void onAuthSuccess?.();
     }, delay);
   };
 
@@ -204,8 +206,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center">
-      <div className="absolute inset-0 bg-[#050808]/82 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-md mx-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#07100f] to-[#111118] shadow-2xl">
+      <div className="absolute inset-0 z-0 bg-[#050808]/82 backdrop-blur-md" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md mx-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#07100f] to-[#111118] shadow-2xl">
         <div className="absolute -top-20 left-1/2 h-40 w-60 -translate-x-1/2 rounded-full bg-emerald-400/16 blur-3xl pointer-events-none" />
         <button onClick={onClose} className="absolute top-4 right-4 z-10 text-white/50 hover:text-white transition" aria-label={t('common.close')}>
           <X size={20} />

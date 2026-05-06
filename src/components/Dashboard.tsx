@@ -29,7 +29,14 @@ import {
   updateApiKeyName,
   type ApiKey,
 } from '../services/apiKeyService';
-import { createStripePortalSession } from '../services/checkoutService';
+import {
+  closeStripeCheckoutWindow,
+  createStripeCheckout,
+  createStripePortalSession,
+  navigateStripeCheckoutWindow,
+  openStripeCheckoutWindow,
+  type CreditPlanId,
+} from '../services/checkoutService';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -111,6 +118,8 @@ const copy = {
     billingTitle: '积分账单',
     billingDesc: '充值后的积分会进入账户余额，用于调用已订阅模型。',
     checkoutPrepared: '结账入口已准备好，接入支付后即可正式使用。',
+    checkoutOpening: '正在打开 Stripe 支付',
+    checkoutFailed: 'Stripe 支付入口打开失败，请稍后重试。',
     manageBilling: '管理 Stripe 账单',
     managingBilling: '正在打开账单',
     portalDesc: '查看 Stripe 账单、付款方式和收据。退款和争议仍需管理员复核。',
@@ -189,6 +198,8 @@ const copy = {
     billingTitle: 'Credit billing',
     billingDesc: 'Top-ups add credits to your balance for subscribed model calls.',
     checkoutPrepared: 'Checkout is prepared and can be enabled after payment provider connection.',
+    checkoutOpening: 'Opening Stripe Checkout',
+    checkoutFailed: 'Failed to open Stripe Checkout. Please try again later.',
     manageBilling: 'Manage Stripe billing',
     managingBilling: 'Opening billing',
     portalDesc: 'Review Stripe invoices, payment methods, and receipts. Refunds and disputes still require admin review.',
@@ -238,6 +249,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const [showCreateKey, setShowCreateKey] = useState(false);
   const [editingNames, setEditingNames] = useState<Record<string, string>>({});
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<CreditPlanId | null>(null);
 
   const navItems = useMemo(
     () => [
@@ -273,6 +285,27 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       value: c.normal,
       note: zh ? '调用、账单与退款可追溯' : 'Calls, billing, and refunds are traceable',
       icon: ShieldCheck,
+    },
+  ];
+
+  const creditPlans = [
+    {
+      id: 'starter' as const,
+      name: zh ? '入门版' : 'Starter',
+      price: '$10',
+      credits: zh ? '1,000 平台积分' : '1,000 credits',
+    },
+    {
+      id: 'creator' as const,
+      name: zh ? '创作者版' : 'Creator',
+      price: '$100',
+      credits: zh ? '12,000 平台积分 · 20% 奖励' : '12,000 credits · 20% bonus',
+    },
+    {
+      id: 'pro' as const,
+      name: zh ? '专业版' : 'Pro',
+      price: '$500',
+      credits: zh ? '60,000 平台积分 · 20% 奖励' : '60,000 credits · 20% bonus',
     },
   ];
 
@@ -388,6 +421,30 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         message: /customer|账单记录|failed-precondition/i.test(message) ? c.portalNotReady : message,
       });
       setOpeningPortal(false);
+    }
+  };
+
+  const handleCreditCheckout = async (planId: CreditPlanId) => {
+    if (!currentUser) {
+      showNotice({ type: 'error', message: zh ? '请先登录后再购买积分。' : 'Please sign in before buying credits.' });
+      return;
+    }
+
+    const checkoutWindow = openStripeCheckoutWindow(planId);
+    setCheckoutPlan(planId);
+    try {
+      const checkout = await createStripeCheckout(planId);
+      navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
+      showNotice({ type: 'info', message: zh ? 'Stripe 支付窗口已打开，支付成功后积分会自动入账。' : 'Stripe Checkout is open. Credits will be added after successful payment.' });
+    } catch (error) {
+      closeStripeCheckoutWindow(checkoutWindow);
+      console.error('Failed to open Stripe checkout:', error);
+      showNotice({
+        type: 'error',
+        message: error instanceof Error && error.message ? error.message : c.checkoutFailed,
+      });
+    } finally {
+      setCheckoutPlan(null);
     }
   };
 
@@ -689,15 +746,24 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 <InfoCard icon={CreditCard} title={c.billingTitle} body={c.billingDesc} value={balance.toFixed(2)} />
                 <section className="motion-panel rounded-xl border border-white/10 bg-[#0b1213]/86 p-8">
                   <h2 className="mb-5 text-xl font-semibold">{c.topUp}</h2>
-                  <div className="mb-5 grid grid-cols-3 gap-3">
-                    {['50', '200', '1000'].map((amount) => (
-                      <button key={amount} className="min-h-12 rounded-lg border border-white/10 bg-white/[0.045] font-mono text-sm hover:border-[#d76f37]/50">{amount}</button>
+                  <div className="mb-5 grid gap-3">
+                    {creditPlans.map((plan) => (
+                      <button
+                        key={plan.id}
+                        onClick={() => void handleCreditCheckout(plan.id)}
+                        disabled={checkoutPlan !== null}
+                        className="grid min-h-16 grid-cols-[1fr_auto] items-center gap-4 rounded-lg border border-white/10 bg-white/[0.045] px-4 text-left transition hover:border-[#d76f37]/50 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        <span>
+                          <span className="block font-semibold text-white/90">{plan.name} · {plan.price}</span>
+                          <span className="mt-1 block text-sm text-white/48">{plan.credits}</span>
+                        </span>
+                        <span className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-[#070b0d]">
+                          {checkoutPlan === plan.id ? c.checkoutOpening : (zh ? 'Stripe 支付' : 'Pay with Stripe')}
+                        </span>
+                      </button>
                     ))}
                   </div>
-                  <input type="number" min={10} placeholder={zh ? '输入自定义积分数' : 'Enter custom credit amount'} className="min-h-12 w-full rounded-lg border border-white/10 bg-[#050808] px-4 text-white placeholder:text-white/35 focus:border-[#d76f37]/60 focus:outline-none" />
-                  <button onClick={() => showNotice({ type: 'info', message: c.checkoutPrepared })} className="mt-5 min-h-12 w-full rounded-lg bg-white font-semibold text-[#070b0d] hover:bg-white/88">
-                    {zh ? '前往结账' : 'Proceed to checkout'}
-                  </button>
                   <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
                     <div className="mb-3 flex items-start gap-3">
                       <ReceiptText size={18} className="mt-0.5 text-[#d76f37]" />

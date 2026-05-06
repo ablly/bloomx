@@ -6,12 +6,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { bloomxRadix } from '../lib/radixPalette';
 import LanguageSwitcher from './LanguageSwitcher';
 import HeroScrollNarrative, { storySceneTargets, storyScrollRange } from './HeroScrollNarrative';
+import type { CreditPlanId } from '../services/checkoutService';
 
 interface HeroLandingProps {
   onDashboardEnter?: () => void;
+  onCreditCheckout?: (planId: CreditPlanId) => Promise<void> | void;
 }
 
-const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
+const HeroLanding = ({ onDashboardEnter, onCreditCheckout }: HeroLandingProps) => {
   const { i18n } = useTranslation();
   const { currentUser, userProfile, logout } = useAuth();
   const navigate = useNavigate();
@@ -200,7 +202,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
       >
         <div className="sticky top-0 relative z-10 h-[100dvh] min-h-[100dvh] overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.72),rgba(246,242,234,0.26)_42%,rgba(246,242,234,0.02)_78%)]" />
-          <HeroScrollNarrative onDashboardEnter={onDashboardEnter} />
+          <HeroScrollNarrative onDashboardEnter={onDashboardEnter} onCreditCheckout={onCreditCheckout} />
         </div>
       </section>
     </>
