@@ -147,32 +147,34 @@ export async function getActiveProducts(
   const q = query(
     colRef,
     where('status', '==', 'active'),
-    orderBy('total_sales', 'desc'),
-    limit(limitCount)
+    limit(Math.max(limitCount * 3, limitCount))
   );
   const snap = await getDocs(q);
   
-  return snap.docs.map((d) => {
-    const data = d.data();
-    return {
-      id: d.id,
-      seller_id: data.seller_id,
-      name: data.name,
-      description: data.description,
-      base_url: data.base_url,
-      auth_type: data.auth_type,
-      auth_value_encrypted: data.auth_value_encrypted,
-      models: data.models,
-      pricing: data.pricing,
-      status: data.status,
-      rating: data.rating,
-      total_sales: data.total_sales,
-      review_count: data.review_count,
-      is_verified: data.is_verified,
-      createdAt: data.createdAt?.toDate?.() ?? new Date(),
-      updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-    };
-  });
+  return snap.docs
+    .map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        seller_id: data.seller_id,
+        name: data.name,
+        description: data.description,
+        base_url: data.base_url,
+        auth_type: data.auth_type,
+        auth_value_encrypted: data.auth_value_encrypted,
+        models: data.models,
+        pricing: data.pricing,
+        status: data.status,
+        rating: data.rating,
+        total_sales: data.total_sales,
+        review_count: data.review_count,
+        is_verified: data.is_verified,
+        createdAt: data.createdAt?.toDate?.() ?? new Date(),
+        updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+      };
+    })
+    .sort((left, right) => Number(right.total_sales || 0) - Number(left.total_sales || 0))
+    .slice(0, limitCount);
 }
 
 export async function updateProductStatus(

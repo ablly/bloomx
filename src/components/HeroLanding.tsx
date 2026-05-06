@@ -199,7 +199,7 @@ const HeroLanding = ({ onDashboardEnter }: HeroLandingProps) => {
         style={heroVars}
       >
         <div className="sticky top-0 relative z-10 h-[100dvh] min-h-[100dvh] overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,rgba(6,12,10,0.18),rgba(4,10,9,0.72)_54%,rgba(4,8,7,0.92)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,242,234,0.72),rgba(246,242,234,0.26)_42%,rgba(246,242,234,0.02)_78%)]" />
           <HeroScrollNarrative onDashboardEnter={onDashboardEnter} />
         </div>
       </section>

@@ -51,6 +51,14 @@
       ]
     },
     {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "total_sales", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "usage_logs",
       "queryScope": "COLLECTION",
       "fields": [
@@ -72,6 +80,14 @@
       "fields": [
         { "fieldPath": "buyer_id", "order": "ASCENDING" },
         { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "purchases",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "buyer_id", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {

@@ -148,6 +148,7 @@ const ProductDetail = () => {
         seller_id: product.seller_id,
         product_name: product.name,
         product_url: product.base_url,
+        priceCredits: subscriptionPrice,
       });
 
       setHasAccess(true);
