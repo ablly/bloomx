@@ -25,8 +25,11 @@ if (!isFirebaseConfigured) {
 
 const app = getApps()[0] || initializeApp(firebaseConfig);
 const appCheckSiteKey = import.meta.env.VITE_APPCHECK_RECAPTCHA_SITE_KEY;
+const isLocalPreview =
+    typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 
-if (appCheckSiteKey && typeof window !== 'undefined') {
+if (appCheckSiteKey && typeof window !== 'undefined' && !isLocalPreview) {
     initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(appCheckSiteKey),
         isTokenAutoRefreshEnabled: true,

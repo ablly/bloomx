@@ -6,10 +6,11 @@ import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './contexts/AuthContext';
 import {
-    closeStripeCheckoutWindow,
     createStripeCheckout,
     navigateStripeCheckoutWindow,
+    normalizeCheckoutError,
     openStripeCheckoutWindow,
+    showStripeCheckoutWindowError,
     type CreditPlanId,
 } from './services/checkoutService';
 
@@ -60,8 +61,8 @@ function LandingPage() {
             const checkout = await createStripeCheckout(planId);
             navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
         } catch (error) {
-            closeStripeCheckoutWindow(checkoutWindow);
-            throw error;
+            showStripeCheckoutWindowError(checkoutWindow, error);
+            throw new Error(normalizeCheckoutError(error));
         }
     };
 
@@ -74,7 +75,7 @@ function LandingPage() {
             const checkout = await createStripeCheckout(planId);
             navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
         } catch (error) {
-            closeStripeCheckoutWindow(checkoutWindow);
+            showStripeCheckoutWindowError(checkoutWindow, error);
             console.error('Failed to continue Stripe checkout:', error);
         }
     };

@@ -30,11 +30,12 @@ import {
   type ApiKey,
 } from '../services/apiKeyService';
 import {
-  closeStripeCheckoutWindow,
   createStripeCheckout,
   createStripePortalSession,
   navigateStripeCheckoutWindow,
+  normalizeCheckoutError,
   openStripeCheckoutWindow,
+  showStripeCheckoutWindowError,
   type CreditPlanId,
 } from '../services/checkoutService';
 
@@ -437,11 +438,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       navigateStripeCheckoutWindow(checkoutWindow, checkout.checkoutUrl);
       showNotice({ type: 'info', message: zh ? 'Stripe 支付窗口已打开，支付成功后积分会自动入账。' : 'Stripe Checkout is open. Credits will be added after successful payment.' });
     } catch (error) {
-      closeStripeCheckoutWindow(checkoutWindow);
+      showStripeCheckoutWindowError(checkoutWindow, error);
       console.error('Failed to open Stripe checkout:', error);
       showNotice({
         type: 'error',
-        message: error instanceof Error && error.message ? error.message : c.checkoutFailed,
+        message: normalizeCheckoutError(error) || c.checkoutFailed,
       });
     } finally {
       setCheckoutPlan(null);
