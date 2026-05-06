@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Filter, Search, Shield, Star, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { getActiveProducts } from '../services/productService';
+import { subscribeActiveProducts } from '../services/productService';
 import { getSellerById } from '../services/sellerService';
 import type { Product, Seller } from '../types/marketplace';
 import { FadeIn, TiltCard } from './ui';
@@ -24,7 +24,7 @@ const copy = {
     startPrice: '起价',
     reviews: '评价',
     sales: '销量',
-    details: '查看详情',
+    details: '查看并购买',
     supply: '商家供给',
     health: '测试通过',
     loadMore: '加载更多',
@@ -41,7 +41,7 @@ const copy = {
     startPrice: 'Starts at',
     reviews: 'reviews',
     sales: 'sales',
-    details: 'View details',
+    details: 'View and buy',
     supply: 'Merchant supply',
     health: 'Test passed',
     loadMore: 'Load more',
@@ -58,27 +58,46 @@ const Marketplace = () => {
   const [selectedModel, setSelectedModel] = useState<string>('all');
 
   useEffect(() => {
-    void loadProducts();
+    let disposed = false;
+    setLoading(true);
+
+    const unsubscribe = subscribeActiveProducts(
+      40,
+      (productsData) => {
+        void (async () => {
+          try {
+            const productsWithSellers = await Promise.all(
+              productsData.map(async (product) => {
+                const seller = await getSellerById(product.seller_id);
+                return { ...product, seller: seller || undefined };
+              }),
+            );
+
+            if (!disposed) {
+              setProducts(productsWithSellers);
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error('Failed to resolve product sellers:', error);
+            if (!disposed) {
+              setLoading(false);
+            }
+          }
+        })();
+      },
+      (error) => {
+        console.error('Failed to subscribe products:', error);
+        if (!disposed) {
+          setLoading(false);
+        }
+      },
+    );
+
+    return () => {
+      disposed = true;
+      unsubscribe();
+    };
   }, []);
-
-  const loadProducts = async () => {
-    try {
-      setLoading(true);
-      const productsData = await getActiveProducts(20);
-      const productsWithSellers = await Promise.all(
-        productsData.map(async (product) => {
-          const seller = await getSellerById(product.seller_id);
-          return { ...product, seller: seller || undefined };
-        }),
-      );
-
-      setProducts(productsWithSellers);
-    } catch (error) {
-      console.error('Failed to load products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const allModels = useMemo(() => Array.from(new Set(products.flatMap((product) => product.models))).sort(), [products]);
 

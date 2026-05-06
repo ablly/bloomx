@@ -11,10 +11,36 @@ import {
   where,
   orderBy,
   limit,
+  onSnapshot,
+  type Unsubscribe,
+  type QueryDocumentSnapshot,
+  type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { encryptValue, decryptValue } from '../lib/encryption';
 import type { Product } from '../types/marketplace';
+
+function mapProductDoc(d: QueryDocumentSnapshot<DocumentData>): Product {
+  const data = d.data();
+  return {
+    id: d.id,
+    seller_id: data.seller_id,
+    name: data.name,
+    description: data.description,
+    base_url: data.base_url,
+    auth_type: data.auth_type,
+    auth_value_encrypted: data.auth_value_encrypted,
+    models: data.models,
+    pricing: data.pricing,
+    status: data.status,
+    rating: data.rating,
+    total_sales: data.total_sales,
+    review_count: data.review_count,
+    is_verified: data.is_verified,
+    createdAt: data.createdAt?.toDate?.() ?? new Date(),
+    updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
+  };
+}
 
 export async function createProduct(
   sellerId: string,
@@ -152,29 +178,36 @@ export async function getActiveProducts(
   const snap = await getDocs(q);
   
   return snap.docs
-    .map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        seller_id: data.seller_id,
-        name: data.name,
-        description: data.description,
-        base_url: data.base_url,
-        auth_type: data.auth_type,
-        auth_value_encrypted: data.auth_value_encrypted,
-        models: data.models,
-        pricing: data.pricing,
-        status: data.status,
-        rating: data.rating,
-        total_sales: data.total_sales,
-        review_count: data.review_count,
-        is_verified: data.is_verified,
-        createdAt: data.createdAt?.toDate?.() ?? new Date(),
-        updatedAt: data.updatedAt?.toDate?.() ?? new Date(),
-      };
-    })
+    .map(mapProductDoc)
     .sort((left, right) => Number(right.total_sales || 0) - Number(left.total_sales || 0))
     .slice(0, limitCount);
+}
+
+export function subscribeActiveProducts(
+  limitCount: number = 20,
+  onChange: (products: Product[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, 'products');
+  const q = query(
+    colRef,
+    where('status', '==', 'active'),
+    limit(Math.max(limitCount * 3, limitCount))
+  );
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      const products = snap.docs
+        .map(mapProductDoc)
+        .sort((left, right) => Number(right.total_sales || 0) - Number(left.total_sales || 0))
+        .slice(0, limitCount);
+      onChange(products);
+    },
+    (error) => {
+      onError?.(error);
+    }
+  );
 }
 
 export async function updateProductStatus(

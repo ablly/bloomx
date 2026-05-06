@@ -17,8 +17,12 @@ const copy = {
     reviews: '评价',
     sales: '销量',
     subscribe: '订阅模型',
+    buyNow: '立即购买',
+    topUp: '先充值积分',
+    purchaseHint: '购买后立即写入订阅列表，调用失败会自动退款。',
     signIn: '登录后订阅',
     owned: '你已拥有访问权',
+    ownedAction: '查看我的订阅',
     ownedDesc: '可以在我的订阅中查看端点，并在个人工作台生成平台 Key。',
     setupPrice: '订阅押金',
     permanentAccess: '订阅后可访问',
@@ -49,8 +53,12 @@ const copy = {
     reviews: 'reviews',
     sales: 'sales',
     subscribe: 'Subscribe model',
+    buyNow: 'Buy now',
+    topUp: 'Top up credits',
+    purchaseHint: 'Access is added immediately. Failed calls are refunded automatically.',
     signIn: 'Sign in to subscribe',
     owned: 'You already have access',
+    ownedAction: 'View my subscriptions',
     ownedDesc: 'Review the endpoint in My Subscriptions and generate a platform key in your workspace.',
     setupPrice: 'Subscription deposit',
     permanentAccess: 'Access after subscribing',
@@ -93,6 +101,7 @@ const ProductDetail = () => {
   const [purchasing, setPurchasing] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const canAfford = (userProfile?.credits || 0) >= subscriptionPrice;
 
   useEffect(() => {
     if (productId) {
@@ -162,6 +171,21 @@ const ProductDetail = () => {
     }
   };
 
+  const openPurchase = () => {
+    if (!currentUser) {
+      navigate('/dashboard');
+      return;
+    }
+
+    if (!canAfford) {
+      setNotice(c.insufficient);
+      return;
+    }
+
+    setNotice(null);
+    setShowPurchaseModal(true);
+  };
+
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#070b0d] px-6 text-white">
@@ -227,25 +251,39 @@ const ProductDetail = () => {
             </div>
 
             <aside className="rounded-xl border border-white/10 bg-[#050808]/72 p-5">
-              <div className="text-center">
+              <div>
                 <div className="text-xs uppercase tracking-widest text-white/40">{c.setupPrice}</div>
-                <div className="mt-3 font-mono text-5xl">{subscriptionPrice}</div>
-                <div className="mt-1 text-sm text-white/48">BloomX credits</div>
+                <div className="mt-3 flex items-end gap-2">
+                  <span className="font-mono text-5xl">{subscriptionPrice}</span>
+                  <span className="pb-2 text-sm text-white/48">BloomX credits</span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white/54">{c.purchaseHint}</p>
               </div>
 
               {hasAccess ? (
-                <div className="mt-6 rounded-xl border border-[#2f6f5e]/40 bg-[#2f6f5e]/12 p-4 text-center">
-                  <Check size={24} className="mx-auto mb-2 text-[#9be2c8]" />
+                <div className="mt-6 rounded-xl border border-[#2f6f5e]/40 bg-[#2f6f5e]/12 p-4">
+                  <Check size={24} className="mb-2 text-[#9be2c8]" />
                   <p className="font-medium text-[#9be2c8]">{c.owned}</p>
                   <p className="mt-2 text-xs leading-5 text-white/55">{c.ownedDesc}</p>
+                  <Link to="/my-purchases" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[#9be2c8]/28 text-sm font-semibold text-[#d8fff0] hover:bg-[#9be2c8]/10">
+                    {c.ownedAction}
+                  </Link>
                 </div>
               ) : (
-                <button
-                  onClick={() => (currentUser ? setShowPurchaseModal(true) : navigate('/dashboard'))}
-                  className="mt-6 min-h-12 w-full rounded-lg bg-white font-semibold text-[#070b0d] transition hover:bg-white/88"
-                >
-                  {currentUser ? c.subscribe : c.signIn}
-                </button>
+                <div className="mt-6 grid gap-3">
+                  <button
+                    onClick={openPurchase}
+                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-white px-5 font-semibold text-[#070b0d] transition hover:bg-white/88"
+                  >
+                    <CreditCard size={18} />
+                    {currentUser ? c.buyNow : c.signIn}
+                  </button>
+                  {currentUser && !canAfford && (
+                    <Link to="/dashboard" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-white/12 text-sm font-semibold text-white/78 hover:bg-white/[0.06]">
+                      {c.topUp}
+                    </Link>
+                  )}
+                </div>
               )}
 
               <div className="mt-5 space-y-3 text-sm text-white/58">
@@ -308,6 +346,22 @@ const ProductDetail = () => {
           </FadeIn>
         )}
       </div>
+
+      {!hasAccess && (
+        <div className="fixed inset-x-4 bottom-4 z-40 rounded-xl border border-white/12 bg-[#101718]/94 p-3 shadow-2xl backdrop-blur lg:hidden">
+          <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+            <span className="truncate font-semibold text-white/86">{product.name}</span>
+            <span className="font-mono text-white/70">{subscriptionPrice} credits</span>
+          </div>
+          <button
+            onClick={openPurchase}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-white font-semibold text-[#070b0d]"
+          >
+            <CreditCard size={18} />
+            {currentUser ? c.buyNow : c.signIn}
+          </button>
+        </div>
+      )}
 
       {showPurchaseModal && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4 backdrop-blur-sm">

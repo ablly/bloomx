@@ -1,6 +1,11 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { createStripeCheckout, type CreditPlanId } from '../services/checkoutService';
+import { subscribeActiveProducts } from '../services/productService';
+import type { Product } from '../types/marketplace';
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -36,6 +41,25 @@ interface SceneLine {
   text: string;
 }
 
+interface ModelTableRow {
+  id: string;
+  productId?: string;
+  model: string;
+  supplier: string;
+  input: string;
+  output: string;
+  status: string;
+  sales: number;
+}
+
+interface PricingAction {
+  id: CreditPlanId;
+  name: string;
+  price: string;
+  credits: string;
+  detail: string;
+}
+
 const particles = Array.from({ length: 42 }, (_, index) => {
   const column = index % 7;
   const row = Math.floor(index / 7);
@@ -65,7 +89,12 @@ const getStoryProgress = () => {
 const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => {
   const { i18n, t } = useTranslation();
   const isZh = i18n.language?.startsWith('zh');
+  const { currentUser, loading: authLoading } = useAuth();
   const [progress, setProgress] = useState(0);
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
+  const [modelLoading, setModelLoading] = useState(true);
+  const [checkoutPlan, setCheckoutPlan] = useState<CreditPlanId | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     let raf = 0;
@@ -88,6 +117,29 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
       window.cancelAnimationFrame(raf);
       window.removeEventListener('scroll', request);
       window.removeEventListener('resize', request);
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const unsubscribe = subscribeActiveProducts(
+      12,
+      (products) => {
+        if (!mounted) return;
+        setLiveProducts(products);
+        setModelLoading(false);
+      },
+      (error) => {
+        console.error('Failed to subscribe hero products:', error);
+        if (mounted) {
+          setModelLoading(false);
+        }
+      },
+    );
+
+    return () => {
+      mounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -196,6 +248,120 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
     [isZh, t],
   );
 
+  const modelRows = useMemo<ModelTableRow[]>(() => {
+    const fallbackRows: ModelTableRow[] = [
+      {
+        id: 'fallback-gpt-55',
+        model: 'gpt-5.5',
+        supplier: 'OpenAI pool',
+        input: '报价',
+        output: '报价',
+        status: isZh ? '推荐接入' : 'Recommended',
+        sales: 128,
+      },
+      {
+        id: 'fallback-claude-opus',
+        model: 'claude-opus-4.6',
+        supplier: 'Anthropic pool',
+        input: '报价',
+        output: '报价',
+        status: isZh ? '待验证' : 'Pending',
+        sales: 86,
+      },
+      {
+        id: 'fallback-deepseek',
+        model: 'deepseek-v4',
+        supplier: 'DeepSeek pool',
+        input: '市场价',
+        output: '市场价',
+        status: isZh ? '市场报价' : 'Market',
+        sales: 73,
+      },
+      {
+        id: 'fallback-kimi',
+        model: 'kimi-k2.6',
+        supplier: 'Moonshot pool',
+        input: '市场价',
+        output: '市场价',
+        status: isZh ? '测试中' : 'Testing',
+        sales: 51,
+      },
+      {
+        id: 'fallback-qwen',
+        model: 'qwen-max-2026',
+        supplier: 'Alibaba pool',
+        input: '报价',
+        output: '报价',
+        status: isZh ? '待上架' : 'Queued',
+        sales: 44,
+      },
+    ];
+
+    if (!liveProducts.length) return fallbackRows;
+
+    return liveProducts
+      .flatMap((product) =>
+        product.models.map((model) => ({
+          id: `${product.id}-${model}`,
+          productId: product.id,
+          model,
+          supplier: product.name,
+          input: `${Number(product.pricing.input_per_1k || 0).toFixed(3)}/1K`,
+          output: `${Number(product.pricing.output_per_1k || 0).toFixed(3)}/1K`,
+          status: product.is_verified ? (isZh ? '已验证' : 'Verified') : (isZh ? '待验证' : 'Pending'),
+          sales: Number(product.total_sales || 0),
+        })),
+      )
+      .slice(0, 18);
+  }, [isZh, liveProducts]);
+
+  const pricingActions = useMemo<PricingAction[]>(
+    () => [
+      {
+        id: 'starter',
+        name: t('pricing.starter.name'),
+        price: t('pricing.starter.price'),
+        credits: t('pricing.starter.credits'),
+        detail: isZh ? '个人测试和小规模调用' : 'Personal tests and small runs',
+      },
+      {
+        id: 'creator',
+        name: t('pricing.creator.name'),
+        price: t('pricing.creator.price'),
+        credits: t('pricing.creator.credits'),
+        detail: t('pricing.creator.bonus'),
+      },
+      {
+        id: 'pro',
+        name: t('pricing.pro.name'),
+        price: t('pricing.pro.price'),
+        credits: t('pricing.pro.credits'),
+        detail: t('pricing.pro.bonus'),
+      },
+    ],
+    [isZh, t],
+  );
+
+  const handleCheckout = async (planId: CreditPlanId) => {
+    if (authLoading) return;
+    if (!currentUser) {
+      setCheckoutError(isZh ? '请先点击右上角进入控制台登录，登录后再购买积分。' : 'Open the console and sign in before buying credits.');
+      return;
+    }
+
+    setCheckoutPlan(planId);
+    setCheckoutError(null);
+    try {
+      const checkout = await createStripeCheckout(planId);
+      window.location.assign(checkout.checkoutUrl);
+    } catch (error) {
+      console.error('Failed to start checkout:', error);
+      setCheckoutError(isZh ? '无法创建支付订单，请稍后重试。' : 'Could not create checkout. Please try again.');
+    } finally {
+      setCheckoutPlan(null);
+    }
+  };
+
   const activeSceneIndex = Math.min(scenes.length - 1, Math.round(progress * (scenes.length - 1)));
   const scenePosition = progress * (scenes.length - 1);
 
@@ -212,6 +378,117 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
         '--story-progress': progress,
       }) as CSSProperties,
     [progress],
+  );
+
+  const renderModelTable = () => (
+    <div className="mt-7 max-w-[54rem] sm:mt-8">
+      <div className="mb-3 flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-[#637151]/76">
+        <span>{isZh ? '实时模型列表' : 'Live model list'}</span>
+        <Link to="/marketplace" className="inline-flex items-center gap-1 tracking-normal text-[#171c16] hover:text-[#637151]">
+          {isZh ? '进入市场' : 'Open market'}
+          <ArrowRight size={14} />
+        </Link>
+      </div>
+
+      <div className="bloomx-model-table-scroll max-h-[17.5rem] overflow-y-auto border-y border-[#293027]/14 pr-1">
+        <div className="min-w-[48rem]">
+          <div className="grid grid-cols-[1.35fr_1.25fr_0.78fr_0.78fr_0.85fr_0.66fr] gap-4 border-b border-[#293027]/12 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[#293027]/48">
+            <span>{isZh ? '模型' : 'Model'}</span>
+            <span>{isZh ? '供应' : 'Supply'}</span>
+            <span>{isZh ? '输入' : 'Input'}</span>
+            <span>{isZh ? '输出' : 'Output'}</span>
+            <span>{isZh ? '状态' : 'Status'}</span>
+            <span className="text-right">{isZh ? '操作' : 'Action'}</span>
+          </div>
+
+          <div className="bloomx-model-table-drift">
+            {modelRows.map((row, rowIndex) => {
+              const rowContent = (
+                <>
+                  <span className="truncate font-semibold text-[#171c16]">{row.model}</span>
+                  <span className="truncate text-[#293027]/70">{row.supplier}</span>
+                  <span className="font-mono text-[#293027]/64">{row.input}</span>
+                  <span className="font-mono text-[#293027]/64">{row.output}</span>
+                  <span className="inline-flex items-center gap-2 text-[#293027]/72">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#637151]" />
+                    {row.status}
+                  </span>
+                  <span className="text-right font-semibold text-[#171c16]">{isZh ? '购买' : 'Buy'}</span>
+                </>
+              );
+
+              const className =
+                'bloomx-model-row grid grid-cols-[1.35fr_1.25fr_0.78fr_0.78fr_0.85fr_0.66fr] gap-4 border-b border-[#293027]/10 py-4 text-sm transition hover:bg-[#f6f2ea]/34';
+
+              return row.productId ? (
+                <Link
+                  key={row.id}
+                  to={`/product/${row.productId}`}
+                  className={className}
+                  style={{ '--row-index': rowIndex } as CSSProperties}
+                >
+                  {rowContent}
+                </Link>
+              ) : (
+                <Link
+                  key={row.id}
+                  to="/marketplace"
+                  className={className}
+                  style={{ '--row-index': rowIndex } as CSSProperties}
+                >
+                  {rowContent}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-5 text-[#293027]/48">
+        {modelLoading
+          ? isZh
+            ? '正在同步卖家上架数据...'
+            : 'Syncing merchant listings...'
+          : isZh
+            ? '卖家通过测试并上架后，这里会实时刷新。'
+            : 'New verified merchant listings appear here in real time.'}
+      </p>
+    </div>
+  );
+
+  const renderPricingActions = () => (
+    <div className="mt-7 max-w-[38rem] sm:mt-8">
+      <div className="divide-y divide-[#293027]/12 border-y border-[#293027]/14">
+        {pricingActions.map((plan, planIndex) => (
+          <div key={plan.id} className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-4 py-4">
+            <span className="font-mono text-xs font-semibold text-[#637151]/62">
+              {String(planIndex + 1).padStart(2, '0')}
+            </span>
+            <div className="min-w-0">
+              <div className="text-base font-semibold tracking-[-0.02em] text-[#171c16] sm:text-lg">
+                {plan.name} · {plan.price}
+              </div>
+              <div className="mt-1 text-sm leading-6 text-[#293027]/66">
+                {plan.credits} · {plan.detail}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleCheckout(plan.id)}
+              disabled={checkoutPlan === plan.id || authLoading}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#111610] px-5 text-sm font-semibold text-[#f6f2ea] transition hover:bg-[#283025] disabled:cursor-not-allowed disabled:opacity-58"
+            >
+              {checkoutPlan === plan.id ? <Loader2 size={16} className="animate-spin" /> : null}
+              {isZh ? '购买' : 'Buy'}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {checkoutError && (
+        <p className="mt-3 text-sm font-medium text-[#8c3f24]">{checkoutError}</p>
+      )}
+    </div>
   );
 
   return (
@@ -250,7 +527,9 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
               key={scene.id}
               id={`story-${scene.id}`}
               data-screen-label={`${String(index + 1).padStart(2, '0')} ${scene.id}`}
-              className="absolute left-6 right-6 top-1/2 max-w-[38rem] sm:left-10 sm:right-auto sm:w-[38rem] lg:left-16 xl:left-20"
+              className={`absolute left-6 right-6 top-1/2 sm:left-10 sm:right-auto lg:left-16 xl:left-20 ${
+                scene.kind === 'models' ? 'max-w-[54rem] sm:w-[54rem]' : 'max-w-[38rem] sm:w-[38rem]'
+              }`}
               style={{
                 opacity,
                 pointerEvents: isActive ? 'auto' : 'none',
@@ -289,7 +568,11 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
                   </div>
                 )}
 
-                {scene.kind !== 'hero' && (
+                {scene.kind === 'models' && renderModelTable()}
+
+                {scene.kind === 'pricing' && renderPricingActions()}
+
+                {scene.kind !== 'hero' && scene.kind !== 'models' && scene.kind !== 'pricing' && (
                   <div className="mt-8 grid max-w-[32rem] gap-4 sm:mt-10">
                     {lines.map((line, lineIndex) => (
                       <div key={`${scene.id}-${line.label}`} className="grid grid-cols-[2.5rem_1fr] gap-4">
