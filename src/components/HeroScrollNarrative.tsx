@@ -1,11 +1,12 @@
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { createStripeCheckout, type CreditPlanId } from '../services/checkoutService';
 import { subscribeActiveProducts } from '../services/productService';
 import type { Product } from '../types/marketplace';
+
+type CreditPlanId = 'starter' | 'creator' | 'pro';
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -344,22 +345,14 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
 
   const handleCheckout = async (planId: CreditPlanId) => {
     if (authLoading) return;
+    setCheckoutPlan(planId);
+
     if (!currentUser) {
-      setCheckoutError(isZh ? '请先点击右上角进入控制台登录，登录后再购买积分。' : 'Open the console and sign in before buying credits.');
+      setCheckoutError(isZh ? '已选择套餐。请先点击右上角进入控制台登录，登录后在控制台完成支付。' : 'Plan selected. Open the console, sign in, then complete payment.');
       return;
     }
 
-    setCheckoutPlan(planId);
-    setCheckoutError(null);
-    try {
-      const checkout = await createStripeCheckout(planId);
-      window.location.assign(checkout.checkoutUrl);
-    } catch (error) {
-      console.error('Failed to start checkout:', error);
-      setCheckoutError(isZh ? '无法创建支付订单，请稍后重试。' : 'Could not create checkout. Please try again.');
-    } finally {
-      setCheckoutPlan(null);
-    }
+    setCheckoutError(isZh ? '已选择套餐。请进入控制台的积分购买入口完成 Stripe 支付。' : 'Plan selected. Use the console credit purchase entry to complete Stripe payment.');
   };
 
   const activeSceneIndex = Math.min(scenes.length - 1, Math.round(progress * (scenes.length - 1)));
@@ -475,18 +468,24 @@ const HeroScrollNarrative = ({ onDashboardEnter }: HeroScrollNarrativeProps) => 
             <button
               type="button"
               onClick={() => void handleCheckout(plan.id)}
-              disabled={checkoutPlan === plan.id || authLoading}
+              disabled={authLoading}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#111610] px-5 text-sm font-semibold text-[#f6f2ea] transition hover:bg-[#283025] disabled:cursor-not-allowed disabled:opacity-58"
             >
-              {checkoutPlan === plan.id ? <Loader2 size={16} className="animate-spin" /> : null}
-              {isZh ? '购买' : 'Buy'}
+              {checkoutPlan === plan.id ? (isZh ? '已选择' : 'Selected') : isZh ? '购买' : 'Buy'}
             </button>
           </div>
         ))}
       </div>
 
       {checkoutError && (
-        <p className="mt-3 text-sm font-medium text-[#8c3f24]">{checkoutError}</p>
+        <div className="mt-3 flex flex-col gap-3 border-l border-[#637151]/38 pl-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium leading-6 text-[#293027]/76">{checkoutError}</p>
+          {currentUser && (
+            <Link to="/dashboard" className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-[#293027]/16 px-4 text-sm font-semibold text-[#171c16] hover:bg-[#f6f2ea]/54">
+              {isZh ? '进入控制台' : 'Open console'}
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );
