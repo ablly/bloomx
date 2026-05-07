@@ -3,13 +3,18 @@ import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+const nodeEnv = (globalThis as typeof globalThis & {
+    process?: { env?: Record<string, string | undefined> };
+}).process?.env ?? {};
+const viteEnv = import.meta.env ?? nodeEnv;
+
 export const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: viteEnv.VITE_FIREBASE_API_KEY,
+    authDomain: viteEnv.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: viteEnv.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: viteEnv.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: viteEnv.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: viteEnv.VITE_FIREBASE_APP_ID,
 };
 
 export const isFirebaseConfigured = Boolean(
@@ -24,7 +29,7 @@ if (!isFirebaseConfigured) {
 }
 
 const app = getApps()[0] || initializeApp(firebaseConfig);
-const appCheckSiteKey = import.meta.env.VITE_APPCHECK_RECAPTCHA_SITE_KEY;
+const appCheckSiteKey = viteEnv.VITE_APPCHECK_RECAPTCHA_SITE_KEY;
 const isLocalPreview =
     typeof window !== 'undefined' &&
     ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);

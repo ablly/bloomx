@@ -2,9 +2,11 @@ import {
   collection,
   getDocs,
   limit,
+  onSnapshot as onFirestoreSnapshot,
   query,
   type DocumentData,
   type QueryDocumentSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
@@ -381,8 +383,18 @@ function buildRisks(datasets: Record<AdminSectionKey, AdminDataset>): AdminRiskI
   return risks;
 }
 
-export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapshot> {
-  const resolved = await Promise.all(datasetConfigs.map((config) => readDataset(config, maxRows)));
+function emptyDataset(config: (typeof datasetConfigs)[number]): AdminDataset {
+  return {
+    ...config,
+    rows: [],
+    statusCounts: {},
+  };
+}
+
+export function buildAdminSnapshotFromDatasets(
+  resolved: AdminDataset[],
+  loadedAt = new Date(),
+): AdminSnapshot {
   const baseDatasets: Partial<Record<AdminSectionKey, AdminDataset>> = {
     overview: {
       key: 'overview',
@@ -402,6 +414,10 @@ export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapsh
     },
   };
 
+  for (const config of datasetConfigs) {
+    baseDatasets[config.key] = emptyDataset(config);
+  }
+
   const datasets = resolved.reduce<Partial<Record<AdminSectionKey, AdminDataset>>>(
     (acc, dataset) => {
       acc[dataset.key] = dataset;
@@ -416,6 +432,49 @@ export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapsh
     queue: buildQueue(datasets),
     risks: buildRisks(datasets),
     paymentReconciliation: buildPaymentReconciliation(datasets),
-    loadedAt: new Date(),
+    loadedAt,
+  };
+}
+
+export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapshot> {
+  const resolved = await Promise.all(datasetConfigs.map((config) => readDataset(config, maxRows)));
+  return buildAdminSnapshotFromDatasets(resolved);
+}
+
+export function subscribeAdminConsoleSnapshot(
+  onNext: (snapshot: AdminSnapshot) => void,
+  maxRows = 40,
+): Unsubscribe {
+  const datasets = new Map<AdminSectionKey, AdminDataset>();
+  const emit = () => onNext(buildAdminSnapshotFromDatasets([...datasets.values()]));
+
+  emit();
+
+  const unsubscribes = datasetConfigs.map((config) =>
+    onFirestoreSnapshot(
+      query(collection(db, config.collectionName), limit(maxRows)),
+      (snap) => {
+        const rows = snap.docs.map((docSnap) => mapRecord(config.collectionName, docSnap));
+        datasets.set(config.key, {
+          ...config,
+          rows,
+          statusCounts: countStatuses(rows),
+        });
+        emit();
+      },
+      (error) => {
+        datasets.set(config.key, {
+          ...config,
+          rows: [],
+          statusCounts: {},
+          error: error.message,
+        });
+        emit();
+      },
+    ),
+  );
+
+  return () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
   };
 }

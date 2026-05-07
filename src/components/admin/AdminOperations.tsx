@@ -30,7 +30,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import {
-  getAdminConsoleSnapshot,
+  subscribeAdminConsoleSnapshot,
   type AdminDataset,
   type AdminMetric,
   type AdminRecord,
@@ -238,21 +238,15 @@ export default function AdminOperations() {
 
     setLoading(true);
     setError(null);
-    getAdminConsoleSnapshot()
-      .then((result) => {
-        if (!alive) return;
-        setSnapshot(result);
-      })
-      .catch((nextError) => {
-        if (!alive) return;
-        setError(nextError instanceof Error ? nextError.message : '后台数据读取失败');
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
+    const unsubscribe = subscribeAdminConsoleSnapshot((result) => {
+      if (!alive) return;
+      setSnapshot(result);
+      setLoading(false);
+    });
 
     return () => {
       alive = false;
+      unsubscribe();
     };
   }, [authLoading, currentUser, isAdminEmail]);
 
