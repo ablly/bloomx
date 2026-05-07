@@ -223,6 +223,19 @@ export default function AdminOperations() {
 
   useEffect(() => {
     let alive = true;
+    if (authLoading) return () => {
+      alive = false;
+    };
+
+    if (!currentUser || !isAdminEmail) {
+      setSnapshot(null);
+      setLoading(false);
+      setError(null);
+      return () => {
+        alive = false;
+      };
+    }
+
     setLoading(true);
     setError(null);
     getAdminConsoleSnapshot()
@@ -241,7 +254,7 @@ export default function AdminOperations() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [authLoading, currentUser, isAdminEmail]);
 
   const dataset = snapshot?.datasets[activeKey];
 
