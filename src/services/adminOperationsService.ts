@@ -7,6 +7,10 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import {
+  buildPaymentReconciliation,
+  type PaymentReconciliationSummary,
+} from './paymentReconciliation';
 
 export type AdminSectionKey =
   | 'overview'
@@ -74,6 +78,7 @@ export interface AdminSnapshot {
   metrics: AdminMetric[];
   queue: AdminQueueItem[];
   risks: AdminRiskItem[];
+  paymentReconciliation: PaymentReconciliationSummary;
   loadedAt: Date;
 }
 
@@ -410,6 +415,7 @@ export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapsh
     metrics: buildMetrics(datasets),
     queue: buildQueue(datasets),
     risks: buildRisks(datasets),
+    paymentReconciliation: buildPaymentReconciliation(datasets),
     loadedAt: new Date(),
   };
 }

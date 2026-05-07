@@ -45,7 +45,7 @@ const paymentPlan = [
   '订单、积分、订阅、退款和争议状态以服务端账本、管理员请求和已验签 Webhook 为准，不能只凭 success_url 改状态。',
   'Stripe Price ID 由服务端白名单读取，前端只能提交 STARTER、CREATOR、PRO 套餐标识。',
   '退款由管理员专用服务端 API 发起；退款/争议 Webhook 只更新本地状态，本轮不自动扣减用户积分。',
-  '上线前必须完成 Firebase Secret、Webhook raw body 验签、幂等处理、测试模式、对账页和管理员审计。',
+  '上线前仍需完成 Firebase Secret、Webhook raw body 验签、Stripe 测试模式 smoke test 和生产环境隔离复核；后台对账页和管理员审计入口已具备骨架。',
 ];
 
 const adminPlan = [
@@ -56,7 +56,7 @@ const adminPlan = [
   '后台不使用 mock 数据：运营总览、表格、审计和风险项只读取真实 Firestore 集合；空状态会直接显示没有真实记录。',
   '服务端管理员动作 API 已升级为审批状态机：普通动作写入 pending_approval，审计页可审批执行或拒绝。',
   '当前开放低风险真实执行和 Stripe 退款专用 API：冻结/解冻用户、角色/积分带参数审批、提交复核、Webhook/工作流重放排队、审计摘要和管理员退款请求；结算和配置类动作继续锁定。',
-  '下一步实装支付对账页、退款/争议复核台和 Customer Portal 真实环境 smoke test。',
+  '已实装支付对账工作台和退款/争议复核队列；下一步做 Stripe Customer Portal 真实环境 smoke test。',
 ];
 
 const sellerApiPlan = [
@@ -73,6 +73,7 @@ const done = [
   '前台交易体验：市场、详情、个人中心、商家后台围绕真实订阅、积分、Key、售后和调用状态重构。',
   'Stripe 支付入口：服务端 Checkout、Webhook 验签、payment_transactions、webhook_events 和 credit_ledger 幂等入账骨架。',
   'Stripe 售后入口：Customer Portal 会话、管理员退款请求、退款/争议状态记录和审计日志。',
+  '支付运营后台：管理员总览页已展示 Stripe 对账、积分账本、Webhook 失败、退款/争议复核队列和真实空状态。',
   '自动化事件层：Firestore 事件触发器、统一 automationWorkflowEvents 日志、签名 Webhook、免费工作流 Secret 命名。',
   '项目入口：预览页、项目总览页、免费工作流页、一键简报命令。',
 ];
@@ -80,7 +81,7 @@ const done = [
 const todo = [
   '把 Activepieces 自托管实例部署起来，并把 4 条业务流 Webhook 写入 WORKFLOW_* Secret。',
   '把 Node-RED API 健康巡检流和 Windmill 月结脚本接入真实环境。',
-  '补齐支付对账页、退款/争议复核台、Stripe Customer Portal 真实环境 smoke test。',
+  '完成 Stripe Customer Portal 真实环境 smoke test，并核对退款/争议 Webhook 回写。',
   '用真实商家 API 完成一次测试通过、管理员审核、上架、订阅、成功调用和失败退款。',
   '接入正式事务邮件服务，并完成 SPF、DKIM、DMARC 和 Return-Path。',
   '拆分仍偏大的前端主 chunk，补最小服务层测试。',
@@ -150,7 +151,7 @@ function printBrief() {
   printList('商家 API 入驻与审核', sellerApiPlan);
   console.log('');
   console.log('当前交付规则: 中文文档、OpenSpec + Superpowers、Taste + Open Design、不使用 mock 数据或假页面、免费自托管工作流优先、Stripe-only 支付、完成后运行验证和自审，通过后推送 GitHub。');
-  console.log('建议下一步: 先部署 Activepieces 自托管工作流和 WORKFLOW_* Secret，再补齐支付对账页和退款/争议复核台。');
+  console.log('建议下一步: 先部署 Activepieces 自托管工作流和 WORKFLOW_* Secret，再做 Stripe Customer Portal 真实环境 smoke test。');
 }
 
 if (mode === 'links') {

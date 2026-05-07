@@ -511,6 +511,8 @@ function OverviewPanel({ snapshot, loading }: { snapshot: AdminSnapshot | null; 
         ))}
       </section>
 
+      <PaymentReconciliationPanel summary={snapshot.paymentReconciliation} />
+
       <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <article className="rounded-xl border border-white/10 bg-[#0b1213]/88">
           <PanelHeader title="运营待办队列" detail="只展示真实集合里需要处理的记录，不使用假数据。" icon={AlertTriangle} />
@@ -570,6 +572,104 @@ function OverviewPanel({ snapshot, loading }: { snapshot: AdminSnapshot | null; 
         </div>
       </section>
     </div>
+  );
+}
+
+function PaymentReconciliationPanel({
+  summary,
+}: {
+  summary: AdminSnapshot['paymentReconciliation'];
+}) {
+  const cards = [
+    {
+      label: 'Stripe 实收',
+      value: summary.collectedAmount.formatted,
+      detail: `${summary.transactionCount} 笔 payment_transactions，以 paid/completed/succeeded 为准`,
+      tone: 'good' as const,
+    },
+    {
+      label: '积分入账',
+      value: summary.creditedAmount.formatted,
+      detail: `${summary.ledgerEntryCount} 条 credit_ledger，只统计 payment/admin/migration 正向入账`,
+      tone: 'neutral' as const,
+    },
+    {
+      label: 'Webhook 失败',
+      value: String(summary.failedWebhooks),
+      detail: 'failed、dead_lettered、signature failed 都进入复核范围',
+      tone: summary.failedWebhooks > 0 ? 'danger' as const : 'good' as const,
+    },
+    {
+      label: '需人工复核',
+      value: String(summary.requiresReview),
+      detail: `${summary.pendingRefunds} 个退款，${summary.openDisputes} 个争议`,
+      tone: summary.requiresReview > 0 ? 'warning' as const : 'good' as const,
+    },
+  ];
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-[#0b1213]/88">
+      <PanelHeader
+        title="支付对账工作台"
+        detail="Stripe-only：Checkout、Webhook、积分账本、退款和争议必须能相互追溯；退款/争议 Webhook 只更新状态，不自动扣减积分。"
+        icon={CreditCard}
+      />
+      <div className="grid gap-3 border-b border-white/10 p-5 md:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <article key={card.label} className={`rounded-lg border p-4 ${toneClass(card.tone)}`}>
+            <div className="text-xs opacity-75">{card.label}</div>
+            <div className="mt-2 font-mono text-2xl font-semibold">{card.value}</div>
+            <div className="mt-2 text-xs leading-5 opacity-70">{card.detail}</div>
+          </article>
+        ))}
+      </div>
+      <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
+          <div className="text-sm font-semibold text-white/82">运营边界</div>
+          <div className="mt-3 grid gap-2 text-sm leading-6 text-white/48">
+            <p>支付对象只来自服务端白名单套餐和 Stripe Price ID，前端只请求 Checkout 或 Portal 链接。</p>
+            <p>订单、积分、退款、争议状态以已验签 Webhook、本地账本和管理员审计为准，不凭 success_url 改账。</p>
+            <p>幂等键贯穿 checkout、webhook_events、credit_ledger 和 refunds，失败记录必须可重放、可审计。</p>
+          </div>
+        </div>
+        <div className="p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-white/82">退款/争议复核队列</div>
+              <div className="mt-1 text-xs text-white/42">只显示真实集合里处于处理中、失败或需响应的记录。</div>
+            </div>
+            <span className={`rounded-full border px-3 py-1 text-xs ${toneClass(summary.requiresReview > 0 ? 'warning' : 'good')}`}>
+              {summary.requiresReview} items
+            </span>
+          </div>
+          {summary.reviewItems.length === 0 ? (
+            <EmptyState
+              title={summary.hasRecords ? '暂无退款或争议待复核' : '暂无真实支付记录'}
+              detail={summary.hasRecords ? '当前没有 processing、failed、needs_response 等状态。' : 'Firestore 尚未读取到 payment_transactions、credit_ledger、refunds 或 webhook_events。'}
+              compact
+            />
+          ) : (
+            <div className="divide-y divide-white/8 rounded-lg border border-white/10">
+              {summary.reviewItems.map((item) => (
+                <div key={`${item.kind}-${item.id}`} className="grid gap-3 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm text-white/86">{item.providerId}</span>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusTone(item.status)}`}>{item.status}</span>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] ${toneClass(item.severity)}`}>{item.kind}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-white/42">
+                      tx: {item.transactionId} / owner: {item.owner} / reason: {item.reason}
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm text-white/68">{item.amount.formatted}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
