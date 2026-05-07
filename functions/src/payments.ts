@@ -182,9 +182,9 @@ function assertReason(value: unknown): string {
   return reason;
 }
 
-function summarizeStripeObject(value: StripeObject): Record<string, unknown> {
+export function summarizeStripeObject(value: StripeObject): Record<string, unknown> {
   const objectWithFields = value as Record<string, unknown>;
-  return {
+  const summary = {
     object: objectWithFields.object,
     id: objectWithFields.id,
     status: objectWithFields.status,
@@ -196,6 +196,10 @@ function summarizeStripeObject(value: StripeObject): Record<string, unknown> {
     payment_intent: objectWithFields.payment_intent,
     checkout_session: objectWithFields.checkout_session,
   };
+
+  return Object.fromEntries(
+    Object.entries(summary).filter(([, fieldValue]) => fieldValue !== undefined),
+  );
 }
 
 function metadataString(metadata: StripeMetadata, key: string): string {

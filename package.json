@@ -15,6 +15,7 @@
     "deploy:cloudflare": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-cloudflare-pages.ps1",
     "workflow:doctor": "tsx scripts/workflow-doctor.ts",
     "test:payment-reconciliation": "tsx --test scripts/payment-reconciliation.test.ts",
+    "test:stripe-webhook-summary": "npm --prefix functions run build && tsx --test scripts/stripe-webhook-summary.test.ts",
     "hero:remotion:render": "remotion render src/remotion/index.ts BloomXHero public/media/bloomx-worker-loop.mp4 --codec=h264 --pixel-format=yuv420p",
     "brief": "tsx scripts/project-brief.ts",
     "links": "tsx scripts/project-brief.ts links",
