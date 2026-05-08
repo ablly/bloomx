@@ -3,6 +3,11 @@ import {createHash} from 'crypto';
 import * as functions from 'firebase-functions';
 import {defineSecret} from 'firebase-functions/params';
 import Stripe = require('stripe');
+import {
+  adminRoleForIdentity,
+  allowedAdminEmails,
+  isAdminIdentity,
+} from './adminAuthorization';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -98,18 +103,10 @@ const PLANS: Record<PlanId, PlanConfig> = {
   },
 };
 
-const DEFAULT_ADMIN_EMAIL = 'zqhablly@gmail.com';
 const REFUNDABLE_STATUSES = new Set(['paid', 'refund_requested', 'refund_failed']);
 
 function paymentEnvironment(): 'test' | 'production' {
   return process.env.STRIPE_ENVIRONMENT === 'production' ? 'production' : 'test';
-}
-
-function allowedAdminEmails(): string[] {
-  return String(process.env.ADMIN_ALLOWED_EMAILS || DEFAULT_ADMIN_EMAIL)
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
 }
 
 function stripeClient(): Stripe.Stripe {
@@ -218,16 +215,21 @@ async function assertAdmin(context: functions.https.CallableContext) {
   const allowedByEmail = allowedAdminEmails().includes(email);
   const userSnap = await firestore.collection('users').doc(uid).get();
   const role = String(userSnap.data()?.role || '');
+  const token = context.auth?.token as Record<string, unknown>;
 
-  if (!allowedByEmail && role !== 'admin') {
+  if (!isAdminIdentity({uid, email, token}) && role !== 'admin') {
     throw new functions.https.HttpsError('permission-denied', '需要管理员权限才能发起退款');
   }
 
   return {
     uid,
     email,
-    role: allowedByEmail ? 'owner' : role,
+    role: allowedByEmail ? 'owner' : adminRoleForIdentity({uid, email, token}, role),
   };
+}
+
+function adminTimestamp() {
+  return admin.firestore.FieldValue.serverTimestamp();
 }
 
 async function findStripeCustomerId(userId: string): Promise<string | null> {
@@ -640,7 +642,29 @@ export const requestStripeRefund = functions
       },
     }, {idempotencyKey});
 
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = adminTimestamp();
+    const requestRef = firestore.collection('admin_action_requests').doc();
+    const requestId = requestRef.id;
+    const actionRecord = {
+      requestId,
+      actionType: 'request_stripe_refund',
+      targetCollection: 'payment_transactions',
+      targetId: transactionId,
+      actor,
+      reason,
+      metadata: {
+        refundId: refundRef.id,
+        providerRefundId: refund.id,
+        amount: requestedAmount,
+        currency: payment.currency || refund.currency || 'usd',
+        previousStatus: status,
+      },
+      status: 'approved_executed',
+      dryRun: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     await Promise.all([
       refundRef.set({
         id: refundRef.id,
@@ -668,22 +692,10 @@ export const requestStripeRefund = functions
         refundReason: reason,
         updatedAt: now,
       }, {merge: true}),
-      firestore.collection('audit_logs').add({
-        actionType: 'request_stripe_refund',
-        targetCollection: 'payment_transactions',
-        targetId: transactionId,
-        actor,
-        reason,
-        metadata: {
-          refundId: refundRef.id,
-          providerRefundId: refund.id,
-          amount: requestedAmount,
-          currency: payment.currency || refund.currency || 'usd',
-          previousStatus: status,
-        },
-        status: 'approved_executed',
-        createdAt: now,
-        updatedAt: now,
+      requestRef.set(actionRecord),
+      firestore.collection('audit_logs').doc(requestId).set({
+        ...actionRecord,
+        mirroredRequestPath: `admin_action_requests/${requestId}`,
       }),
     ]);
 

@@ -40,6 +40,7 @@ import {
 } from '../../services/adminOperationsService';
 import {
   approveAdminAction,
+  refreshPaymentReconciliationSnapshot,
   rejectAdminAction,
   runAdminAction,
   type AdminActionType,
@@ -206,6 +207,31 @@ function statusTone(status: string) {
   return 'text-white/58 border-white/10 bg-white/[0.035]';
 }
 
+function rawString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function auditActorLabel(row: AdminRecord): string {
+  const actor = row.raw.actor;
+  if (actor && typeof actor === 'object') {
+    const actorRecord = actor as Record<string, unknown>;
+    return rawString(actorRecord.email) || rawString(actorRecord.uid) || rawString(actorRecord.role) || '未知操作者';
+  }
+  return rawString(row.raw.actorEmail) || rawString(row.raw.actorId) || row.owner;
+}
+
+function auditTargetCollection(row: AdminRecord): string {
+  return rawString(row.raw.targetCollection) || row.collection;
+}
+
+function auditWithinTime(row: AdminRecord, filter: string): boolean {
+  if (filter === 'all') return true;
+  const timestamp = row.updatedAt ?? row.createdAt;
+  if (!timestamp) return false;
+  const hours = filter === '24h' ? 24 : filter === '7d' ? 24 * 7 : filter === '30d' ? 24 * 30 : 0;
+  return hours > 0 && Date.now() - timestamp.getTime() <= hours * 60 * 60 * 1000;
+}
+
 export default function AdminOperations() {
   const { currentUser, userProfile, loading: authLoading, login, logout } = useAuth();
   const location = useLocation();
@@ -216,10 +242,14 @@ export default function AdminOperations() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [auditActorFilter, setAuditActorFilter] = useState('all');
+  const [auditTargetFilter, setAuditTargetFilter] = useState('all');
+  const [auditTimeFilter, setAuditTimeFilter] = useState('all');
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const role = String(userProfile?.role ?? (currentUser ? 'buyer' : 'preview'));
   const isAdminEmail = isAllowedAdminEmail(currentUser?.email);
-  const isAuthorized = Boolean(currentUser && isAdminEmail);
+  const isAdminProfile = adminRoles.has(role);
+  const isAuthorized = Boolean(currentUser && (isAdminEmail || isAdminProfile));
 
   useEffect(() => {
     let alive = true;
@@ -227,7 +257,7 @@ export default function AdminOperations() {
       alive = false;
     };
 
-    if (!currentUser || !isAdminEmail) {
+    if (!currentUser || !isAuthorized) {
       setSnapshot(null);
       setLoading(false);
       setError(null);
@@ -248,7 +278,7 @@ export default function AdminOperations() {
       alive = false;
       unsubscribe();
     };
-  }, [authLoading, currentUser, isAdminEmail]);
+  }, [authLoading, currentUser, isAuthorized]);
 
   const dataset = snapshot?.datasets[activeKey];
 
@@ -256,20 +286,34 @@ export default function AdminOperations() {
     setSelectedRecordId(null);
     setSearch('');
     setStatusFilter('all');
+    setAuditActorFilter('all');
+    setAuditTargetFilter('all');
+    setAuditTimeFilter('all');
   }, [activeKey]);
   const statusOptions = useMemo(() => {
     if (!dataset) return ['all'];
     return ['all', ...Object.keys(dataset.statusCounts)];
   }, [dataset]);
+  const auditActorOptions = useMemo(() => {
+    if (activeKey !== 'audit' || !dataset) return ['all'];
+    return ['all', ...Array.from(new Set(dataset.rows.map(auditActorLabel).filter(Boolean))).sort()];
+  }, [activeKey, dataset]);
+  const auditTargetOptions = useMemo(() => {
+    if (activeKey !== 'audit' || !dataset) return ['all'];
+    return ['all', ...Array.from(new Set(dataset.rows.map(auditTargetCollection).filter(Boolean))).sort()];
+  }, [activeKey, dataset]);
 
   const visibleRows = useMemo(() => {
     const rows = dataset?.rows ?? [];
     return rows.filter((row) => {
       const matchesStatus = statusFilter === 'all' || row.status === statusFilter;
-      const content = `${row.title} ${row.subtitle} ${row.owner} ${row.status} ${row.id}`.toLowerCase();
-      return matchesStatus && content.includes(search.trim().toLowerCase());
+      const matchesAuditActor = activeKey !== 'audit' || auditActorFilter === 'all' || auditActorLabel(row) === auditActorFilter;
+      const matchesAuditTarget = activeKey !== 'audit' || auditTargetFilter === 'all' || auditTargetCollection(row) === auditTargetFilter;
+      const matchesAuditTime = activeKey !== 'audit' || auditWithinTime(row, auditTimeFilter);
+      const content = `${row.title} ${row.subtitle} ${row.owner} ${row.status} ${row.id} ${rawString(row.raw.actionType)} ${auditActorLabel(row)} ${auditTargetCollection(row)}`.toLowerCase();
+      return matchesStatus && matchesAuditActor && matchesAuditTarget && matchesAuditTime && content.includes(search.trim().toLowerCase());
     });
-  }, [dataset, search, statusFilter]);
+  }, [activeKey, auditActorFilter, auditTargetFilter, auditTimeFilter, dataset, search, statusFilter]);
 
   const canRunSensitiveActions = isAuthorized;
   const selectedRecord = visibleRows.find((row) => row.id === selectedRecordId) ?? visibleRows[0];
@@ -286,7 +330,7 @@ export default function AdminOperations() {
     return <AdminLogin onLogin={login} onLogout={logout} />;
   }
 
-  if (!isAdminEmail) {
+  if (!isAuthorized) {
     return <AccessDenied role={role} email={currentUser.email} onLogout={logout} />;
   }
 
@@ -367,11 +411,19 @@ export default function AdminOperations() {
               search={search}
               statusFilter={statusFilter}
               statusOptions={statusOptions}
+              auditActorFilter={auditActorFilter}
+              auditActorOptions={auditActorOptions}
+              auditTargetFilter={auditTargetFilter}
+              auditTargetOptions={auditTargetOptions}
+              auditTimeFilter={auditTimeFilter}
               canRunActions={canRunSensitiveActions}
               selectedRecord={selectedRecord}
               onSelectRecord={setSelectedRecordId}
               onSearch={setSearch}
               onStatusFilter={setStatusFilter}
+              onAuditActorFilter={setAuditActorFilter}
+              onAuditTargetFilter={setAuditTargetFilter}
+              onAuditTimeFilter={setAuditTimeFilter}
             />
           )}
         </section>
@@ -587,6 +639,7 @@ function PaymentReconciliationPanel({
 }: {
   summary: AdminSnapshot['paymentReconciliation'];
 }) {
+  const [refreshState, setRefreshState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const cards = [
     {
       label: 'Stripe 实收',
@@ -613,12 +666,21 @@ function PaymentReconciliationPanel({
       tone: summary.requiresReview > 0 ? 'warning' as const : 'good' as const,
     },
   ];
+  const refreshServerSnapshot = async () => {
+    setRefreshState('submitting');
+    try {
+      const result = await refreshPaymentReconciliationSnapshot();
+      setRefreshState(result.success ? 'success' : 'error');
+    } catch {
+      setRefreshState('error');
+    }
+  };
 
   return (
     <section className="rounded-xl border border-white/10 bg-[#0b1213]/88">
       <PanelHeader
         title="支付对账工作台"
-        detail="Stripe-only：Checkout、Webhook、积分账本、退款和争议必须能相互追溯；退款/争议 Webhook 只更新状态，不自动扣减积分。"
+        detail={`Stripe-only：${summary.source === 'server_snapshot' ? '当前使用服务端对账快照' : '当前使用实时客户端聚合兜底'}；Checkout、Webhook、积分账本、退款和争议必须能相互追溯。`}
         icon={CreditCard}
       />
       <div className="grid gap-3 border-b border-white/10 p-5 md:grid-cols-2 xl:grid-cols-4">
@@ -632,7 +694,24 @@ function PaymentReconciliationPanel({
       </div>
       <div className="grid gap-0 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="border-b border-white/10 p-5 lg:border-b-0 lg:border-r">
-          <div className="text-sm font-semibold text-white/82">运营边界</div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-white/82">运营边界</div>
+              <div className="mt-1 text-xs text-white/38">
+                {summary.source === 'server_snapshot' ? `服务端快照 ${summary.snapshotStatus ?? 'ready'}` : '尚无服务端快照，正在使用实时兜底'}
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={refreshState === 'submitting'}
+              onClick={() => void refreshServerSnapshot()}
+              className="min-h-10 rounded-lg border border-[#78c6a3]/25 bg-[#78c6a3]/10 px-3 text-xs font-semibold text-[#9be2c8] transition hover:bg-[#78c6a3]/14 disabled:cursor-wait disabled:opacity-55"
+            >
+              {refreshState === 'submitting' ? '刷新中' : '刷新服务端快照'}
+            </button>
+          </div>
+          {refreshState === 'success' && <div className="mt-3 rounded-lg border border-[#78c6a3]/25 bg-[#78c6a3]/10 px-3 py-2 text-xs text-[#9be2c8]">快照刷新请求已提交，实时订阅会自动回写最新结果。</div>}
+          {refreshState === 'error' && <div className="mt-3 rounded-lg border border-[#e07d6b]/25 bg-[#e07d6b]/10 px-3 py-2 text-xs text-[#f0a091]">快照刷新失败，请检查管理员权限或 Functions 部署状态。</div>}
           <div className="mt-3 grid gap-2 text-sm leading-6 text-white/48">
             <p>支付对象只来自服务端白名单套餐和 Stripe Price ID，前端只请求 Checkout 或 Portal 链接。</p>
             <p>订单、积分、退款、争议状态以已验签 Webhook、本地账本和管理员审计为准，不凭 success_url 改账。</p>
@@ -688,11 +767,19 @@ function DataPanel({
   search,
   statusFilter,
   statusOptions,
+  auditActorFilter,
+  auditActorOptions,
+  auditTargetFilter,
+  auditTargetOptions,
+  auditTimeFilter,
   canRunActions,
   selectedRecord,
   onSelectRecord,
   onSearch,
   onStatusFilter,
+  onAuditActorFilter,
+  onAuditTargetFilter,
+  onAuditTimeFilter,
 }: {
   section: SectionConfig;
   dataset?: AdminDataset;
@@ -701,26 +788,35 @@ function DataPanel({
   search: string;
   statusFilter: string;
   statusOptions: string[];
+  auditActorFilter: string;
+  auditActorOptions: string[];
+  auditTargetFilter: string;
+  auditTargetOptions: string[];
+  auditTimeFilter: string;
   canRunActions: boolean;
   selectedRecord?: AdminRecord;
   onSelectRecord: (id: string) => void;
   onSearch: (value: string) => void;
   onStatusFilter: (value: string) => void;
+  onAuditActorFilter: (value: string) => void;
+  onAuditTargetFilter: (value: string) => void;
+  onAuditTimeFilter: (value: string) => void;
 }) {
   const Icon = section.icon;
+  const isAudit = section.key === 'audit';
 
   if (loading) return <SkeletonGrid />;
 
   return (
     <section className="rounded-xl border border-white/10 bg-[#0b1213]/88">
       <PanelHeader title={section.label} detail={dataset?.description ?? section.description} icon={Icon} />
-      <div className="grid gap-3 border-b border-white/10 p-4 lg:grid-cols-[1fr_auto_auto]">
+      <div className={`grid gap-3 border-b border-white/10 p-4 ${isAudit ? 'lg:grid-cols-[minmax(220px,1fr)_repeat(4,minmax(150px,auto))_auto]' : 'lg:grid-cols-[1fr_auto_auto]'}`}>
         <label className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/32" size={16} />
           <input
             value={search}
             onChange={(event) => onSearch(event.target.value)}
-            placeholder="搜索 ID、名称、状态、owner"
+            placeholder={isAudit ? '搜索 requestId、动作、原因、操作者' : '搜索 ID、名称、状态、owner'}
             className="min-h-11 w-full rounded-lg border border-white/10 bg-white/[0.035] pl-10 pr-3 text-sm outline-none transition placeholder:text-white/28 focus:border-[#78c6a3]/45"
           />
         </label>
@@ -738,8 +834,54 @@ function DataPanel({
             ))}
           </select>
         </label>
+        {isAudit && (
+          <>
+            <label className="relative min-w-[170px]">
+              <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/32" size={16} />
+              <select
+                value={auditActorFilter}
+                onChange={(event) => onAuditActorFilter(event.target.value)}
+                className="min-h-11 w-full appearance-none rounded-lg border border-white/10 bg-[#0e1718] pl-10 pr-3 text-sm outline-none focus:border-[#78c6a3]/45"
+              >
+                {auditActorOptions.map((actor) => (
+                  <option key={actor} value={actor}>
+                    {actor === 'all' ? '全部操作者' : actor}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="relative min-w-[170px]">
+              <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/32" size={16} />
+              <select
+                value={auditTargetFilter}
+                onChange={(event) => onAuditTargetFilter(event.target.value)}
+                className="min-h-11 w-full appearance-none rounded-lg border border-white/10 bg-[#0e1718] pl-10 pr-3 text-sm outline-none focus:border-[#78c6a3]/45"
+              >
+                {auditTargetOptions.map((target) => (
+                  <option key={target} value={target}>
+                    {target === 'all' ? '全部目标集合' : target}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="relative min-w-[150px]">
+              <Clock3 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/32" size={16} />
+              <select
+                value={auditTimeFilter}
+                onChange={(event) => onAuditTimeFilter(event.target.value)}
+                className="min-h-11 w-full appearance-none rounded-lg border border-white/10 bg-[#0e1718] pl-10 pr-3 text-sm outline-none focus:border-[#78c6a3]/45"
+              >
+                <option value="all">全部时间</option>
+                <option value="24h">最近 24 小时</option>
+                <option value="7d">最近 7 天</option>
+                <option value="30d">最近 30 天</option>
+              </select>
+            </label>
+          </>
+        )}
         <ServerActionButton enabled={canRunActions} label={section.action} />
       </div>
+      {section.key === 'workflows' && <WorkflowHealthStrip rows={dataset?.rows ?? []} />}
 
       {dataset?.error ? (
         <EmptyState title="集合读取失败" detail={dataset.error} />
@@ -752,6 +894,29 @@ function DataPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function WorkflowHealthStrip({ rows }: { rows: AdminRecord[] }) {
+  const failed = rows.filter((row) => /failed|error|timeout/i.test(row.status)).length;
+  const deadLettered = rows.filter((row) => /dead|dead_lettered/i.test(row.status)).length;
+  const queued = rows.filter((row) => /queued|retry|processing/i.test(row.status)).length;
+
+  const items = [
+    { label: '失败事件', value: failed, tone: failed > 0 ? 'danger' : 'good' },
+    { label: '失败死信', value: deadLettered, tone: deadLettered > 0 ? 'danger' : 'good' },
+    { label: '重试/处理中', value: queued, tone: queued > 0 ? 'warning' : 'neutral' },
+  ] as const;
+
+  return (
+    <div className="grid gap-3 border-b border-white/10 p-4 md:grid-cols-3">
+      {items.map((item) => (
+        <div key={item.label} className={`rounded-lg border px-4 py-3 ${toneClass(item.tone)}`}>
+          <div className="text-xs opacity-75">{item.label}</div>
+          <div className="mt-1 font-mono text-2xl font-semibold">{item.value}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -819,6 +984,10 @@ function valueOf(record: AdminRecord | undefined, keys: string[], fallback = '�
   return fallback;
 }
 
+function environmentOf(record: AdminRecord | undefined): string {
+  return valueOf(record, ['environment', 'stripeEnvironment', 'providerEnvironment'], '未标记');
+}
+
 function RecordInspector({
   section,
   record,
@@ -854,6 +1023,36 @@ function RecordInspector({
         ['邮箱验证', valueOf(record, ['emailVerified'])],
         ['最近登录', valueOf(record, ['lastLoginAt'])],
       ]
+    : section.key === 'refunds'
+      ? [
+          ['环境', environmentOf(record)],
+          ['Stripe 退款 ID', valueOf(record, ['providerRefundId', 'providerDisputeId', 'providerPaymentId'])],
+          ['交易 ID', valueOf(record, ['transactionId'])],
+          ['金额', record.amount ?? valueOf(record, ['amount'])],
+          ['账本影响', valueOf(record, ['ledgerImpact', 'creditImpact'], '需人工复核后确认')],
+          ['Webhook 事件', valueOf(record, ['providerEventId', 'lastProviderEventId'])],
+          ['审计链路', valueOf(record, ['requestId', 'lastAdminActionRequestId', 'refundId'])],
+        ]
+      : section.key === 'workflows'
+        ? [
+            ['工作流', valueOf(record, ['workflowName', 'workflow', 'name'], record.title)],
+            ['Provider', valueOf(record, ['provider', 'platform'], 'Activepieces/Node-RED/Windmill')],
+            ['状态', record.status],
+            ['事件 ID', valueOf(record, ['eventId', 'sourceId', 'requestId'], record.id)],
+            ['失败原因', valueOf(record, ['error', 'deadLetterReason', 'failureReason'], '未记录')],
+            ['重试次数', valueOf(record, ['attempts', 'retryCount'], '0')],
+            ['审计链路', valueOf(record, ['adminActionRequestId', 'lastAdminActionRequestId', 'requestId'])],
+          ]
+      : section.key === 'payments' || section.key === 'webhooks' || section.key === 'ledger'
+        ? [
+            ['环境', environmentOf(record)],
+            ['归属', record.owner],
+            ['状态', record.status],
+            ['Stripe/Provider ID', valueOf(record, ['providerPaymentId', 'providerSessionId', 'providerRefundId', 'eventId', 'providerEventId'])],
+            ['交易/账本 ID', valueOf(record, ['transactionId', 'requestId'], record.id)],
+            ['金额', record.amount ?? valueOf(record, ['amount', 'delta'])],
+            ['更新时间', formatDate(record.updatedAt)],
+          ]
     : [
         ['归属', record.owner],
         ['状态', record.status],

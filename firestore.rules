@@ -17,7 +17,9 @@ service cloud.firestore {
     function isAdmin() {
       return signedIn()
         && (
-          request.auth.token.email == 'zqhablly@gmail.com'
+          request.auth.token.admin == true
+          || request.auth.token.adminRole in ['admin', 'operator', 'finance', 'reviewer', 'support']
+          || request.auth.token.email == 'zqhablly@gmail.com'
           || currentUser().data.role == 'admin'
         );
     }
@@ -194,6 +196,26 @@ service cloud.firestore {
     }
 
     match /automationWorkflowEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /admin_action_requests/{requestId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /payment_reconciliation_snapshots/{snapshotId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /stripe_webhook_replay_queue/{queueId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /workflow_replay_queue/{queueId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

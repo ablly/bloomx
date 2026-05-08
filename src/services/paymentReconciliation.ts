@@ -43,6 +43,11 @@ export interface PaymentReviewItem {
 
 export interface PaymentReconciliationSummary {
   provider: 'stripe';
+  source: 'client_live' | 'server_snapshot';
+  snapshotId?: string;
+  snapshotStatus?: string;
+  snapshotUpdatedAt?: string;
+  environment?: string;
   collectedAmount: PaymentMoneyTotal;
   creditedAmount: PaymentMoneyTotal;
   failedWebhooks: number;
@@ -182,6 +187,7 @@ export function buildPaymentReconciliation(
 
   return {
     provider: 'stripe',
+    source: 'client_live',
     collectedAmount: moneyTotal(collected, nextCurrency),
     creditedAmount: creditTotal(credited),
     failedWebhooks: webhookRows.filter(isWebhookFailed).length,
@@ -192,5 +198,57 @@ export function buildPaymentReconciliation(
     ledgerEntryCount: ledgerRows.length,
     reviewItems,
     hasRecords: allRows.length > 0,
+  };
+}
+
+function isMoneyTotal(value: unknown): value is PaymentMoneyTotal {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      typeof (value as PaymentMoneyTotal).value === 'number' &&
+      typeof (value as PaymentMoneyTotal).currency === 'string' &&
+      typeof (value as PaymentMoneyTotal).formatted === 'string',
+  );
+}
+
+function isReviewItem(value: unknown): value is PaymentReviewItem {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      typeof (value as PaymentReviewItem).id === 'string' &&
+      ((value as PaymentReviewItem).kind === 'refund' || (value as PaymentReviewItem).kind === 'dispute') &&
+      isMoneyTotal((value as PaymentReviewItem).amount),
+  );
+}
+
+export function applyServerPaymentReconciliationSnapshot(
+  clientSummary: PaymentReconciliationSummary,
+  snapshot: Record<string, unknown> | null | undefined,
+): PaymentReconciliationSummary {
+  const summary = snapshot?.summary;
+  if (!summary || typeof summary !== 'object') return clientSummary;
+
+  const raw = summary as Record<string, unknown>;
+  if (!isMoneyTotal(raw.collectedAmount) || !isMoneyTotal(raw.creditedAmount)) return clientSummary;
+
+  const reviewItems = Array.isArray(raw.reviewItems) ? raw.reviewItems.filter(isReviewItem) : [];
+
+  return {
+    provider: 'stripe',
+    source: 'server_snapshot',
+    snapshotId: text(raw.snapshotId, text(snapshot.id, 'current')),
+    snapshotStatus: text(raw.snapshotStatus, text(snapshot.status, 'ready')),
+    snapshotUpdatedAt: text(snapshot.updatedAt),
+    environment: text(raw.environment, text(snapshot.environment)),
+    collectedAmount: raw.collectedAmount,
+    creditedAmount: raw.creditedAmount,
+    failedWebhooks: numberValue(raw.failedWebhooks),
+    pendingRefunds: numberValue(raw.pendingRefunds),
+    openDisputes: numberValue(raw.openDisputes),
+    requiresReview: numberValue(raw.requiresReview),
+    transactionCount: numberValue(raw.transactionCount),
+    ledgerEntryCount: numberValue(raw.ledgerEntryCount),
+    reviewItems,
+    hasRecords: raw.hasRecords === true,
   };
 }

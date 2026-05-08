@@ -258,8 +258,9 @@ export const onUserDelete = functions.auth.user().onDelete(async (user) => {
 });
 
 export { invokeMerchantModel } from './platformProxy';
-export { runAdminAction } from './adminActions';
+export { runAdminAction, syncAdminCustomClaims } from './adminActions';
 export { createPaymentCheckout, createStripePortalSession, handleStripeWebhook, requestStripeRefund } from './payments';
+export { refreshPaymentReconciliationSnapshot, scheduledPaymentReconciliationSnapshot } from './paymentReconciliationSnapshot';
 export { fetchSellerApiModels, submitSellerApiProduct, testSellerApiModels } from './sellerApiOnboarding';
 export {
   onSellerApplicationCreated,

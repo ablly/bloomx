@@ -1,6 +1,8 @@
 import {
   collection,
+  doc,
   getDocs,
+  getDoc,
   limit,
   onSnapshot as onFirestoreSnapshot,
   query,
@@ -10,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
+  applyServerPaymentReconciliationSnapshot,
   buildPaymentReconciliation,
   type PaymentReconciliationSummary,
 } from './paymentReconciliation';
@@ -184,6 +187,7 @@ function recordTitle(id: string, data: DocumentData): string {
   return stringify(
     data.name ??
       data.email ??
+      data.actionType ??
       data.product_name ??
       data.providerPaymentId ??
       data.providerSessionId ??
@@ -197,6 +201,7 @@ function recordTitle(id: string, data: DocumentData): string {
 function recordSubtitle(data: DocumentData): string {
   return stringify(
     data.description ??
+      (data.targetCollection && data.targetId ? `${data.targetCollection}/${data.targetId}` : undefined) ??
       data.provider ??
       data.product_url ??
       data.eventType ??
@@ -209,6 +214,12 @@ function recordSubtitle(data: DocumentData): string {
 }
 
 function recordOwner(data: DocumentData): string {
+  if (data.actor && typeof data.actor === 'object') {
+    const actor = data.actor as Record<string, unknown>;
+    const actorLabel = stringify(actor.email ?? actor.uid ?? actor.role, '');
+    if (actorLabel) return actorLabel;
+  }
+
   return stringify(
     data.uid ??
       data.userId ??
@@ -394,6 +405,7 @@ function emptyDataset(config: (typeof datasetConfigs)[number]): AdminDataset {
 export function buildAdminSnapshotFromDatasets(
   resolved: AdminDataset[],
   loadedAt = new Date(),
+  serverPaymentReconciliation?: Record<string, unknown> | null,
 ): AdminSnapshot {
   const baseDatasets: Partial<Record<AdminSectionKey, AdminDataset>> = {
     overview: {
@@ -426,19 +438,26 @@ export function buildAdminSnapshotFromDatasets(
     baseDatasets,
   ) as Record<AdminSectionKey, AdminDataset>;
 
+  const clientPaymentReconciliation = buildPaymentReconciliation(datasets);
+
   return {
     datasets,
     metrics: buildMetrics(datasets),
     queue: buildQueue(datasets),
     risks: buildRisks(datasets),
-    paymentReconciliation: buildPaymentReconciliation(datasets),
+    paymentReconciliation: applyServerPaymentReconciliationSnapshot(clientPaymentReconciliation, serverPaymentReconciliation),
     loadedAt,
   };
 }
 
 export async function getAdminConsoleSnapshot(maxRows = 40): Promise<AdminSnapshot> {
-  const resolved = await Promise.all(datasetConfigs.map((config) => readDataset(config, maxRows)));
-  return buildAdminSnapshotFromDatasets(resolved);
+  const [resolved, serverSnapshot] = await Promise.all([
+    Promise.all(datasetConfigs.map((config) => readDataset(config, maxRows))),
+    getDoc(doc(db, 'payment_reconciliation_snapshots', 'current'))
+      .then((snap) => (snap.exists() ? snap.data() : null))
+      .catch(() => null),
+  ]);
+  return buildAdminSnapshotFromDatasets(resolved, new Date(), serverSnapshot);
 }
 
 export function subscribeAdminConsoleSnapshot(
@@ -446,7 +465,8 @@ export function subscribeAdminConsoleSnapshot(
   maxRows = 40,
 ): Unsubscribe {
   const datasets = new Map<AdminSectionKey, AdminDataset>();
-  const emit = () => onNext(buildAdminSnapshotFromDatasets([...datasets.values()]));
+  let serverPaymentReconciliation: Record<string, unknown> | null = null;
+  const emit = () => onNext(buildAdminSnapshotFromDatasets([...datasets.values()], new Date(), serverPaymentReconciliation));
 
   emit();
 
@@ -474,7 +494,20 @@ export function subscribeAdminConsoleSnapshot(
     ),
   );
 
+  const unsubscribePaymentSnapshot = onFirestoreSnapshot(
+    doc(db, 'payment_reconciliation_snapshots', 'current'),
+    (snap) => {
+      serverPaymentReconciliation = snap.exists() ? snap.data() : null;
+      emit();
+    },
+    () => {
+      serverPaymentReconciliation = null;
+      emit();
+    },
+  );
+
   return () => {
     unsubscribes.forEach((unsubscribe) => unsubscribe());
+    unsubscribePaymentSnapshot();
   };
 }

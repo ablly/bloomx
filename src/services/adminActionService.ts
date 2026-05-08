@@ -36,6 +36,10 @@ const runAdminActionCallable = httpsCallable<AdminActionInput, AdminActionResult
   functions,
   'runAdminAction',
 );
+const refreshPaymentReconciliationSnapshotCallable = httpsCallable<void, { success: boolean }>(
+  functions,
+  'refreshPaymentReconciliationSnapshot',
+);
 
 export async function runAdminAction(input: AdminActionInput): Promise<AdminActionResult> {
   const result = await runAdminActionCallable(input);
@@ -59,4 +63,9 @@ export function rejectAdminAction(requestId: string, reason: string): Promise<Ad
     targetId: requestId,
     reason,
   });
+}
+
+export async function refreshPaymentReconciliationSnapshot(): Promise<{ success: boolean }> {
+  const result = await refreshPaymentReconciliationSnapshotCallable();
+  return result.data;
 }

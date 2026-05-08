@@ -1,5 +1,12 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import {
+  adminRoleForIdentity,
+  allowedAdminEmails,
+  buildAdminCustomClaims,
+  isAdminIdentity,
+  normalizeAdminRole,
+} from './adminAuthorization';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -7,7 +14,6 @@ if (!admin.apps.length) {
 
 const firestore = admin.firestore();
 
-const DEFAULT_ADMIN_EMAIL = 'zqhablly@gmail.com';
 const ALLOWED_COLLECTIONS = new Set([
   'users',
   'sellers',
@@ -20,6 +26,7 @@ const ALLOWED_COLLECTIONS = new Set([
   'webhook_events',
   'seller_settlements',
   'automationWorkflowEvents',
+  'admin_action_requests',
   'audit_logs',
   'system_config',
 ]);
@@ -51,12 +58,11 @@ type AdminActionPayload = {
   metadata?: Record<string, unknown>;
 };
 
-function allowedAdminEmails(): string[] {
-  return String(process.env.ADMIN_ALLOWED_EMAILS || DEFAULT_ADMIN_EMAIL)
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
+type AdminClaimsPayload = {
+  targetUid?: string;
+  role?: string;
+  reason?: string;
+};
 
 function assertString(value: unknown, field: string): string {
   const normalized = String(value || '').trim();
@@ -132,6 +138,18 @@ function summarizeDocument(data: admin.firestore.DocumentData | undefined): Reco
         return [key, value];
       }),
   );
+}
+
+function adminTimestamp() {
+  return admin.firestore.FieldValue.serverTimestamp();
+}
+
+function adminActionRequestRef(requestId: string) {
+  return firestore.collection('admin_action_requests').doc(requestId);
+}
+
+function auditLogRef(requestId: string) {
+  return firestore.collection('audit_logs').doc(requestId);
 }
 
 function ensureExecutableTarget(actionType: string, targetCollection: string, metadata: Record<string, unknown>) {
@@ -241,6 +259,52 @@ function buildTargetPatch(
   throw new functions.https.HttpsError('failed-precondition', 'Action is not executable in this release');
 }
 
+function writeReplayQueueEntry(
+  transaction: admin.firestore.Transaction,
+  requestId: string,
+  targetCollection: string,
+  targetId: string,
+  targetData: admin.firestore.DocumentData,
+  actor: {uid: string; email: string; role: string},
+  metadata: Record<string, unknown>,
+) {
+  if (targetCollection === 'webhook_events') {
+    transaction.set(firestore.collection('stripe_webhook_replay_queue').doc(requestId), {
+      id: requestId,
+      requestId,
+      sourceCollection: targetCollection,
+      sourceId: targetId,
+      provider: targetData.provider ?? 'stripe',
+      environment: targetData.environment ?? process.env.STRIPE_ENVIRONMENT ?? 'test',
+      providerEventId: targetData.eventId ?? targetId,
+      eventType: targetData.eventType ?? 'unknown',
+      status: 'queued',
+      attempts: 0,
+      requestedBy: actor,
+      metadata,
+      createdAt: adminTimestamp(),
+      updatedAt: adminTimestamp(),
+    }, {merge: true});
+    return;
+  }
+
+  if (targetCollection === 'automationWorkflowEvents') {
+    transaction.set(firestore.collection('workflow_replay_queue').doc(requestId), {
+      id: requestId,
+      requestId,
+      sourceCollection: targetCollection,
+      sourceId: targetId,
+      workflowName: targetData.workflowName ?? targetData.workflow ?? metadata.workflowName ?? 'unknown',
+      status: 'queued',
+      attempts: 0,
+      requestedBy: actor,
+      metadata,
+      createdAt: adminTimestamp(),
+      updatedAt: adminTimestamp(),
+    }, {merge: true});
+  }
+}
+
 async function createActionRequest(
   data: AdminActionPayload,
   actor: {uid: string; email: string; role: string},
@@ -265,12 +329,13 @@ async function createActionRequest(
 
   const targetRef = firestore.collection(targetCollection).doc(targetId);
   const targetSnap = await targetRef.get();
-  const auditRef = firestore.collection('audit_logs').doc();
-  const requestId = auditRef.id;
+  const requestRef = firestore.collection('admin_action_requests').doc();
+  const requestId = requestRef.id;
+  const auditRef = auditLogRef(requestId);
   const dryRun = data.dryRun === true;
   const status = dryRun ? 'dry_run_recorded' : 'pending_approval';
-
-  await auditRef.set({
+  const now = adminTimestamp();
+  const requestRecord = {
     requestId,
     actionType,
     targetCollection,
@@ -284,9 +349,17 @@ async function createActionRequest(
     status,
     beforeSummary: summarizeDocument(targetSnap.data()),
     afterSummary: null,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await Promise.all([
+    requestRef.set(requestRecord),
+    auditRef.set({
+      ...requestRecord,
+      mirroredRequestPath: `admin_action_requests/${requestId}`,
+    }),
+  ]);
 
   return {
     success: true,
@@ -316,8 +389,10 @@ async function approveActionRequest(
   let finalError: string | null = null;
 
   await firestore.runTransaction(async (transaction) => {
-    const auditRef = firestore.collection('audit_logs').doc(requestId);
-    const auditSnap = await transaction.get(auditRef);
+    const requestRef = adminActionRequestRef(requestId);
+    const auditRef = auditLogRef(requestId);
+    const requestSnap = await transaction.get(requestRef);
+    const auditSnap = requestSnap.exists ? requestSnap : await transaction.get(auditRef);
 
     if (!auditSnap.exists) {
       throw new functions.https.HttpsError('not-found', 'Admin action request not found');
@@ -352,6 +427,17 @@ async function approveActionRequest(
       if (patch) {
         transaction.update(targetRef, patch);
       }
+      if (originalActionType === 'replay_failed_event') {
+        writeReplayQueueEntry(
+          transaction,
+          requestId,
+          originalTargetCollection,
+          originalTargetId,
+          beforeSnap.data() ?? {},
+          approver,
+          metadata,
+        );
+      }
 
       const afterSummary = patch
         ? {
@@ -363,31 +449,43 @@ async function approveActionRequest(
             ),
           }
         : summarizeDocument(beforeSnap.data());
-
-      transaction.update(auditRef, {
+      const executedPatch = {
         status: 'approved_executed',
         dryRun: false,
         approvalReason: reason,
         approvedBy: approver,
-        approvedAt: admin.firestore.FieldValue.serverTimestamp(),
+        approvedAt: adminTimestamp(),
         executedBy: approver,
-        executedAt: admin.firestore.FieldValue.serverTimestamp(),
+        executedAt: adminTimestamp(),
         executionError: null,
         beforeSummary: summarizeDocument(beforeSnap.data()),
         afterSummary,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+        updatedAt: adminTimestamp(),
+      };
+
+      transaction.set(requestRef, executedPatch, {merge: true});
+      transaction.set(auditRef, {
+        ...executedPatch,
+        requestId,
+        mirroredRequestPath: `admin_action_requests/${requestId}`,
+      }, {merge: true});
     } catch (error) {
       finalStatus = 'execution_failed';
       finalError = error instanceof Error ? error.message : 'Execution failed';
-      transaction.update(auditRef, {
+      const failedPatch = {
         status: finalStatus,
         approvalReason: reason,
         approvedBy: approver,
-        approvedAt: admin.firestore.FieldValue.serverTimestamp(),
+        approvedAt: adminTimestamp(),
         executionError: finalError,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+        updatedAt: adminTimestamp(),
+      };
+      transaction.set(requestRef, failedPatch, {merge: true});
+      transaction.set(auditRef, {
+        ...failedPatch,
+        requestId,
+        mirroredRequestPath: `admin_action_requests/${requestId}`,
+      }, {merge: true});
     }
   });
 
@@ -417,8 +515,10 @@ async function rejectActionRequest(
   }
 
   await firestore.runTransaction(async (transaction) => {
-    const auditRef = firestore.collection('audit_logs').doc(requestId);
-    const auditSnap = await transaction.get(auditRef);
+    const requestRef = adminActionRequestRef(requestId);
+    const auditRef = auditLogRef(requestId);
+    const requestSnap = await transaction.get(requestRef);
+    const auditSnap = requestSnap.exists ? requestSnap : await transaction.get(auditRef);
 
     if (!auditSnap.exists) {
       throw new functions.https.HttpsError('not-found', 'Admin action request not found');
@@ -431,13 +531,20 @@ async function rejectActionRequest(
       throw new functions.https.HttpsError('failed-precondition', 'Admin action request already reached a terminal state');
     }
 
-    transaction.update(auditRef, {
+    const rejectedPatch = {
       status: 'rejected',
       rejectionReason: reason,
       rejectedBy: reviewer,
-      rejectedAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+      rejectedAt: adminTimestamp(),
+      updatedAt: adminTimestamp(),
+    };
+
+    transaction.set(requestRef, rejectedPatch, {merge: true});
+    transaction.set(auditRef, {
+      ...rejectedPatch,
+      requestId,
+      mirroredRequestPath: `admin_action_requests/${requestId}`,
+    }, {merge: true});
   });
 
   return {
@@ -459,15 +566,16 @@ async function assertAdmin(context: functions.https.CallableContext) {
   const allowedByEmail = allowedAdminEmails().includes(email);
   const userSnap = await firestore.collection('users').doc(uid).get();
   const role = String(userSnap.data()?.role || '');
+  const token = context.auth?.token as Record<string, unknown>;
 
-  if (!allowedByEmail && role !== 'admin') {
+  if (!isAdminIdentity({uid, email, token}) && role !== 'admin') {
     throw new functions.https.HttpsError('permission-denied', 'Admin role is required');
   }
 
   return {
     uid,
     email,
-    role: allowedByEmail ? 'owner' : role,
+    role: allowedByEmail ? 'owner' : adminRoleForIdentity({uid, email, token}, role),
   };
 }
 
@@ -486,4 +594,61 @@ export const runAdminAction = functions
     }
 
     return createActionRequest(data, actor);
+  });
+
+export const syncAdminCustomClaims = functions
+  .runWith({invoker: 'public'})
+  .https.onCall(async (data: AdminClaimsPayload, context) => {
+    const actor = await assertAdmin(context);
+    const targetUid = String(data.targetUid || actor.uid).trim();
+    const reason = String(data.reason || 'sync admin custom claims').trim().slice(0, 500);
+
+    if (!targetUid || targetUid.includes('/') || targetUid.length > 160) {
+      throw new functions.https.HttpsError('invalid-argument', 'targetUid is invalid');
+    }
+
+    const role = normalizeAdminRole(data.role || actor.role);
+    const claims = buildAdminCustomClaims(role);
+    const now = adminTimestamp();
+    const requestRef = firestore.collection('admin_action_requests').doc();
+    const requestId = requestRef.id;
+    const requestRecord = {
+      requestId,
+      actionType: 'sync_admin_custom_claims',
+      targetCollection: 'users',
+      targetId: targetUid,
+      actor,
+      reason,
+      metadata: {
+        claims,
+      },
+      status: 'approved_executed',
+      dryRun: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await admin.auth().setCustomUserClaims(targetUid, claims);
+    await Promise.all([
+      firestore.collection('users').doc(targetUid).set({
+        role: 'admin',
+        adminRole: role,
+        adminClaimsSyncedAt: now,
+        updatedAt: now,
+      }, {merge: true}),
+      requestRef.set(requestRecord),
+      auditLogRef(requestId).set({
+        ...requestRecord,
+        mirroredRequestPath: `admin_action_requests/${requestId}`,
+      }),
+    ]);
+
+    return {
+      success: true,
+      requestId,
+      targetUid,
+      role,
+      claims,
+      message: 'Admin custom claims synced. The target user must sign out and sign in again to refresh the token.',
+    };
   });
