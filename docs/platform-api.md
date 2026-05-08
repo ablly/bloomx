@@ -32,11 +32,11 @@ Content-Type: application/json
 
 ## Billing Behavior
 
-- The function finds the user by `users.platformApiKey`.
+- The function hashes the bearer key and finds an active record in `users/{uid}/api_keys/{keyId}`.
 - The function finds a listed offer by `apiOffers.modelName`.
 - The function deducts `pricePerCall` credits before calling the merchant endpoint.
-- If the merchant endpoint cannot be reached or returns a non-2xx response, the function refunds the same credit amount.
-- Every attempt is stored in `apiCallRecords`.
+- If the merchant endpoint cannot be reached or returns a non-2xx response, the function refunds the same credit amount and writes a `credit_ledger` refund record.
+- Every attempt is stored in `apiCallRecords`, and successful calls write seller earnings.
 
 ## Merchant Secret Boundary
 

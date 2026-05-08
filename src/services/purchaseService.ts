@@ -3,16 +3,16 @@ import {
   getDocs,
   updateDoc,
   doc,
-  serverTimestamp,
-  runTransaction,
   Timestamp,
   query,
   where,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app, { db } from '../lib/firebase';
 import type { Purchase } from '../types/marketplace';
 
 const defaultSubscriptionPrice = 10;
+const functions = getFunctions(app);
 
 function normalizeDate(value: unknown): Date {
   if (value instanceof Date) return value;
@@ -37,10 +37,6 @@ function mapPurchase(id: string, data: Record<string, unknown>): Purchase {
   };
 }
 
-function topLevelPurchaseId(uid: string, productId: string): string {
-  return `${uid}_${productId}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-}
-
 async function findExistingActivePurchase(uid: string, productId: string): Promise<Purchase | null> {
   const colRef = collection(db, 'users', uid, 'purchases');
   const q = query(colRef, where('product_id', '==', productId));
@@ -62,71 +58,35 @@ export async function createPurchase(
   const existing = await findExistingActivePurchase(uid, data.product_id);
   if (existing) return existing;
 
-  const priceCredits = data.priceCredits ?? defaultSubscriptionPrice;
-  const expiresAt = Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
-  const userRef = doc(db, 'users', uid);
-  const purchaseRef = doc(db, 'users', uid, 'purchases', data.product_id);
-  const globalPurchaseRef = doc(db, 'purchases', topLevelPurchaseId(uid, data.product_id));
-
-  await runTransaction(db, async (transaction) => {
-    const [userSnap, purchaseSnap] = await Promise.all([
-      transaction.get(userRef),
-      transaction.get(purchaseRef),
-    ]);
-
-    if (!userSnap.exists()) {
-      throw new Error('User profile does not exist');
-    }
-
-    if (purchaseSnap.exists() && purchaseSnap.data().status === 'active') {
-      return;
-    }
-
-    const userData = userSnap.data();
-    const currentCredits = Number(userData.credits_balance ?? userData.credits ?? 0);
-
-    if (currentCredits < priceCredits) {
-      throw new Error('Insufficient credits');
-    }
-
-    const nextCredits = Number((currentCredits - priceCredits).toFixed(6));
-    const purchaseData = {
-      uid,
-      buyer_id: uid,
-      user_id: uid,
-      product_id: data.product_id,
-      seller_id: data.seller_id,
-      product_name: data.product_name,
-      product_url: data.product_url,
-      status: 'active',
-      subscription_price_credits: priceCredits,
-      payment_provider: 'credits',
-      source: 'marketplace_product_detail',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      expiresAt,
-    };
-
-    transaction.update(userRef, {
-      credits_balance: nextCredits,
-      credits: nextCredits,
-      updatedAt: serverTimestamp(),
-    });
-    transaction.set(purchaseRef, purchaseData);
-    transaction.set(globalPurchaseRef, purchaseData);
+  const createMarketplaceSubscription = httpsCallable(functions, 'createMarketplaceSubscription');
+  const result = await createMarketplaceSubscription({
+    productId: data.product_id,
+    priceCredits: data.priceCredits ?? defaultSubscriptionPrice,
   });
+  const payload = result.data as {
+    purchase: {
+      id: string;
+      uid: string;
+      product_id: string;
+      seller_id: string;
+      product_name: string;
+      product_url: string;
+      status: Purchase['status'];
+      createdAt: string;
+      expiresAt: string;
+    };
+  };
 
-  const now = new Date();
   return {
-    id: data.product_id,
-    uid,
-    product_id: data.product_id,
-    seller_id: data.seller_id,
-    product_name: data.product_name,
-    product_url: data.product_url,
-    status: 'active',
-    createdAt: now,
-    expiresAt: expiresAt.toDate(),
+    id: payload.purchase.id,
+    uid: payload.purchase.uid,
+    product_id: payload.purchase.product_id,
+    seller_id: payload.purchase.seller_id,
+    product_name: payload.purchase.product_name,
+    product_url: payload.purchase.product_url,
+    status: payload.purchase.status,
+    createdAt: new Date(payload.purchase.createdAt),
+    expiresAt: new Date(payload.purchase.expiresAt),
   };
 }
 

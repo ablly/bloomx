@@ -1,15 +1,11 @@
 import {
-  addDoc,
   collection,
-  deleteDoc,
-  doc,
   getDocs,
   orderBy,
   query,
-  serverTimestamp,
-  updateDoc,
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app, { db } from '../lib/firebase';
 
 export interface ApiKey {
   id: string;
@@ -23,64 +19,31 @@ export interface ApiKey {
   createdAt: Date;
 }
 
-function randomSecret(byteLength: number): string {
-  const values = new Uint8Array(byteLength);
-  crypto.getRandomValues(values);
-  const binary = Array.from(values, (value) => String.fromCharCode(value)).join('');
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-function generateKey(): string {
-  return `sk-bloomx-live-${randomSecret(36)}`;
-}
-
-async function hashKey(key: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(key);
-  const buffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buffer))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-function maskKey(key: string) {
-  return {
-    key_prefix: `${key.slice(0, 18)}...`,
-    key_suffix: key.slice(-6),
-  };
-}
+const functions = getFunctions(app);
 
 export async function createApiKey(uid: string, name: string): Promise<{ fullKey: string; record: ApiKey }> {
-  const normalizedName = name.trim() || 'Production key';
-  const fullKey = generateKey();
-  const keyHash = await hashKey(fullKey);
-  const { key_prefix, key_suffix } = maskKey(fullKey);
-
-  const colRef = collection(db, 'users', uid, 'api_keys');
-  const docRef = await addDoc(colRef, {
-    name: normalizedName,
-    key_prefix,
-    key_suffix,
-    key_hash: keyHash,
-    uid,
-    is_active: true,
-    last_used: null,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  const createPlatformApiKey = httpsCallable(functions, 'createPlatformApiKey');
+  const result = await createPlatformApiKey({ name });
+  const data = result.data as {
+    fullKey: string;
+    record: Omit<ApiKey, 'createdAt' | 'last_used'> & {
+      createdAt: string;
+      last_used?: string | null;
+    };
+  };
 
   return {
-    fullKey,
+    fullKey: data.fullKey,
     record: {
-      id: docRef.id,
-      name: normalizedName,
-      key_prefix,
-      key_suffix,
-      key_hash: keyHash,
+      id: data.record.id,
+      name: data.record.name,
+      key_prefix: data.record.key_prefix,
+      key_suffix: data.record.key_suffix,
+      key_hash: data.record.key_hash,
       uid,
-      is_active: true,
-      last_used: null,
-      createdAt: new Date(),
+      is_active: data.record.is_active,
+      last_used: data.record.last_used ? new Date(data.record.last_used) : null,
+      createdAt: new Date(data.record.createdAt),
     },
   };
 }
@@ -107,23 +70,23 @@ export async function listApiKeys(uid: string): Promise<ApiKey[]> {
   });
 }
 
-export async function updateApiKeyName(uid: string, keyId: string, name: string): Promise<void> {
-  const ref = doc(db, 'users', uid, 'api_keys', keyId);
-  await updateDoc(ref, {
+export async function updateApiKeyName(_uid: string, keyId: string, name: string): Promise<void> {
+  const updatePlatformApiKeyName = httpsCallable(functions, 'updatePlatformApiKeyName');
+  await updatePlatformApiKeyName({
+    keyId,
     name: name.trim() || 'Production key',
-    updatedAt: serverTimestamp(),
   });
 }
 
-export async function toggleApiKey(uid: string, keyId: string, isActive: boolean): Promise<void> {
-  const ref = doc(db, 'users', uid, 'api_keys', keyId);
-  await updateDoc(ref, {
-    is_active: isActive,
-    updatedAt: serverTimestamp(),
+export async function toggleApiKey(_uid: string, keyId: string, isActive: boolean): Promise<void> {
+  const setPlatformApiKeyStatus = httpsCallable(functions, 'setPlatformApiKeyStatus');
+  await setPlatformApiKeyStatus({
+    keyId,
+    isActive,
   });
 }
 
-export async function deleteApiKey(uid: string, keyId: string): Promise<void> {
-  const ref = doc(db, 'users', uid, 'api_keys', keyId);
-  await deleteDoc(ref);
+export async function deleteApiKey(_uid: string, keyId: string): Promise<void> {
+  const deletePlatformApiKey = httpsCallable(functions, 'deletePlatformApiKey');
+  await deletePlatformApiKey({ keyId });
 }

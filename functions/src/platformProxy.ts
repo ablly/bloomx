@@ -1,5 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import {findPlatformApiKeyRecord} from './platformApiKeys';
+import {sellerEarningBreakdown} from './subscriptions';
 
 declare const fetch: (
   input: string,
@@ -102,14 +104,14 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
     return;
   }
 
-  const userQuery = await firestore.collection('users').where('platformApiKey', '==', bearerToken).limit(1).get();
-  if (userQuery.empty) {
+  const keyRecord = await findPlatformApiKeyRecord(bearerToken);
+  if (!keyRecord) {
     sendJson(response, 401, { error: 'invalid_platform_api_key' });
     return;
   }
 
-  const userRef = userQuery.docs[0].ref;
-  const userId = userQuery.docs[0].id;
+  const userRef = firestore.collection('users').doc(keyRecord.uid);
+  const userId = keyRecord.uid;
   const offerQuery = await firestore.collection('apiOffers').where('modelName', '==', modelName).limit(5).get();
 
   if (offerQuery.empty) {
@@ -150,6 +152,8 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
 
   const secret = secretDoc.data() || {};
   const callRef = firestore.collection('apiCallRecords').doc();
+  const usageLedgerRef = firestore.collection('credit_ledger').doc(`usage_${callRef.id}`);
+  const refundLedgerRef = firestore.collection('credit_ledger').doc(`refund_${callRef.id}`);
 
   try {
     await firestore.runTransaction(async (transaction) => {
@@ -163,7 +167,22 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
 
       transaction.update(userRef, {
         credits_balance: admin.firestore.FieldValue.increment(-pricePerCall),
+        credits: Number((credits - pricePerCall).toFixed(6)),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      transaction.set(usageLedgerRef, {
+        id: usageLedgerRef.id,
+        userId,
+        transactionId: callRef.id,
+        delta: -pricePerCall,
+        balanceAfter: Number((credits - pricePerCall).toFixed(6)),
+        reason: `API usage: ${modelName}`,
+        source: 'usage',
+        requestId: callRef.id,
+        offerId: offerDoc.id,
+        sellerId: String(offer.ownerId || offer.sellerId || ''),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
       transaction.set(callRef, {
@@ -174,6 +193,7 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
         prompt: prompt || input,
         status: 'queued',
         cost: pricePerCall,
+        apiKeyId: keyRecord.keyId,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     });
@@ -184,6 +204,11 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
   }
 
   try {
+    await keyRecord.ref.set({
+      last_used: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, {merge: true});
+
     const authHeader = String(secret.authHeader || 'Authorization');
     const merchantResponse = await callMerchantChat({
       endpoint: String(secret.endpoint),
@@ -208,10 +233,32 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
       updates.push(
         userRef.update({
           credits_balance: admin.firestore.FieldValue.increment(pricePerCall),
+          credits: admin.firestore.FieldValue.increment(pricePerCall),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         })
       );
+      updates.push(
+        refundLedgerRef.set({
+          id: refundLedgerRef.id,
+          userId,
+          transactionId: callRef.id,
+          delta: pricePerCall,
+          reason: `API refund: ${modelName}`,
+          source: 'refund',
+          requestId: callRef.id,
+          offerId: offerDoc.id,
+          sellerId: String(offer.ownerId || offer.sellerId || ''),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        })
+      );
     } else {
+      const earnings = sellerEarningBreakdown(pricePerCall);
+      const sellerEarningRef = firestore.collection('seller_earnings').doc(callRef.id);
+      const sellerScopedEarningRef = firestore
+        .collection('sellers')
+        .doc(String(offer.ownerId || offer.sellerId || 'unknown-seller'))
+        .collection('earnings')
+        .doc(callRef.id);
       updates.push(
         firestore
           .collection('apiOfferStats')
@@ -229,6 +276,36 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
             { merge: true }
           )
       );
+      updates.push(
+        sellerEarningRef.set({
+          id: callRef.id,
+          seller_id: String(offer.ownerId || offer.sellerId || ''),
+          product_id: offerDoc.id,
+          buyer_id: userId,
+          model: modelName,
+          tokens_in: 0,
+          tokens_out: 0,
+          ...earnings,
+          status: 'pending',
+          source: 'usage',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        })
+      );
+      updates.push(
+        sellerScopedEarningRef.set({
+          id: callRef.id,
+          seller_id: String(offer.ownerId || offer.sellerId || ''),
+          product_id: offerDoc.id,
+          buyer_id: userId,
+          model: modelName,
+          tokens_in: 0,
+          tokens_out: 0,
+          ...earnings,
+          status: 'pending',
+          source: 'usage',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        })
+      );
     }
 
     await Promise.all(updates);
@@ -243,7 +320,20 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
     await Promise.all([
       userRef.update({
         credits_balance: admin.firestore.FieldValue.increment(pricePerCall),
+        credits: admin.firestore.FieldValue.increment(pricePerCall),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }),
+      refundLedgerRef.set({
+        id: refundLedgerRef.id,
+        userId,
+        transactionId: callRef.id,
+        delta: pricePerCall,
+        reason: `API refund: ${modelName}`,
+        source: 'refund',
+        requestId: callRef.id,
+        offerId: offerDoc.id,
+        sellerId: String(offer.ownerId || offer.sellerId || ''),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       }),
       callRef.update({
         status: 'failed',
