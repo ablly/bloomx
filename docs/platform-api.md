@@ -40,6 +40,6 @@ Content-Type: application/json
 
 ## Merchant Secret Boundary
 
-Public marketplace listings are stored in `apiOffers`.
+Public marketplace listings are stored in `apiOffers`. Admin approval of a tested product creates `apiOffers/{productId}` with both `modelName` and `modelNames`, so a single approved merchant product can expose multiple callable models.
 
 Merchant API keys are stored in `merchantApiSecrets/{offerId}` and are only used by the Firebase Function through Admin access.

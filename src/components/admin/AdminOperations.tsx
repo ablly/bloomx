@@ -1077,6 +1077,13 @@ function RecordInspector({
           { label: '修正积分', actionType: 'adjust_user_credits' },
           { label: '导出用户审计', actionType: 'export_user_audit' },
         ]
+      : section.key === 'products'
+        ? [
+            { label: '批准上架', actionType: 'approve_product_listing' },
+            { label: '拒绝上架', actionType: 'reject_product_listing' },
+            { label: '暂停商品', actionType: 'suspend_product_listing' },
+            { label: '导出摘要', actionType: 'export_record_summary' },
+          ]
       : [
           { label: '提交复核', actionType: 'submit_review' },
           { label: '重放失败事件', actionType: 'replay_failed_event' },

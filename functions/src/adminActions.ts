@@ -38,6 +38,9 @@ const ALLOWED_ACTIONS = new Set([
   'adjust_user_credits',
   'export_user_audit',
   'submit_review',
+  'approve_product_listing',
+  'reject_product_listing',
+  'suspend_product_listing',
   'replay_failed_event',
   'export_record_summary',
   'save_system_config',
@@ -107,6 +110,61 @@ function metadataNumber(metadata: Record<string, unknown>, key: string): number 
   return undefined;
 }
 
+export function normalizeProductModelNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return Array.from(new Set(
+    value
+      .map((item) => String(item || '').trim())
+      .filter(Boolean)
+      .filter((item) => item.length <= 160 && !/[\r\n]/.test(item)),
+  ));
+}
+
+function pricePerCallFromProduct(product: admin.firestore.DocumentData): number {
+  const configured = Number(product.pricePerCall ?? product.subscription_price_credits);
+  if (Number.isFinite(configured) && configured > 0) return Number(configured.toFixed(6));
+
+  const pricing = product.pricing as Record<string, unknown> | undefined;
+  const input = Number(pricing?.input_per_1k ?? 0);
+  const output = Number(pricing?.output_per_1k ?? 0);
+  const estimated = input + output;
+  return Number.isFinite(estimated) && estimated > 0 ? Number(Math.max(1, estimated).toFixed(6)) : 1;
+}
+
+export function buildListedApiOffer(
+  productId: string,
+  product: Record<string, unknown>,
+  actor: {uid: string; email: string; role: string},
+): Record<string, unknown> {
+  const modelNames = normalizeProductModelNames(product.models);
+  const modelName = modelNames[0] || String(product.name || productId);
+  const sellerId = String(product.seller_id || product.sellerId || product.ownerId || '');
+
+  return {
+    id: productId,
+    offerId: productId,
+    productId,
+    sellerId,
+    ownerId: sellerId,
+    sellerUid: product.seller_uid || product.sellerUid || null,
+    sellerName: product.sellerName || product.seller_name || null,
+    name: String(product.name || modelName),
+    description: String(product.description || ''),
+    modelName,
+    modelNames,
+    models: modelNames,
+    providerType: product.provider_type || product.providerType || null,
+    baseUrl: product.base_url || product.baseUrl || null,
+    pricing: product.pricing || null,
+    pricePerCall: pricePerCallFromProduct(product),
+    status: 'listed',
+    source: 'admin_product_approval',
+    listedBy: actor.uid,
+    listedAt: adminTimestamp(),
+    updatedAt: adminTimestamp(),
+  };
+}
+
 function summarizeDocument(data: admin.firestore.DocumentData | undefined): Record<string, unknown> {
   if (!data) return {};
   const keys = [
@@ -124,8 +182,10 @@ function summarizeDocument(data: admin.firestore.DocumentData | undefined): Reco
     'updatedAt',
     'adminReviewStatus',
     'replayStatus',
-    'lastAdminActionRequestId',
-  ];
+      'lastAdminActionRequestId',
+      'lastProductListingAction',
+      'modelName',
+    ];
 
   return Object.fromEntries(
     keys
@@ -161,6 +221,12 @@ function ensureExecutableTarget(actionType: string, targetCollection: string, me
 
   if (actionType === 'replay_failed_event' && !['webhook_events', 'automationWorkflowEvents'].includes(targetCollection)) {
     throw new functions.https.HttpsError('failed-precondition', 'Replay action can only target webhook or workflow events');
+  }
+
+  if (['approve_product_listing', 'reject_product_listing', 'suspend_product_listing'].includes(actionType)) {
+    if (targetCollection !== 'products') {
+      throw new functions.https.HttpsError('failed-precondition', 'Product listing action can only target products');
+    }
   }
 
   if (actionType === 'adjust_user_role') {
@@ -305,6 +371,132 @@ function writeReplayQueueEntry(
   }
 }
 
+function productListingActionStatus(actionType: string) {
+  if (actionType === 'approve_product_listing') {
+    return {
+      productStatus: 'active',
+      offerStatus: 'listed',
+      secretStatus: 'active',
+      reviewStatus: 'approved',
+      verified: true,
+    };
+  }
+
+  if (actionType === 'reject_product_listing') {
+    return {
+      productStatus: 'rejected',
+      offerStatus: 'rejected',
+      secretStatus: 'disabled',
+      reviewStatus: 'rejected',
+      verified: false,
+    };
+  }
+
+  return {
+    productStatus: 'suspended',
+    offerStatus: 'suspended',
+    secretStatus: 'suspended',
+    reviewStatus: 'suspended',
+    verified: false,
+  };
+}
+
+async function executeProductListingAction(
+  transaction: admin.firestore.Transaction,
+  actionType: string,
+  productId: string,
+  requestId: string,
+  actor: {uid: string; email: string; role: string},
+  metadata: Record<string, unknown>,
+) {
+  const productRef = firestore.collection('products').doc(productId);
+  const productSnap = await transaction.get(productRef);
+
+  if (!productSnap.exists) {
+    throw new functions.https.HttpsError('not-found', 'Product record not found');
+  }
+
+  const product = productSnap.data() ?? {};
+  const sellerId = String(product.seller_id || product.sellerId || '');
+  if (!sellerId) {
+    throw new functions.https.HttpsError('failed-precondition', 'Product is missing seller id');
+  }
+
+  const modelNames = normalizeProductModelNames(product.models);
+  if (actionType === 'approve_product_listing' && modelNames.length === 0) {
+    throw new functions.https.HttpsError('failed-precondition', 'Product has no tested models to list');
+  }
+
+  const sellerProductRef = firestore.collection('sellers').doc(sellerId).collection('products').doc(productId);
+  const secretRef = firestore.collection('merchantApiSecrets').doc(productId);
+  const offerRef = firestore.collection('apiOffers').doc(productId);
+  const [sellerProductSnap, secretSnap] = await Promise.all([
+    transaction.get(sellerProductRef),
+    transaction.get(secretRef),
+  ]);
+
+  if (actionType === 'approve_product_listing' && !secretSnap.exists) {
+    throw new functions.https.HttpsError('failed-precondition', 'Merchant API secret is missing');
+  }
+
+  const status = productListingActionStatus(actionType);
+  const now = adminTimestamp();
+  const productPatch = {
+    status: status.productStatus,
+    is_verified: status.verified,
+    adminReviewStatus: status.reviewStatus,
+    adminReviewedAt: now,
+    adminReviewedBy: actor.uid,
+    lastAdminActionRequestId: requestId,
+    lastAdminActionType: actionType,
+    lastAdminActionBy: actor.uid,
+    lastProductListingAction: actionType,
+    reviewReason: metadataString(metadata, 'reviewReason') || metadataString(metadata, 'recordTitle') || null,
+    updatedAt: now,
+  };
+
+  transaction.set(productRef, productPatch, {merge: true});
+  transaction.set(sellerProductRef, sellerProductSnap.exists ? productPatch : {...product, ...productPatch}, {merge: true});
+
+  if (actionType === 'approve_product_listing') {
+    transaction.set(offerRef, buildListedApiOffer(productId, product, actor), {merge: true});
+  } else {
+    transaction.set(offerRef, {
+      id: productId,
+      offerId: productId,
+      productId,
+      sellerId,
+      ownerId: sellerId,
+      modelName: modelNames[0] || String(product.name || productId),
+      modelNames,
+      models: modelNames,
+      status: status.offerStatus,
+      lastAdminActionRequestId: requestId,
+      updatedAt: now,
+    }, {merge: true});
+  }
+
+  if (secretSnap.exists) {
+    transaction.set(secretRef, {
+      status: status.secretStatus,
+      runtimeEnabled: actionType === 'approve_product_listing',
+      lastAdminActionRequestId: requestId,
+      updatedAt: now,
+    }, {merge: true});
+  }
+
+  return {
+    before: summarizeDocument(product),
+    after: {
+      ...summarizeDocument(product),
+      status: status.productStatus,
+      adminReviewStatus: status.reviewStatus,
+      lastProductListingAction: actionType,
+      modelName: modelNames[0] || null,
+    },
+  };
+}
+
 async function createActionRequest(
   data: AdminActionPayload,
   actor: {uid: string; email: string; role: string},
@@ -423,7 +615,17 @@ async function approveActionRequest(
         throw new functions.https.HttpsError('not-found', 'Target record not found');
       }
 
-      const patch = buildTargetPatch(originalActionType, originalTargetCollection, requestId, approver, metadata);
+      const listingResult = ['approve_product_listing', 'reject_product_listing', 'suspend_product_listing'].includes(originalActionType)
+        ? await executeProductListingAction(
+            transaction,
+            originalActionType,
+            originalTargetId,
+            requestId,
+            approver,
+            metadata,
+          )
+        : null;
+      const patch = listingResult ? null : buildTargetPatch(originalActionType, originalTargetCollection, requestId, approver, metadata);
       if (patch) {
         transaction.update(targetRef, patch);
       }
@@ -439,7 +641,9 @@ async function approveActionRequest(
         );
       }
 
-      const afterSummary = patch
+      const afterSummary = listingResult
+        ? listingResult.after
+        : patch
         ? {
             ...summarizeDocument(beforeSnap.data()),
             ...Object.fromEntries(
@@ -458,7 +662,7 @@ async function approveActionRequest(
         executedBy: approver,
         executedAt: adminTimestamp(),
         executionError: null,
-        beforeSummary: summarizeDocument(beforeSnap.data()),
+        beforeSummary: listingResult ? listingResult.before : summarizeDocument(beforeSnap.data()),
         afterSummary,
         updatedAt: adminTimestamp(),
       };

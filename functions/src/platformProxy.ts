@@ -113,13 +113,17 @@ export const invokeMerchantModel = functions.https.onRequest(async (request, res
   const userRef = firestore.collection('users').doc(keyRecord.uid);
   const userId = keyRecord.uid;
   const offerQuery = await firestore.collection('apiOffers').where('modelName', '==', modelName).limit(5).get();
+  const modelNamesOfferQuery = offerQuery.empty
+    ? await firestore.collection('apiOffers').where('modelNames', 'array-contains', modelName).limit(5).get()
+    : null;
+  const offerDocs = offerQuery.empty ? modelNamesOfferQuery?.docs ?? [] : offerQuery.docs;
 
-  if (offerQuery.empty) {
+  if (offerDocs.length === 0) {
     sendJson(response, 404, { error: 'model_not_found' });
     return;
   }
 
-  const offerDoc = offerQuery.docs.find((item) => item.data().status === 'listed');
+  const offerDoc = offerDocs.find((item) => item.data().status === 'listed');
 
   if (!offerDoc) {
     sendJson(response, 404, { error: 'model_not_listed' });

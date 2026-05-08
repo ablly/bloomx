@@ -33,7 +33,7 @@ export interface Product {
     input_per_1k: number;
     output_per_1k: number;
   };
-  status: 'active' | 'inactive' | 'pending_test' | 'pending_review' | 'test_failed' | 'rejected';
+  status: 'active' | 'inactive' | 'pending_test' | 'pending_review' | 'test_failed' | 'rejected' | 'suspended';
   last_test_log_id?: string;
   rating: number;
   total_sales: number;

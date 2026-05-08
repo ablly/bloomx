@@ -7,7 +7,7 @@ This project stores the merchant marketplace, subscriptions, credits, and API ca
 - `users/{uid}`: user profile and credit balance.
 - `users/{uid}/api_keys/{keyId}`: hashed platform API key records.
 - `sellerProfiles/{uid}`: merchant registration profile for the logged-in user.
-- `apiOffers/{offerId}`: public marketplace listing data.
+- `apiOffers/{offerId}`: public runtime listing data created by admin product approval.
 - `merchantApiSecrets/{offerId}`: private merchant endpoint secret material.
 - `subscriptions/{subscriptionId}`: user subscriptions to merchant models.
 - `purchases/{purchaseId}` and `users/{uid}/purchases/{productId}`: subscription purchase records.
@@ -46,10 +46,11 @@ VITE_INVOKE_MERCHANT_MODEL_URL=
 4. Log in.
 5. Submit merchant registration.
 6. Upload an API offer.
-7. Subscribe to the listed model.
-8. Add credits.
-9. Call the subscribed model.
-10. Confirm Firebase contains the updated user wallet, API key record, subscription, ledger, seller earning, and call record.
+7. Approve the tested product in the admin console so it writes `apiOffers/{productId}`.
+8. Subscribe to the listed model.
+9. Add credits.
+10. Call the subscribed model.
+11. Confirm Firebase contains the updated user wallet, API key record, subscription, ledger, seller earning, offer, and call record.
 
 ## Security Notes
 
